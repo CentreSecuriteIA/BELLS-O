@@ -1,0 +1,26 @@
+[project]
+name = "bells-base"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "bells-o",
+]
+
+
+[tool.uv.sources]
+bells-o = { path = "src/bells_o", editable = true}
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+lint.select = ["E", "F", "I", "N", "W", "D", "C"]
+lint.ignore = ["E501", "D107", "D213"]
+# lint.ignore = ["D203", "D213", "E501", "D107", "D102", "N812", "N806"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["F401"]
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
