@@ -1,1 +1,0 @@
-# BELLS-O base repository
