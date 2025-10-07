@@ -1,6 +1,7 @@
 """Initialize submodule."""
 
-from preprocessing import PreProcessing
+from .preprocessing import PreProcessing
+from .role_wrapper import RoleWrapper
 
 
-__all__ = ["PreProcessing"]
+__all__ = ["PreProcessing, RoleWrapper"]

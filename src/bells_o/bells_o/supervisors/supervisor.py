@@ -15,19 +15,19 @@ class Supervisor(ABC):
 
     Attributes:
         name (str): Name of the supervisor.
-        map_fn (Callable): Function to map the output to a `Result` dict.
+        res_map_fn (Callable): Function to map the output to a `Result` dict.
         pre_processing (Optional[List[PreProcessing]]): List of PreProcessing techniques that should be applied.
 
     """
 
     name: str
     res_map_fn: Callable
-    pre_processing: list[PreProcessing] = []
+    pre_processing: list[PreProcessing] | None
 
     @abstractmethod
     def __post_init__(self):
         """Set up the rest of the supervisor. E.g. load the model from HuggingFace."""
-        pass
+        self.pre_processing = self.pre_processing or []
 
     def __call__(self, input, *args, **kwargs) -> Result:
         """Complete full judging process."""
@@ -45,7 +45,7 @@ class Supervisor(ABC):
         """
         pass
 
-    def pre_process(self, string):
+    def pre_process(self, message):
         """Apply all preprocessing steps.
 
         Concrete classes will likely need a tokenization equivalent implemented.

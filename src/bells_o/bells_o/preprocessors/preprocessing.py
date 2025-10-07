@@ -14,18 +14,18 @@ class PreProcessing(ABC):
         """Call `process` function of class.
 
         Args:
-            string (str): Text string to preprocess.
+            string (str|list): Message to preprocess.
             *args (Any): Any other arguments that concrete classes need.
             **kwargs (Any): Any other keyword arguments that concrete classes need.
 
         Returns:
-            str: Preprocessed string.
+            str|list: Preprocessed message.
 
         """
         return self.process(string, *args, **kwargs)
 
     @abstractmethod
-    def process(self, string, *args, **kwargs) -> str:
+    def process(self, string: str, *args, **kwargs) -> str:
         """Preprocess a given string.
 
         Args:
