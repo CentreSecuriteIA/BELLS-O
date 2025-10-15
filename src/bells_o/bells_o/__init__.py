@@ -1,3 +1,3 @@
 """Initialize package."""
 
-from .common import Result, UsageType
+from .common import Mapper, Result, Usage

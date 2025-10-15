@@ -1,8 +1,8 @@
 """Impose structure on Class structure."""
 
-from .huggingface import HuggingFaceSupervisor
+from .huggingface import AutoHuggingFaceSupervisor, HuggingFaceSupervisor
 from .rest import RestSupervisor
 from .supervisor import Supervisor
 
 
-__all__ = ["Supervisor, RestSupervisor, HuggingFaceSupervisor"]
+__all__ = ["Supervisor", "RestSupervisor", "HuggingFaceSupervisor", "AutoHuggingFaceSupervisor"]

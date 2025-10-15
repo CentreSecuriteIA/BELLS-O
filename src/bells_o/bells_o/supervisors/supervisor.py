@@ -2,9 +2,8 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Callable
 
-from bells_o.common import Result
+from bells_o.common import Mapper, Result, Usage
 from bells_o.preprocessors import PreProcessing
 
 
@@ -21,7 +20,8 @@ class Supervisor(ABC):
     """
 
     name: str
-    res_map_fn: Callable
+    usage: Usage
+    res_map_fn: Mapper
     pre_processing: list[PreProcessing] | None
 
     @abstractmethod
@@ -37,7 +37,7 @@ class Supervisor(ABC):
         return result
 
     @abstractmethod
-    def judge(self, *args, **kwargs):
+    def judge(self, *args, **kwargs) -> str:
         """Run one evaluation on the supervisor.
 
         Similar to `forward` in PyTorch, it expects prepped inputs s.t.
@@ -45,7 +45,7 @@ class Supervisor(ABC):
         """
         pass
 
-    def pre_process(self, message):
+    def pre_process(self, string):
         """Apply all preprocessing steps.
 
         Concrete classes will likely need a tokenization equivalent implemented.

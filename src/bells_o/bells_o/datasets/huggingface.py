@@ -14,7 +14,7 @@ class HuggingFaceDataset(Dataset):
     """Wrapper class for datasets accessed through the HuggingFace `datasets` package."""
 
     version_name: str | None = None
-    dataset_kwargs: dict[str, Any] | None = field(default_factory=dict)
+    dataset_kwargs: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         """Load the dataset from HuggingFace and translate it to the framework."""

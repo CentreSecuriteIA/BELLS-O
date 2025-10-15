@@ -1,4 +1,4 @@
-"""Implement the base class for HuggingFace-accessiblesible supersivor models."""
+"""Implement the base class for HuggingFace-accessible supersivor models."""
 
 from dataclasses import dataclass, field
 from typing import Any
@@ -11,6 +11,8 @@ from ..supervisor import Supervisor
 # TODO: Implement batching
 @dataclass
 class HuggingFaceSupervisor(Supervisor):
+    """A concrete class that enables loading any HuggingFace model as a supervisor."""
+
     apply_chat_template: bool
     model_kwargs: dict[str, Any] | None = field(default_factory=dict)
     tokenizer_kwargs: dict[str, Any] | None = field(default_factory=dict)

@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-from bells_o.common import UsageType
+from bells_o.common import Usage
 
 
 @dataclass
@@ -11,7 +11,7 @@ class Dataset(ABC):
     """Abstract DataLoader class."""
 
     name: str
-    usage: UsageType
+    usage: Usage
     samples: dict[str, list] | list = field(default_factory=list, init=False, repr=False)
 
     @abstractmethod

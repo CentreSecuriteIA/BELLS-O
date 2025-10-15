@@ -1,3 +1,5 @@
+"""Implement the wrapper to acommodate message dictionaries."""
+
 from typing import Literal
 
 from .preprocessing import PreProcessing
@@ -7,10 +9,16 @@ OPPOSITES = {"user": "assistant", "assistant": "user"}
 
 
 class RoleWrapper(PreProcessing):
+    """Implement the wrapper to acommodate message dictionaries.
+
+    Maps from string to message dictionary.
+
+    """
+
     def __init__(
         self,
         role: Literal["user", "assistant"] = "user",
-        system_prompt: str | None = None,
+        system_prompt: str = "",
         opposite_prompt: str | None = None,
         starts_with: Literal["user", "assistant"] = "user",
     ):
