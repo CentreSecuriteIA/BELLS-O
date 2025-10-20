@@ -1,10 +1,12 @@
 """Implement the base class for HuggingFace-accessible supersivor models."""
 
 from dataclasses import dataclass, field
+from time import time
 from typing import Any
 
 from transformers import AutoModelForCausalLM, AutoTokenizer, BatchEncoding
 
+from ...common import OutputDict
 from ..supervisor import Supervisor
 
 
@@ -34,7 +36,6 @@ class HuggingFaceSupervisor(Supervisor):
         if self.pre_processing:
             for pre_processor in self.pre_processing:
                 message = pre_processor(message)
-                print(f"DEBUG: {message}, {type(message)}")
         if self.apply_chat_template:
             assert isinstance(message, list), (
                 "If `apply_chat_template` is True, then use a `RoleWrapper` as the last pre-processor."
@@ -42,10 +43,9 @@ class HuggingFaceSupervisor(Supervisor):
             message = self._tokenizer.apply_chat_template(
                 message, tokenize=False, add_generation_prompt=True
             )  # TODO: make this customizable
-        print(f"DEBUG: {message}, {type(message)}")
         return self._tokenizer(message, return_tensors="pt")
 
-    def judge(self, input_ids: BatchEncoding) -> str:
+    def judge(self, input_ids: BatchEncoding) -> list[OutputDict]:
         """Run one evaluation on the supervisor model.
 
         Expects tokenized inputs
@@ -61,5 +61,15 @@ class HuggingFaceSupervisor(Supervisor):
             "Expected argument to not be None at this stage."
         )
         input_ids = input_ids.to(device=self._model.device)
-        output = self._model.generate(**input_ids, **self.generation_kwargs)
-        return self._tokenizer.batch_decode(output)
+        start_time = time()
+        outputs = self._model.generate(**input_ids, **self.generation_kwargs)
+        decoded_outputs: list[str] = self._tokenizer.batch_decode(outputs)
+        generation_time = start_time - time()
+        batch_size = len(input_ids)
+        return [
+            OutputDict(
+                raw_result=output,
+                metadata={"latency": generation_time, "batch_size": batch_size},
+            )
+            for output in decoded_outputs
+        ]

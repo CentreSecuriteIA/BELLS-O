@@ -1,3 +1,3 @@
 """Initialize package."""
 
-from .common import Mapper, Result, Usage
+from .common import JsonMapper, OutputDict, Result, Usage

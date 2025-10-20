@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from bells_o.common import Mapper, Result, Usage
+from bells_o.common import OutputDict, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
 
 
@@ -21,7 +21,7 @@ class Supervisor(ABC):
 
     name: str
     usage: Usage
-    res_map_fn: Mapper
+    res_map_fn: ResultMapper
     pre_processing: list[PreProcessing] | None
 
     @abstractmethod
@@ -29,15 +29,19 @@ class Supervisor(ABC):
         """Set up the rest of the supervisor. E.g. load the model from HuggingFace."""
         self.pre_processing = self.pre_processing or []
 
-    def __call__(self, input, *args, **kwargs) -> Result:
+    def __call__(self, inputs: list | str, *args, **kwargs) -> list[OutputDict]:
+        # TODO: decide if every public function should deal with list[str] vs str or only some
         """Complete full judging process."""
-        input = self.pre_process(input)
-        output = self.judge(input)
-        result = self.res_map_fn(output)
-        return result
+        if not isinstance(inputs, list):
+            inputs = [inputs]
+        inputs = [self.pre_process(input) for input in inputs]
+        outputs: list[OutputDict] = self.judge(inputs)
+        for output in outputs:
+            output["result"] = self.res_map_fn(output["raw_result"])
+        return outputs
 
     @abstractmethod
-    def judge(self, *args, **kwargs) -> str:
+    def judge(self, *args, **kwargs) -> list[OutputDict]:
         """Run one evaluation on the supervisor.
 
         Similar to `forward` in PyTorch, it expects prepped inputs s.t.

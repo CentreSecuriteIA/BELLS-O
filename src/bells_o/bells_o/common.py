@@ -1,6 +1,6 @@
 """Define common datatypes and classes."""
 
-from typing import Callable, NotRequired, Self, TypedDict
+from typing import Any, Callable, NotRequired, Self, TypedDict
 
 
 ### Usage Type definitions
@@ -42,6 +42,10 @@ class Usage:
         """Return a dict_values object of the usage types."""
         return self._usage_types.values()
 
+    def __iter__(self):
+        """Return iterator over supported usage types."""
+        return iter([k for k, v in self._usage_types.items() if v])
+
     def __getitem__(self, key: str) -> bool:
         """Return the boolean value representing if a certain usage is part of this UsageType.
 
@@ -68,12 +72,8 @@ class Usage:
         """Inverse of Usage.__eg__."""
         return not self.__eq__(other)
 
-    def __iter__(self):
-        """Return iterator over supported usage types."""
-        return iter([k for k, v in self._usage_types if v])
 
-
-### Result definitions
+### Typed dictionary definitions
 class Result(TypedDict):
     """Unifying class that holds a result."""
 
@@ -83,5 +83,14 @@ class Result(TypedDict):
     prompt_injection: NotRequired[float]
 
 
-### Mapper definitions
-Mapper = Callable[[str], Result]
+class OutputDict(TypedDict):
+    """Structured dictionary for type hinting `judge` outputs."""
+
+    result: NotRequired[Result]
+    raw_result: str | dict[str, str]
+    metadata: dict[str, Any]
+
+
+### Mapper type definitions
+ResultMapper = Callable[[str | dict[str, str]], Result]
+JsonMapper = Callable[[Any], dict[str, str]]

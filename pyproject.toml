@@ -13,6 +13,11 @@ dependencies = [
     "transformers>=4.57.0",
 ]
 
+[project.optional-dependencies]
+dev = ["ipykernel", "jupyter"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.uv.sources]
 bells-o = { path = "src/bells_o", editable = true}

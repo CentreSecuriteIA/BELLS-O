@@ -2,9 +2,9 @@
 
 from typing import Any
 
-from ....common import Mapper, Usage
-from ....mappers import xguard_mapper
+from ....common import ResultMapper, Usage
 from ....preprocessors import PreProcessing, RoleWrapper
+from ....resultmappers import xguard_mapper
 from ..custom_model import HuggingFaceSupervisor
 
 
@@ -20,7 +20,7 @@ class XGuardSupervisor(HuggingFaceSupervisor):
     ):
         self.name: str = "saillab/x-guard"
         self.usage: Usage = Usage("content_moderation")
-        self.res_map_fn: Mapper = xguard_mapper
+        self.res_map_fn: ResultMapper = xguard_mapper
         self.apply_chat_template = True
         pre_processing.append(RoleWrapper("user", opposite_prompt="\n <think>"))
         self.pre_processing = pre_processing

@@ -37,7 +37,6 @@ class RoleWrapper(PreProcessing):
             list: Wrapped string.
 
         """
-        print(f"DEBUG: {string}, {type(string)}")
         message_list = []
         if self.system_prompt is not None:
             message_list.append({"role": "system", "content": self.system_prompt})
