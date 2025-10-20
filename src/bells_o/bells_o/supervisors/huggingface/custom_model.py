@@ -6,11 +6,10 @@ from typing import Any
 
 from transformers import AutoModelForCausalLM, AutoTokenizer, BatchEncoding
 
-from ...common import OutputDict
-from ..supervisor import Supervisor
+from bells_o.common import OutputDict
+from bells_o.supervisors import Supervisor
 
 
-# TODO: Implement batching
 @dataclass
 class HuggingFaceSupervisor(Supervisor):
     """A concrete class that enables loading any HuggingFace model as a supervisor."""

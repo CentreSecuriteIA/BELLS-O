@@ -1,6 +1,6 @@
 """Implement the payload mapper for LakeraGuard."""
 
-from ..custom_endpoint import RestSupervisor
+from bells_o.supervisors import RestSupervisor
 
 
 def mapper(prompt: str, supervisor: RestSupervisor) -> dict[str, str]:

@@ -3,7 +3,7 @@
 from re import findall
 from typing import overload
 
-from ..common import Result
+from bells_o.common import Result
 
 
 @overload

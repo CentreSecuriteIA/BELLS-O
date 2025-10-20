@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from .preprocessing import PreProcessing
+from bells_o.preprocessors import PreProcessing
 
 
 OPPOSITES = {"user": "assistant", "assistant": "user"}

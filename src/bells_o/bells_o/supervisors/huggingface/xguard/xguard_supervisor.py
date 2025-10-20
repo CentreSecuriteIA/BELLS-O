@@ -2,10 +2,10 @@
 
 from typing import Any
 
-from ....common import ResultMapper, Usage
-from ....preprocessors import PreProcessing, RoleWrapper
-from ....resultmappers import xguard_mapper
-from ..custom_model import HuggingFaceSupervisor
+from bells_o.common import ResultMapper, Usage
+from bells_o.preprocessors import PreProcessing, RoleWrapper
+from bells_o.resultmappers import xguard_mapper
+from bells_o.supervisors import HuggingFaceSupervisor
 
 
 class XGuardSupervisor(HuggingFaceSupervisor):

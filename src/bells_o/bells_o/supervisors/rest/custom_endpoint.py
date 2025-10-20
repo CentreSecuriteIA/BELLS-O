@@ -8,8 +8,8 @@ from time import time
 
 from requests import post
 
-from ...common import JsonMapper, OutputDict
-from ..supervisor import Supervisor
+from bells_o.common import JsonMapper, OutputDict
+from bells_o.supervisors import Supervisor
 
 
 @dataclass(kw_only=True)

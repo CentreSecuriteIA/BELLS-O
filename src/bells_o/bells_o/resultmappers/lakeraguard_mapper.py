@@ -2,7 +2,7 @@
 
 from typing import Any, overload
 
-from ..common import Result, Usage
+from bells_o.common import Result, Usage
 
 
 @overload

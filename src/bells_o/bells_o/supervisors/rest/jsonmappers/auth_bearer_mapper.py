@@ -1,6 +1,6 @@
 """Implement the authentication mapper for the bearer method."""
 
-from ..custom_endpoint import RestSupervisor
+from bells_o.supervisors import RestSupervisor
 
 
 def mapper(supervisor: RestSupervisor) -> dict[str, str]:
