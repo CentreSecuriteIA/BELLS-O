@@ -6,7 +6,7 @@ from typing import Any
 from datasets import Dataset as HF_Dataset
 from datasets import DatasetDict, load_dataset
 
-from .dataset import Dataset
+from bells_o.datasets import Dataset
 
 
 @dataclass

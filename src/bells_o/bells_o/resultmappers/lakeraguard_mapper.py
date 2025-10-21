@@ -6,11 +6,11 @@ from bells_o.common import Result, Usage
 
 
 @overload
-def mapper(output: str) -> Result: ...
+def mapper(output: dict[str, str], usage: Usage) -> Result: ...
 
 
 @overload
-def mapper(output: list[str]) -> list[Result]: ...
+def mapper(output: list[dict[str, Any]], usage: Usage) -> list[Result]: ...
 
 
 def mapper(output: dict[str, str] | list[dict[str, Any]], usage: Usage) -> Result | list[Result]:

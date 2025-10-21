@@ -4,8 +4,9 @@ from typing import Any
 
 from bells_o.common import ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing, RoleWrapper
-from bells_o.resultmappers import xguard_mapper
-from bells_o.supervisors import HuggingFaceSupervisor
+from bells_o.resultmappers import xguard as xguard_result_map
+
+from ..custom_model import HuggingFaceSupervisor
 
 
 class XGuardSupervisor(HuggingFaceSupervisor):
@@ -20,7 +21,7 @@ class XGuardSupervisor(HuggingFaceSupervisor):
     ):
         self.name: str = "saillab/x-guard"
         self.usage: Usage = Usage("content_moderation")
-        self.res_map_fn: ResultMapper = xguard_mapper
+        self.res_map_fn: ResultMapper = xguard_result_map
         self.apply_chat_template = True
         pre_processing.append(RoleWrapper("user", opposite_prompt="\n <think>"))
         self.pre_processing = pre_processing

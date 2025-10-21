@@ -9,7 +9,8 @@ from time import time
 from requests import post
 
 from bells_o.common import JsonMapper, OutputDict
-from bells_o.supervisors import Supervisor
+
+from ..supervisor import Supervisor
 
 
 @dataclass(kw_only=True)
@@ -26,15 +27,12 @@ class RestSupervisor(Supervisor):
 
     def __post_init__(self):
         """Load the model and tokenizer from HuggingFace."""
-        if not self.api_key:
-            assert self.api_variable, (
-                "You have to specify either the environment variabe in which the API key can be found (`api_variable`), or the API key itself (`api_key`)."
-            )
-
-        self._api_key = self.api_key if self.api_key else None
-
         self._api_variable = self.api_variable
+        assert self.api_key, (
+            "You have to specify either the environment variabe in which the API key can be found (`api_variable`), or the API key itself (`api_key`)."
+        )
         del self.api_variable
+        super().__post_init__()
 
     @property
     def api_key(self):  # noqa: F811
@@ -42,7 +40,7 @@ class RestSupervisor(Supervisor):
         return self._api_key or getenv(self._api_variable)  # type: ignore
 
     @api_key.setter
-    def api_key(self, value: str):
+    def api_key(self, value: str | None):
         self._api_key = value
 
     def metadata(self, return_date: bool = False) -> dict[str, str]:

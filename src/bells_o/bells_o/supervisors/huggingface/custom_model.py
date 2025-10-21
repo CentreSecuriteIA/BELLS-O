@@ -7,7 +7,8 @@ from typing import Any
 from transformers import AutoModelForCausalLM, AutoTokenizer, BatchEncoding
 
 from bells_o.common import OutputDict
-from bells_o.supervisors import Supervisor
+
+from ..supervisor import Supervisor
 
 
 @dataclass
