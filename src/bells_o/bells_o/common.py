@@ -90,10 +90,11 @@ class Result(TypedDict):
 class OutputDict(TypedDict):
     """Structured dictionary for type hinting `judge` outputs."""
 
-    output_result: NotRequired[Result]
-    target_result: NotRequired[Result]
     output_raw: str | dict[str, str]
     metadata: dict[str, Any]
+    output_result: NotRequired[Result]
+    target_result: NotRequired[Result]
+    is_correct: NotRequired[bool]
 
 
 ### Mapper type definitions
