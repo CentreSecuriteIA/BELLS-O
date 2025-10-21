@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import Any
 
 from bells_o.common import OutputDict, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
@@ -37,8 +38,24 @@ class Supervisor(ABC):
         inputs = [self.pre_process(input) for input in inputs]
         outputs: list[OutputDict] = self.judge(inputs)
         for output in outputs:
-            output["result"] = self.res_map_fn(output["raw_result"])
+            output["output_result"] = self.res_map_fn(output["output_raw"])
         return outputs
+
+    def metadata(self) -> dict[str, Any]:
+        """Return metadata dictionary for this Supervisor.
+
+        Returns:
+            dict: Dictionary with metadata.
+
+        """
+        metadata = {
+            "provider": getattr(self, "provider_name", "Unknown"),
+            "model": getattr(self, "name", "Unknown"),
+            "usage": repr(self.usage),
+            "supervisor_type": self.__class__.__name__,
+        }
+
+        return metadata
 
     @abstractmethod
     def judge(self, *args, **kwargs) -> list[OutputDict]:

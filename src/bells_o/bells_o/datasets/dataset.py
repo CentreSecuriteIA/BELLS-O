@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from typing import Callable, overload
 
 from bells_o.common import Usage
 
@@ -12,6 +13,7 @@ class Dataset(ABC):
 
     name: str
     usage: Usage
+    target_map_fn: Callable | None = field(default=None, init=False)
     samples: dict[str, list] | list = field(default_factory=list, init=False, repr=False)
 
     @abstractmethod
@@ -19,8 +21,9 @@ class Dataset(ABC):
         """Load the dataset from e.g. HuggingFace, or local directories."""
         pass
 
+    # TODO Implement metadata
+
     def __iter__(self):
-        # TODO: Check if this works as intended
         for i in range(len(self)):
             yield self[i]
 
@@ -38,7 +41,13 @@ class Dataset(ABC):
             length += len(ls)
         return length
 
-    def __getitem__(self, value: str | int | slice):
+    @overload
+    def __getitem__(self, value: str | slice) -> list[dict[str, str]]: ...
+
+    @overload
+    def __getitem__(self, value: int) -> dict[str, str]: ...
+
+    def __getitem__(self, value: str | int | slice) -> list[dict[str, str]] | dict[str, str]:
         """Return the requested data entry.
 
         If data contains splits but `value` is an integer,

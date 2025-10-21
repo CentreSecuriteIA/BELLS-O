@@ -19,6 +19,7 @@ class HuggingFaceSupervisor(Supervisor):
     model_kwargs: dict[str, Any] | None = field(default_factory=dict)
     tokenizer_kwargs: dict[str, Any] | None = field(default_factory=dict)
     generation_kwargs: dict[str, Any] | None = field(default_factory=dict)
+    provider_name: str | None = None
 
     def __post_init__(self):
         """Load the model and tokenizer from HuggingFace."""
@@ -27,6 +28,22 @@ class HuggingFaceSupervisor(Supervisor):
         )
         self._model = AutoModelForCausalLM.from_pretrained(self.name, **self.model_kwargs)
         self._tokenizer = AutoTokenizer.from_pretrained(self.name, **self.tokenizer_kwargs)
+
+    def metadata(self) -> dict[str, Any]:
+        """Return metadata dictionary for this Supervisor.
+
+        Returns:
+            dict: Dictionary with metadata.
+
+        """
+        metadata = super().metadata()
+        if self.generation_kwargs is not None:
+            metadata["generation_kwargs"] = self.generation_kwargs
+        if self.model_kwargs is not None:
+            metadata["model_kwargs"] = self.model_kwargs
+        if self.tokenizer_kwargs is not None:
+            metadata["tokenizer_kwargs"] = self.tokenizer_kwargs
+        return metadata
 
     def pre_process(self, message: str):
         """Apply all preprocessing steps.
@@ -68,7 +85,7 @@ class HuggingFaceSupervisor(Supervisor):
         batch_size = len(input_ids)
         return [
             OutputDict(
-                raw_result=output,
+                output_raw=output,
                 metadata={"latency": generation_time, "batch_size": batch_size},
             )
             for output in decoded_outputs

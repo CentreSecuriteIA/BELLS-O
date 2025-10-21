@@ -90,8 +90,9 @@ class Result(TypedDict):
 class OutputDict(TypedDict):
     """Structured dictionary for type hinting `judge` outputs."""
 
-    result: NotRequired[Result]
-    raw_result: str | dict[str, str]
+    output_result: NotRequired[Result]
+    target_result: NotRequired[Result]
+    output_raw: str | dict[str, str]
     metadata: dict[str, Any]
 
 

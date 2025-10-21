@@ -2,9 +2,9 @@
 
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from datetime import datetime
 from os import getenv
 from time import time
+from typing import Any
 
 from requests import post
 
@@ -23,7 +23,6 @@ class RestSupervisor(Supervisor):
     api_key: str | None = None  # type: ignore
     api_variable: str | None = None
     provider_name: str | None = None
-    model_name: str | None = None
     needs_api: bool = True
 
     def __post_init__(self):
@@ -44,26 +43,15 @@ class RestSupervisor(Supervisor):
     def api_key(self, value: str | None):
         self._api_key = value
 
-    def metadata(self, return_date: bool = False) -> dict[str, str]:
+    def metadata(self) -> dict[str, Any]:
         """Return metadata dictionary for this Supervisor.
-
-        Args:
-            return_date (bool): If the current time should be returned.
 
         Returns:
             dict: Dictionary with metadata.
 
         """
-        metadata = {
-            "provider": getattr(self, "provider_name", "Unknown"),
-            "model": getattr(self, "model_name", "Unknown"),
-            "usage": repr(self.usage),
-        }
-
-        if return_date:
-            date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            metadata["date"] = date
-
+        metadata = super().metadata()
+        metadata["url"] = self.base_url
         return metadata
 
     def _judge_sample(self, prompt: str) -> OutputDict:
@@ -82,7 +70,7 @@ class RestSupervisor(Supervisor):
         )
         generation_time = time() - start_time
 
-        return OutputDict(raw_result=response.json(), metadata={"latency": generation_time})
+        return OutputDict(output_raw=response.json(), metadata={"latency": generation_time})
 
     def judge(self, prompts: list[str] | str) -> list[OutputDict]:
         """Evaluate a batch of prompts simultaneously.
