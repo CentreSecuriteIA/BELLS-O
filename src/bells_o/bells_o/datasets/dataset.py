@@ -19,8 +19,16 @@ class Dataset(ABC):
         """Load the dataset from e.g. HuggingFace, or local directories."""
         pass
 
-    def __iter__(self) -> dict | list:
-        return self.samples
+    def __iter__(self):
+        # TODO: Check if this works as intended
+        for i in range(len(self)):
+            yield self[i]
+
+    def splits(self):
+        """Return a list of the splits."""
+        if isinstance(self.samples, dict):
+            return self.samples.keys()
+        return None
 
     def __len__(self) -> int:
         if isinstance(self.samples, list):
@@ -30,14 +38,14 @@ class Dataset(ABC):
             length += len(ls)
         return length
 
-    def __getitem__(self, value):
+    def __getitem__(self, value: str | int | slice):
         """Return the requested data entry.
 
         If data contains splits but `value` is an integer,
         return the entry at position `value` if all splits were appended.
 
         """
-        assert isinstance(value, (str, int)), "Index has to be string or int."
+        assert isinstance(value, (str, int, slice)), "Index has to be string int, or slice."
         # check string eligibility for list/dict
         if isinstance(value, str):
             if isinstance(self.samples, dict):
@@ -45,24 +53,37 @@ class Dataset(ABC):
             raise IndexError(
                 "The loaded dataset does not have any splits. Please index using integers."
             )
-        # from this point on type(value) is int
-        if value >= len(self):
-            raise IndexError("Index out of bounds.")
-        # from this point on value < len(self)
-
+        # from this point on value is int or slice
         if isinstance(self.samples, list):
+            # can index or slice directly
             return self.samples[value]
-        # from this point on type(self.sample) is dict
 
-        # if there are splits, index with integer trough whole dataset
-        split_keys = list(self.samples.keys())
-        split_cuts = self._split_cuts()
-        for i, cut in enumerate(split_cuts):
-            if value <= cut:
-                return self.samples[split_keys[i]][cut - value]
+        # from this point on self.samples is dict
+        if isinstance(value, int):
+            while value < 0:  # negative index case
+                value += len(self)
+            if not (0 <= value < len(self)):
+                raise IndexError("Index out of bounds.")
 
-        # from this point on, value is in last split
-        return self.samples[split_keys[-1]][split_cuts[-1] - value]
+            # index with integer trough all splits
+            split_keys = list(self.samples.keys())
+            split_starts = self._split_starts()
+            for i, start in enumerate(split_starts):
+                if value < start:
+                    # if the current start is beyond the value,
+                    # then return value offset by the previous start of the previous list.
+                    return self.samples[split_keys[i - 1]][value - split_starts[i - 1]]
+
+            # from this point on, value is in last split
+            return self.samples[split_keys[-1]][split_starts[-1] - value]
+
+        if isinstance(value, slice):
+            # translate slice into indices
+            start, stop, step = value.indices(len(self))
+            indices = list(range(start, stop, step))
+
+            # use self[int] from slice indices
+            return [self[index] for index in indices]
 
     def _split_lengths(self) -> list:
         """Return list of split lengths."""
@@ -70,7 +91,7 @@ class Dataset(ABC):
             return [len(self)]
         return [len(ls) for ls in self.samples.values()]
 
-    def _split_cuts(self) -> list:
+    def _split_starts(self) -> list:
         """Return list of indeces at which the split would begin when considering the dataset as a consecutive whole.
 
         E.g. for split_lengths = [3,5,2], return [0,3,8].

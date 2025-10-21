@@ -42,6 +42,10 @@ class Usage:
         """Return a dict_values object of the usage types."""
         return self._usage_types.values()
 
+    def keys(self):
+        """Return a list of the supported usage types."""
+        return [k for k, v in self._usage_types.items() if v]
+
     def __iter__(self):
         """Return iterator over supported usage types."""
         return iter([k for k, v in self._usage_types.items() if v])

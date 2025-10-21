@@ -24,11 +24,12 @@ class RestSupervisor(Supervisor):
     api_variable: str | None = None
     provider_name: str | None = None
     model_name: str | None = None
+    needs_api: bool = True
 
     def __post_init__(self):
         """Load the model and tokenizer from HuggingFace."""
         self._api_variable = self.api_variable
-        assert self.api_key, (
+        assert not self.needs_api or self.api_key, (
             "You have to specify either the environment variabe in which the API key can be found (`api_variable`), or the API key itself (`api_key`)."
         )
         del self.api_variable

@@ -18,6 +18,13 @@ class HuggingFaceDataset(Dataset):
 
     def __post_init__(self):
         """Load the dataset from HuggingFace and translate it to the framework."""
+        if "download_config" in self.dataset_kwargs:
+            download_config = self.dataset_kwargs["download_config"]
+            if isinstance(download_config, dict):
+                from datasets import DownloadConfig
+
+                self.dataset_kwargs["download_config"] = DownloadConfig(**download_config)
+
         if self.version_name:
             dataset = load_dataset(self.name, self.version_name, **self.dataset_kwargs)
         else:
