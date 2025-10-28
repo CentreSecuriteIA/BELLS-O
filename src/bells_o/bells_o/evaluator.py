@@ -57,12 +57,12 @@ class Evaluator:
         """Run an evaluation on specified indices."""
         verbose = verbose or self.verbose
         if run_id is None:
-            run_id = str(uuid4())
+            run_id = str(uuid4())[:8]
         if run_id in self.runs:
             # log generation new run_id
             while run_id in self.runs:
-                run_id = str(uuid4())
-        self.runs[run_id] = RunDict(results=[], metadata={"started_at": _now()})
+                run_id = str(uuid4())[:8]
+        self.runs[run_id] = RunDict(results=[], metadata={"run_id": run_id, "started_at": _now()})
 
         if indices is None:
             indices = list(range(len(self.dataset)))
@@ -94,8 +94,9 @@ class Evaluator:
 
             # add metadata if requested
             if self.metadata:
-                result_dict["metadata"]["prompt"] = prompt
                 result_dict["metadata"]["date"] = _now()
+                result_dict["metadata"]["prompt"] = prompt
+                result_dict["metadata"]["target"] = target
             self.runs[run_id]["results"].append(result_dict)
 
         if self.metadata:
@@ -118,4 +119,4 @@ class Evaluator:
         save_dir.mkdir(parents=True, exist_ok=True)
         for run_id, run in self.runs.items():
             with open((save_dir / run_id).with_suffix(".json"), "w") as f:  # TODO : fix this
-                f.write(json.dumps(run))
+                f.write(json.dumps(run, indent=2))

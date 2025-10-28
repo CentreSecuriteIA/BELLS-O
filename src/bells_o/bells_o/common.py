@@ -1,13 +1,24 @@
 """Define common datatypes and classes."""
 
-from typing import Any, Callable, NotRequired, Self, TypedDict
+from typing import Any, Callable, NotRequired, Self, TypedDict, Unpack
 
 
 ### Usage Type definitions
 USAGE_TYPES = ["JAILBREAK", "PROMPT_INJECTION", "CONTENT_MODERATION", "GENERAL"]
+
+
+class UsageKwargs(TypedDict):
+    """Type hinting class."""
+
+    jailbreak: NotRequired[bool]
+    prompt_injection: NotRequired[bool]
+    content_moderation: NotRequired[bool]
+
+
 # TODO: agree on usage types (e.g. General, jailbreak, etc.)
 
 # TODO: switch to collections.abc.callable instead of typing.callable
+# TODO: make boolean usage type parent class from which Usage and Result inherit (because they have multiple identical dunders)
 
 
 class Usage:
@@ -52,6 +63,9 @@ class Usage:
         """Return iterator over supported usage types."""
         return iter([k for k, v in self._usage_types.items() if v])
 
+    def __repr__(self):
+        return repr(self._usage_types)
+
     def __getitem__(self, key: str) -> bool:
         """Return the boolean value representing if a certain usage is part of this UsageType.
 
@@ -60,6 +74,16 @@ class Usage:
 
         """
         return self._usage_types[key]
+
+    def __setitem__(self, key: str, value: bool) -> None:
+        """Set the boolean value representing if a certain usage is part of this UsageType.
+
+        Args:
+            key (str): the name of the usage to be checked.
+            value (bool): the value.
+
+        """
+        self._usage_types[key] = value
 
     def __eq__(self, other: Self) -> bool:
         """Implement usage1 == usage2.
@@ -80,13 +104,24 @@ class Usage:
 
 
 ### Typed dictionary definitions
-class Result(TypedDict):
+class Result(dict):
     """Unifying class that holds a result."""
 
-    # just example types, have to agree on final list
-    jailbreak: NotRequired[float]
-    content_moderation: NotRequired[float]
-    prompt_injection: NotRequired[float]
+    def __init__(self, **kwargs: Unpack[UsageKwargs]):
+        super().__init__(**kwargs)
+
+    def __eq__(self, other: Self):
+        assert isinstance(other, type(self))
+        # for proper comparison, one has to be a subset of the other
+        keys_self = list(self.keys())
+        keys_other = list(other.keys())
+        is_subset = all(key in keys_self for key in keys_other) or all(
+            key in keys_other for key in keys_self
+        )
+        if is_subset:
+            smallest_key_set = min(keys_self, keys_other, key=len)
+            return all(self[key] == other[key] for key in smallest_key_set)
+        return False
 
 
 class OutputDict(TypedDict):

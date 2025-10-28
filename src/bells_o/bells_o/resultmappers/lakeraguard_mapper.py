@@ -29,10 +29,10 @@ def mapper(output: dict[str, str] | list[dict[str, Any]], usage: Usage) -> Resul
         for flagged in labels:
             result = Result()
             for usage_type in usage:
-                result[usage_type] = 1.0 if not flagged else 0.0
+                result[usage_type] = 1.0 if flagged else 0.0
         return results
     else:
         result = Result()
         for usage_type in usage:
-            result[usage_type] = 1.0 if not output["flagged"] else 0.0
+            result[usage_type] = 1.0 if output["flagged"] else 0.0
         return result

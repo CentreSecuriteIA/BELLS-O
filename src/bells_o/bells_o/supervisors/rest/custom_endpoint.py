@@ -21,17 +21,15 @@ class RestSupervisor(Supervisor):
     req_map_fn: JsonMapper
     auth_map_fn: JsonMapper  # type: ignore
     api_key: str | None = None  # type: ignore
-    api_variable: str | None = None
+    api_variable: str | None = None  # type: ignore
     provider_name: str | None = None
     needs_api: bool = True
 
     def __post_init__(self):
         """Load the model and tokenizer from HuggingFace."""
-        self._api_variable = self.api_variable
         assert not self.needs_api or self.api_key, (
             "You have to specify either the environment variabe in which the API key can be found (`api_variable`), or the API key itself (`api_key`)."
         )
-        del self.api_variable
         super().__post_init__()
 
     @property
@@ -42,6 +40,15 @@ class RestSupervisor(Supervisor):
     @api_key.setter
     def api_key(self, value: str | None):
         self._api_key = value
+
+    @property
+    def api_variable(self):  # noqa: F811
+        """Return the environment variable set for the API key set for this supervisor."""
+        return self._api_variable
+
+    @api_variable.setter
+    def api_variable(self, value: str | None):
+        self._api_variable = value
 
     def metadata(self) -> dict[str, Any]:
         """Return metadata dictionary for this Supervisor.
