@@ -7,6 +7,8 @@ from typing import Any, Callable, NotRequired, Self, TypedDict
 USAGE_TYPES = ["JAILBREAK", "PROMPT_INJECTION", "CONTENT_MODERATION", "GENERAL"]
 # TODO: agree on usage types (e.g. General, jailbreak, etc.)
 
+# TODO: switch to collections.abc.callable instead of typing.callable
+
 
 class Usage:
     """Unifying class that acts as a usage type switch."""
@@ -97,6 +99,6 @@ class OutputDict(TypedDict):
     is_correct: NotRequired[bool]
 
 
-### Mapper type definitions
-ResultMapper = Callable[[str | dict[str, str]], Result]
-JsonMapper = Callable[[Any], dict[str, str]]
+### Mapper type definitions TODO: decide if this is fine (using `type` limits to python 3.12+)
+type ResultMapper = Callable[[str | dict[str, str]], Result]
+type JsonMapper = Callable[[Any], dict[str, str]]

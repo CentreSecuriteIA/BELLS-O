@@ -2,7 +2,8 @@
 
 from functools import partial
 
-from bells_o import JsonMapper, PreProcessing, ResultMapper, Usage
+from bells_o.common import JsonMapper, ResultMapper, Usage
+from bells_o.preprocessors import PreProcessing
 from bells_o.resultmappers import lakeraguard as lakera_result_map
 from bells_o.supervisors.rest.auth_mappers import auth_bearer as auth_map
 from bells_o.supervisors.rest.requestmappers import lakeraguard as lakera_request_map

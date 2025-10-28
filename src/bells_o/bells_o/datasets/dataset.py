@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Callable, overload
+from typing import Any, Callable, overload
 
 from bells_o.common import Usage
 
@@ -13,12 +13,15 @@ class Dataset(ABC):
 
     name: str
     usage: Usage
-    target_map_fn: Callable | None = field(default=None, init=False)
-    samples: dict[str, list] | list = field(default_factory=list, init=False, repr=False)
+    target_map_fn: Callable | None = field(default=None)
+    filters: dict[str, list[Any]] | None = field(default_factory=dict)
+    samples: dict[str, list[dict[str, str]]] | list[dict[str, str]] = field(
+        default_factory=list, init=False, repr=False
+    )
 
     @abstractmethod
     def __post_init__(self):
-        """Load the dataset from e.g. HuggingFace, or local directories."""
+        """Load the dataset from e.g. HuggingFace, or local directories. Must enable filtering."""
         pass
 
     # TODO Implement metadata
@@ -27,11 +30,31 @@ class Dataset(ABC):
         for i in range(len(self)):
             yield self[i]
 
-    def splits(self):
+    def splits(self) -> list[str]:
         """Return a list of the splits."""
         if isinstance(self.samples, dict):
-            return self.samples.keys()
-        return None
+            return list(self.samples.keys())
+        return []
+
+    def filter(self, filters: dict[str, list[Any]] | None = None):
+        def _filter_list(l: list[dict[str, str]], filters: dict[str, list[Any]]):
+            """Filter a list in-place for given filters.
+
+            Filters are of shape {attribute: [allowed values]}.
+            """
+            l[:] = [
+                sample
+                for sample in l
+                if all(sample[attribute] in values for attribute, values in filters.items())
+            ]
+
+        filt = filters or self.filters
+        if filt is not None:
+            if isinstance(self.samples, dict):
+                for split in self.splits():
+                    _filter_list(self.samples[split], filt)
+            else:
+                _filter_list(self.samples, filt)
 
     def __len__(self) -> int:
         if isinstance(self.samples, list):

@@ -4,10 +4,12 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Type, TypedDict
+from typing import Any, Type, TypedDict
 from uuid import uuid4
 
-from bells_o import Dataset, OutputDict, Supervisor
+from bells_o.common import OutputDict
+from bells_o.datasets import Dataset
+from bells_o.supervisors import Supervisor
 
 
 class DatasetConfig(TypedDict):
@@ -36,20 +38,24 @@ def _now():
 class Evaluator:
     dataset_config: DatasetConfig
     supervisor_config: SupervisorConfig
-    target_map_fn: Callable
     metadata: bool = True  # TODO: customize metadata, e.g. only model data, prompt, date, etc.
+    verbose: bool = False
     save_dir: str | Path | None = None
 
     def __post_init__(self):
         """Load the dataset and supervisor."""
         self.dataset = self.dataset_config["type"](**self.dataset_config["kwargs"])
+        assert self.dataset.target_map_fn is not None, (
+            "Need `targer_map_fn` to be specified for dataset."
+        )
         self.supervisor = self.supervisor_config["type"](**self.supervisor_config["kwargs"])
         self.runs: dict[str, RunDict] = {}
         if isinstance(self.save_dir, str):
             self.save_dir = Path(self.save_dir)
 
-    def run(self, indices: list[int] | None = None, run_id: str | None = None):
+    def run(self, indices: list[int] | None = None, run_id: str | None = None, verbose=False):
         """Run an evaluation on specified indices."""
+        verbose = verbose or self.verbose
         if run_id is None:
             run_id = str(uuid4())
         if run_id in self.runs:
@@ -60,14 +66,27 @@ class Evaluator:
 
         if indices is None:
             indices = list(range(len(self.dataset)))
-        for index in indices:
+
+        assert indices
+        if verbose:
+            from tqdm import tqdm
+
+            iterator = tqdm(indices, desc="Processing")
+        else:
+            iterator = iter(indices)
+
+        for index in iterator:
             sample: dict[str, str] = self.dataset[index]
             prompt = sample[self.dataset_config["input_column"]]
             target = sample[self.dataset_config["target_column"]]
 
             # run inference
             result_dict = self.supervisor(prompt)[0]
-            result_dict["target_result"] = self.target_map_fn(target)
+
+            assert self.dataset.target_map_fn is not None, (
+                "Need `targer_map_fn` to be specified for dataset."
+            )
+            result_dict["target_result"] = self.dataset.target_map_fn(target)
 
             # check output against target
             assert "output_result" in result_dict
@@ -84,6 +103,7 @@ class Evaluator:
             self.runs[run_id]["metadata"]["num_prompts"] = len(indices)
             self.runs[run_id]["metadata"]["supervisor"] = self.supervisor.metadata()
         # TODO: add dataset metadata
+        # TODO:
 
     def save_runs(self, save_dir: str | Path | None = None):
         """Save all current runs to disk.
@@ -97,5 +117,5 @@ class Evaluator:
         assert isinstance(save_dir, Path)
         save_dir.mkdir(parents=True, exist_ok=True)
         for run_id, run in self.runs.items():
-            with open(save_dir / run_id / ".json", "w") as f:
+            with open((save_dir / run_id).with_suffix(".json"), "w") as f:  # TODO : fix this
                 f.write(json.dumps(run))

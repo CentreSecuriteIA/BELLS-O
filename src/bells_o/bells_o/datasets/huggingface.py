@@ -36,3 +36,5 @@ class HuggingFaceDataset(Dataset):
         else:  # Single split
             assert isinstance(dataset, HF_Dataset)
             self.samples = dataset.to_list()
+        if self.filters:
+            self.filter(self.filters)

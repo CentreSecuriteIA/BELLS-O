@@ -15,7 +15,6 @@ from ..supervisor import Supervisor
 class HuggingFaceSupervisor(Supervisor):
     """A concrete class that enables loading any HuggingFace model as a supervisor."""
 
-    apply_chat_template: bool
     model_kwargs: dict[str, Any] | None = field(default_factory=dict)
     tokenizer_kwargs: dict[str, Any] | None = field(default_factory=dict)
     generation_kwargs: dict[str, Any] | None = field(default_factory=dict)
@@ -53,13 +52,13 @@ class HuggingFaceSupervisor(Supervisor):
         if self.pre_processing:
             for pre_processor in self.pre_processing:
                 message = pre_processor(message)
-        if self.apply_chat_template:
+        if self._tokenizer.chat_template is not None:
             assert isinstance(message, list), (
-                "If `apply_chat_template` is True, then use a `RoleWrapper` as the last pre-processor."
+                "If `tokenizer.chat_template` is not None, then use a `RoleWrapper` as the last pre-processor."
             )
             message = self._tokenizer.apply_chat_template(
                 message, tokenize=False, add_generation_prompt=True
-            )  # TODO: make this customizable
+            )  # TODO the kwargs of apply_chat_template
         return self._tokenizer(message, return_tensors="pt")
 
     def judge(self, input_ids: BatchEncoding) -> list[OutputDict]:

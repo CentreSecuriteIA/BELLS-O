@@ -7,6 +7,7 @@ from bells_o import PreProcessing, Usage
 from .custom_endpoint import RestSupervisor
 from .lakeraguard import LakeraGuardDefaultSupervisor, LakeraGuardSupervisor
 
+# TODO: think about using NewType to have the supervisors be different types
 class AutoRestSupervisor:
     @overload
     @classmethod

@@ -22,7 +22,6 @@ class XGuardSupervisor(HuggingFaceSupervisor):
         self.name: str = "saillab/x-guard"
         self.usage: Usage = Usage("content_moderation")
         self.res_map_fn: ResultMapper = xguard_result_map
-        self.apply_chat_template = True
         pre_processing.append(RoleWrapper("user", opposite_prompt="\n <think>"))
         self.pre_processing = pre_processing
         self.model_kwargs = model_kwargs
