@@ -1,6 +1,7 @@
 """Implement the pre-configured saillab/x-guard supervisor from HuggingFace."""
 
 from functools import partial
+from typing import cast
 
 from bells_o.common import JsonMapper, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
@@ -9,9 +10,6 @@ from bells_o.supervisors.rest.auth_mappers import auth_bearer as auth_map
 from bells_o.supervisors.rest.requestmappers import lakeraguard as lakera_request_map
 
 from ..custom_endpoint import RestSupervisor
-
-
-# Usage("content_moderation", "prompt_injection")
 
 
 class LakeraGuardSupervisor(RestSupervisor):
@@ -42,8 +40,10 @@ class LakeraGuardSupervisor(RestSupervisor):
         self.provider_name: str | None = "Lakera"
         self.base_url: str = "https://api.lakera.ai/v2/guard"
         self.usage: Usage = usage
-        self.res_map_fn: ResultMapper = partial(lakera_result_map, usage=self.usage)
-        self.req_map_fn: JsonMapper = lakera_request_map
+        self.res_map_fn: ResultMapper = cast(
+            ResultMapper, partial(lakera_result_map, usage=self.usage)
+        )
+        self.req_map_fn: JsonMapper = cast(JsonMapper, lakera_request_map)
         self.auth_map_fn: JsonMapper = auth_map
         self.pre_processing = pre_processing
         self.project_id = project_id

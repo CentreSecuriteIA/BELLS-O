@@ -24,45 +24,93 @@ class SupervisorConfig(TypedDict):
     kwargs: dict[str, Any]
 
 
-class RunDict(TypedDict):
-    results: list[OutputDict]
-    metadata: dict[str, Any]
+type RunDict = dict[str, OutputDict]
 
 
 def _now():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
-# TODO: implement batching, error handling
+def _uuid():
+    return str(uuid4())[:8]
+
+
+# TODO: implement batching, error handling, asynch runs?
 @dataclass
 class Evaluator:
-    dataset_config: DatasetConfig
-    supervisor_config: SupervisorConfig
-    metadata: bool = True  # TODO: customize metadata, e.g. only model data, prompt, date, etc.
-    verbose: bool = False
-    save_dir: str | Path | None = None
+    """Class that implements structured evaluation of a supervisor on a dataset."""
 
-    def __post_init__(self):
-        """Load the dataset and supervisor."""
-        self.dataset = self.dataset_config["type"](**self.dataset_config["kwargs"])
-        assert self.dataset.target_map_fn is not None, (
-            "Need `targer_map_fn` to be specified for dataset."
+    def __init__(
+        self,
+        dataset_config: DatasetConfig,
+        supervisor_config: SupervisorConfig,
+        metadata: bool = True,  # TODO: customize metadata, e.g. only model data, prompt, date, etc.
+        save_dir: str | Path | None = None,
+        verbose: bool = False,
+    ):
+        """Load Evaluator.
+
+        Args:
+            dataset_config (DatasetConfig): Config to load dataset.
+            supervisor_config (DatasetConfig): Config to load supervisor.
+            metadata (bool, optional): If the runs should collect metadata.
+            save_dir (str|Path, optional): A path to save the results in. Will create the directory `save_dir` and save results in `save_dir/dataset.name`
+            verbose (bool, optional): If a progress bar for runs should be displayed. Defaults to False.
+
+        """
+        # set attributes
+        self.dataset_config = dataset_config
+        self.supervisor_config = supervisor_config
+        self.metadata = metadata
+        self.verbose = verbose
+        self.save_dir: Path | None = (
+            save_dir if isinstance(save_dir, Path) or save_dir is None else Path(save_dir)
         )
+
+        # load dataset
+        self.dataset = self.dataset_config["type"](**self.dataset_config["kwargs"])
+        assert self.dataset.target_map_fn is not None, (  # TODO: make this exhaustive
+            "Need `target_map_fn` to be specified for dataset."
+        )
+
+        # load supervisor
         self.supervisor = self.supervisor_config["type"](**self.supervisor_config["kwargs"])
         self.runs: dict[str, RunDict] = {}
-        if isinstance(self.save_dir, str):
-            self.save_dir = Path(self.save_dir)
 
-    def run(self, indices: list[int] | None = None, run_id: str | None = None, verbose=False):
-        """Run an evaluation on specified indices."""
+        self._prepared_dirs = False
+        if self.save_dir:
+            self._prepare_dirs()
+            self._prepared_dirs = True
+
+    # TODO: Doc string
+    # TODO: Implement safe runs? (saving a prompt file after every run)
+    def run(
+        self,
+        indices: list[int] | None = None,
+        run_id: str | None = None,
+        save=False,
+        verbose: bool = False,
+    ):
+        """Run an evaluation on specified indices.
+
+        Args:
+            indices (list[int], optional): List of indices of samples in the Dataset to run.
+            run_id (str, optional): ID for this run.
+            unique (bool, optional): If a sample should be skipped if it was run before.
+            save (bool, optional): If the results should be saved after the run. Defaults to False.
+            verbose (bool, optional): If a progress bar for the run should be shown.
+
+        """
         verbose = verbose or self.verbose
         if run_id is None:
-            run_id = str(uuid4())[:8]
+            run_id = _uuid()
         if run_id in self.runs:
             # log generation new run_id
             while run_id in self.runs:
-                run_id = str(uuid4())[:8]
-        self.runs[run_id] = RunDict(results=[], metadata={"run_id": run_id, "started_at": _now()})
+                run_id = _uuid()
+        self.runs[run_id] = {}
+
+        run_dict = self.runs[run_id]
 
         if indices is None:
             indices = list(range(len(self.dataset)))
@@ -75,8 +123,11 @@ class Evaluator:
         else:
             iterator = iter(indices)
 
+        started_at = _now()
+
         for index in iterator:
             sample: dict[str, str] = self.dataset[index]
+            prompt_id = sample["prompt_id"]
             prompt = sample[self.dataset_config["input_column"]]
             target = sample[self.dataset_config["target_column"]]
 
@@ -95,17 +146,23 @@ class Evaluator:
             # add metadata if requested
             if self.metadata:
                 result_dict["metadata"]["date"] = _now()
+                result_dict["metadata"]["prompt_id"] = prompt_id
                 result_dict["metadata"]["prompt"] = prompt
                 result_dict["metadata"]["target"] = target
-            self.runs[run_id]["results"].append(result_dict)
+            run_dict[prompt_id] = result_dict
 
         if self.metadata:
-            self.runs[run_id]["metadata"]["ended_at"] = _now()
-            self.runs[run_id]["metadata"]["num_prompts"] = len(indices)
-            self.runs[run_id]["metadata"]["supervisor"] = self.supervisor.metadata()
+            for output_dict in run_dict.values():
+                output_dict["metadata"]["started_at"] = started_at
+                output_dict["metadata"]["ended_at"] = _now()
+                output_dict["metadata"]["num_prompts"] = len(indices)
+                output_dict["metadata"]["supervisor"] = self.supervisor.metadata()
         # TODO: add dataset metadata
-        # TODO:
 
+        if save:
+            self.save_runs()
+
+    # TODO: if implementing safe runs in run(), make this cascaded, so that this calls a function that saves one prompt.
     def save_runs(self, save_dir: str | Path | None = None):
         """Save all current runs to disk.
 
@@ -113,10 +170,43 @@ class Evaluator:
             save_dir (Optional[str|Path]): The path at which to save the runs. Defaults to "runs/".
 
         """
+        save_dir = save_dir or self.save_dir
+        if isinstance(save_dir, str):
+            save_dir = Path(save_dir)
+
         if save_dir is None:
-            save_dir = self.save_dir or Path("runs/")
+            save_dir = Path("runs/")
+            print(
+                f"WARNING: No valid directory path was provided for saving results. Dumped results to {str(save_dir)}."
+            )
         assert isinstance(save_dir, Path)
-        save_dir.mkdir(parents=True, exist_ok=True)
-        for run_id, run in self.runs.items():
-            with open((save_dir / run_id).with_suffix(".json"), "w") as f:  # TODO : fix this
-                f.write(json.dumps(run, indent=2))
+
+        if not self._prepare_dirs:
+            self._prepare_dirs(save_dir)
+
+        for run_id, run_dict in self.runs.items():
+            run_dir = save_dir / self.dataset.clean_name / _clean_string(run_id)
+            run_dir.mkdir(exist_ok=True)
+            for prompt_id, output_dict in run_dict.items():
+                file_path = (run_dir / prompt_id).with_suffix(".json")
+                with open(file_path, "w") as f:  # TODO : fix this
+                    f.write(json.dumps(output_dict, indent=2))
+
+    def _prepare_dirs(self, save_dir: Path | None = None):
+        dataset_name = self.dataset.clean_name
+
+        save_dir = save_dir or self.save_dir
+        assert save_dir
+
+        dataset_path = save_dir / dataset_name
+
+        if self.verbose:
+            print(f"Create directory {dataset_path} and all necessary parents.")
+        dataset_path.mkdir(parents=True, exist_ok=True)
+
+
+def _clean_string(string: str):
+    """Clean a string such that it can be used as a name in a (Windows/UNIX) filesystem."""
+    for forbidden_character in '<>:"/\\|?*':
+        string = string.replace(forbidden_character, "-")
+    return string

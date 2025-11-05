@@ -6,7 +6,7 @@ from bells_o.common import Result, Usage
 
 
 @overload
-def mapper(output: dict[str, str], usage: Usage) -> Result: ...
+def mapper(output: dict[str, Any], usage: Usage) -> Result: ...
 
 
 @overload
@@ -29,10 +29,10 @@ def mapper(output: dict[str, str] | list[dict[str, Any]], usage: Usage) -> Resul
         for flagged in labels:
             result = Result()
             for usage_type in usage:
-                result[usage_type] = 1.0 if flagged else 0.0
+                result[usage_type] = flagged
         return results
     else:
         result = Result()
         for usage_type in usage:
-            result[usage_type] = 1.0 if output["flagged"] else 0.0
+            result[usage_type] = output["flagged"]
         return result

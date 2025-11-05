@@ -22,13 +22,11 @@ class Dataset(ABC):
     @abstractmethod
     def __post_init__(self):
         """Load the dataset from e.g. HuggingFace, or local directories. Must enable filtering."""
+        self.clean_name = _clean_string(self.name)
+        _add_prompt_id(self)
         pass
 
     # TODO Implement metadata
-
-    def __iter__(self):
-        for i in range(len(self)):
-            yield self[i]
 
     def splits(self) -> list[str]:
         """Return a list of the splits."""
@@ -37,11 +35,12 @@ class Dataset(ABC):
         return []
 
     def filter(self, filters: dict[str, list[Any]] | None = None):
-        def _filter_list(l: list[dict[str, str]], filters: dict[str, list[Any]]):
-            """Filter a list in-place for given filters.
+        """Filter a list in-place for given filters.
 
-            Filters are of shape {attribute: [allowed values]}.
-            """
+        Filters are of shape {attribute: [allowed values]}.
+        """
+
+        def _filter_list(l: list[dict[str, str]], filters: dict[str, list[Any]]):
             l[:] = [
                 sample
                 for sample in l
@@ -55,6 +54,30 @@ class Dataset(ABC):
                     _filter_list(self.samples[split], filt)
             else:
                 _filter_list(self.samples, filt)
+
+    def _split_lengths(self) -> list:
+        """Return list of split lengths."""
+        if isinstance(self.samples, list):
+            return [len(self)]
+        return [len(ls) for ls in self.samples.values()]
+
+    def _split_starts(self) -> list:
+        """Return list of indeces at which the split would begin when considering the dataset as a consecutive whole.
+
+        E.g. for split_lengths = [3,5,2], return [0,3,8].
+        """
+        if isinstance(self.samples, list):
+            return [0]
+        split_lengths = self._split_lengths()
+        cuts = [0]
+        for length in split_lengths:
+            cuts.append(cuts[-1] + length)
+        del cuts[-1]  # last cut would be same as len(self)
+        return cuts
+
+    def __iter__(self):
+        for i in range(len(self)):
+            yield self[i]
 
     def __len__(self) -> int:
         if isinstance(self.samples, list):
@@ -117,22 +140,18 @@ class Dataset(ABC):
             # use self[int] from slice indices
             return [self[index] for index in indices]
 
-    def _split_lengths(self) -> list:
-        """Return list of split lengths."""
-        if isinstance(self.samples, list):
-            return [len(self)]
-        return [len(ls) for ls in self.samples.values()]
 
-    def _split_starts(self) -> list:
-        """Return list of indeces at which the split would begin when considering the dataset as a consecutive whole.
+def _clean_string(string: str):
+    """Clean a string such that it can be used as a name in a (Windows/UNIX) filesystem."""
+    for forbidden_character in '<>:"/\\|?*':
+        string = string.replace(forbidden_character, "-")
+    return string
 
-        E.g. for split_lengths = [3,5,2], return [0,3,8].
-        """
-        if isinstance(self.samples, list):
-            return [0]
-        split_lengths = self._split_lengths()
-        cuts = [0]
-        for length in split_lengths:
-            cuts.append(cuts[-1] + length)
-        del cuts[-1]  # last cut would be same as len(self)
-        return cuts
+
+def _add_prompt_id(obj: Dataset):
+    """Add prompt ids to dataset.
+
+    Prompt IDs are of shape `dataset.name`_`index`, where the dataset name is cleaned for file name compliance.
+    """
+    for i, sample in enumerate(obj):
+        sample["prompt_id"] = f"{obj.clean_name}_{i}"

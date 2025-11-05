@@ -38,3 +38,4 @@ class HuggingFaceDataset(Dataset):
             self.samples = dataset.to_list()
         if self.filters:
             self.filter(self.filters)
+        super().__post_init__()

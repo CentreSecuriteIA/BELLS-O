@@ -1,6 +1,6 @@
 """Define common datatypes and classes."""
 
-from typing import Any, Callable, NotRequired, Partial, Self, TypedDict, Unpack
+from typing import Any, Callable, NotRequired, Self, TypedDict, Unpack
 
 
 ### Usage Type definitions
@@ -135,5 +135,7 @@ class OutputDict(TypedDict):
 
 
 ### Mapper type definitions TODO: decide if this is fine (using `type` limits to python 3.12+)
-type ResultMapper = Callable[[str | dict[str, str]], Result] | Partial[Result]
+type ResultMapper = Callable[
+    [str | list[str] | dict[str, Any] | list[dict[str, Any]], Usage], Result | list[Result]
+]
 type JsonMapper = Callable[[Any], dict[str, str]]
