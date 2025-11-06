@@ -9,6 +9,7 @@ from bells_o.preprocessors import PreProcessing
 
 
 # Define an abstract base class
+# TODO: get rid of dataclass
 @dataclass
 class Supervisor(ABC):
     """Abstract base class for Supervisors.
@@ -30,15 +31,14 @@ class Supervisor(ABC):
         """Set up the rest of the supervisor. E.g. load the model from HuggingFace."""
         self.pre_processing = self.pre_processing or []
 
-    def __call__(self, inputs: list | str, *args, **kwargs) -> list[OutputDict]:
-        # TODO: decide if every public function should deal with list[str] vs str or only some
+    def __call__(self, inputs: str | list[str], *args, **kwargs) -> list[OutputDict]:
         """Complete full judging process."""
         if not isinstance(inputs, list):
             inputs = [inputs]
         inputs = [self.pre_process(input) for input in inputs]
         outputs: list[OutputDict] = self.judge(inputs)
         for output in outputs:
-            output["output_result"] = self.res_map_fn(output["output_raw"])
+            output["output_result"] = self.res_map_fn(output["output_raw"])  # pyright: ignore[reportArgumentType]
         return outputs
 
     def metadata(self) -> dict[str, Any]:

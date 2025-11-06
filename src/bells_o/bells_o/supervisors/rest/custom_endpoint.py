@@ -8,7 +8,7 @@ from typing import Any
 
 from requests import post
 
-from bells_o.common import JsonMapper, OutputDict
+from bells_o.common import AuthMapper, OutputDict, RequestMapper
 
 from ..supervisor import Supervisor
 
@@ -18,8 +18,8 @@ class RestSupervisor(Supervisor):
     """A concrete class that enables access to supervisors via REST API."""
 
     base_url: str
-    req_map_fn: JsonMapper
-    auth_map_fn: JsonMapper  # type: ignore
+    req_map_fn: RequestMapper
+    auth_map_fn: AuthMapper  # type: ignore
     api_key: str | None = None  # type: ignore
     api_variable: str | None = None  # type: ignore
     provider_name: str | None = None
@@ -33,18 +33,18 @@ class RestSupervisor(Supervisor):
         super().__post_init__()
 
     @property
-    def api_key(self):  # noqa: F811
+    def api_key(self) -> str:
         """Return the API key set for this supervisor."""
-        return self._api_key or getenv(self._api_variable)  # type: ignore
+        return self._api_key or getenv(self.api_variable, "")
 
     @api_key.setter
     def api_key(self, value: str | None):
         self._api_key = value
 
     @property
-    def api_variable(self):  # noqa: F811
+    def api_variable(self) -> str:  # noqa: F811
         """Return the environment variable set for the API key set for this supervisor."""
-        return self._api_variable
+        return self._api_variable if self._api_variable is not None else ""
 
     @api_variable.setter
     def api_variable(self, value: str | None):

@@ -3,7 +3,7 @@
 from functools import partial
 from typing import cast
 
-from bells_o.common import JsonMapper, ResultMapper, Usage
+from bells_o.common import AuthMapper, RequestMapper, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
 from bells_o.resultmappers import lakeraguard as lakera_result_map
 from bells_o.supervisors.rest.auth_mappers import auth_bearer as auth_map
@@ -43,8 +43,8 @@ class LakeraGuardSupervisor(RestSupervisor):
         self.res_map_fn: ResultMapper = cast(
             ResultMapper, partial(lakera_result_map, usage=self.usage)
         )
-        self.req_map_fn: JsonMapper = cast(JsonMapper, lakera_request_map)
-        self.auth_map_fn: JsonMapper = auth_map
+        self.req_map_fn: RequestMapper = cast(RequestMapper, lakera_request_map)
+        self.auth_map_fn: AuthMapper = auth_map
         self.pre_processing = pre_processing
         self.project_id = project_id
         self.api_key = api_key

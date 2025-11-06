@@ -17,7 +17,7 @@ def mapper(prompt: str, supervisor: "LakeraGuardSupervisor") -> dict[str, str]:
         supervisor (LakeraGuardSupervisor): The LakeraGuardSupervisor for which to generate the authentication payload.
 
     Returns:
-        dict[str, str]: The mapped authentication payload.
+        The mapped authentication payload.
 
     """
     json_repr = {

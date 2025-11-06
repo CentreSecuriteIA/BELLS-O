@@ -58,7 +58,7 @@ class HuggingFaceSupervisor(Supervisor):
             )
             message = self._tokenizer.apply_chat_template(
                 message, tokenize=False, add_generation_prompt=True
-            )  # TODO the kwargs of apply_chat_template
+            )  # TODO customize the kwargs of apply_chat_template?
         return self._tokenizer(message, return_tensors="pt")
 
     def judge(self, input_ids: BatchEncoding) -> list[OutputDict]:

@@ -5,8 +5,7 @@ from typing import Any, Literal, NotRequired, Self, TypedDict, Unpack, get_args
 
 
 ### Usage Type definitions for type hinting, based on USAGE_TYPES defined above
-UsageType = Literal["jailbreak", "prompt_injection", "content_moderation"]
-
+type UsageType = Literal["jailbreak", "prompt_injection", "content_moderation"]
 
 UsageTypes = TypedDict(
     "UsageTypes",
@@ -17,10 +16,7 @@ UsageTypes = TypedDict(
     },
 )
 
-
 USAGE_TYPES = get_args(UsageType)
-
-# TODO: make boolean usage type parent class from which Usage and Result inherit (because they have multiple identical dunders)
 
 
 class Usage(dict):
@@ -92,8 +88,6 @@ class OutputDict(TypedDict):
     is_correct: NotRequired[bool]
 
 
-### Mapper type definitions TODO: decide if this is fine (using `type` limits to python 3.12+)
-type ResultMapper = Callable[
-    [str | list[str] | dict[str, Any] | list[dict[str, Any]], Usage], Result | list[Result]
-]
-type JsonMapper = Callable[[Any], dict[str, str]]
+type ResultMapper = Callable[[str], Result] | Callable[[dict[str, Any]], Result]
+type RequestMapper = Callable[[Any, Any], dict[str, str]]
+type AuthMapper = Callable[[Any], dict[str, str]]
