@@ -4,11 +4,11 @@ from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
-    from ..lakeraguard import LakeraGuardSupervisor
+    from ..openai import OpenAiSupervisor
 
 
 def mapper(
-    supervisor: "LakeraGuardSupervisor",
+    supervisor: "OpenAiSupervisor",
     prompt: str,
 ) -> dict[str, str]:
     """Generate an authentication payload for the bearer method.
@@ -24,7 +24,11 @@ def mapper(
 
     """
     json_repr = {
-        "messages": [{"content": prompt, "role": "user"}],
-        "project_id": f"{supervisor.project_id}",
+        "model": f"{supervisor.name}",
+        "input": prompt,
     }
+
+    if supervisor.system_prompt:
+        json_repr["instructions"] = supervisor.system_prompt
+
     return json_repr

@@ -135,7 +135,7 @@ class Evaluator:
             result_dict = self.supervisor(prompt)[0]
 
             assert self.dataset.target_map_fn is not None, (
-                "Need `targer_map_fn` to be specified for dataset."
+                "Need `target_map_fn` to be specified for dataset."
             )
             result_dict["target_result"] = self.dataset.target_map_fn(target)
 

@@ -34,6 +34,7 @@ class Dataset(ABC):
             return list(self.samples.keys())
         return []
 
+    # TODO: only filter after adding prompt ids
     def filter(self, filters: dict[str, list[Any]] | None = None):
         """Filter a list in-place for given filters.
 

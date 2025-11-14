@@ -24,6 +24,7 @@ class RestSupervisor(Supervisor):
     api_variable: str | None = None  # type: ignore
     provider_name: str | None = None
     needs_api: bool = True
+    rate_limit_code: int = 429
 
     def __post_init__(self):
         """Load the model and tokenizer from HuggingFace."""
@@ -61,26 +62,44 @@ class RestSupervisor(Supervisor):
         metadata["url"] = self.base_url
         return metadata
 
-    def _judge_sample(self, prompt: str) -> OutputDict:
+    def _judge_sample(
+        self,
+        prompt: str,
+    ) -> OutputDict:
         """Run an individual POST request for inference.
 
         Args:
             prompt (str): The prompt string to check.
+            output_type (Literal["output_dict", "request"]): The type of the return value. Returns an `OutputDict` if `"output_dict"`,
+                and returns `tuple[Response, float]` if `"request"`.
+
 
         Returns:
-            OutputDict: The output of the Supervisor and corresponding metadata.
+            OutputDict | tuple[Response, float]: The output of the Supervisor and corresponding metadata, mapped to an OutputDict or as a Response object.
 
         """
-        start_time = time()
-        response = post(
-            self.base_url, json=self.req_map_fn(prompt, self), headers=self.auth_map_fn(self)
-        )
-        generation_time = time() - start_time
+        tried_once = False  # to distinguish between trying and retrying information
+        no_valid_response = True  # to manage retries
+
+        while no_valid_response:
+            if tried_once:
+                print("INFO: Retrying generation in 5s. Hit rate limit.")
+            else:
+                print("INFO: Generating judgement.")
+
+            start_time = time()
+            response = post(
+                self.base_url, json=self.req_map_fn(self, prompt), headers=self.auth_map_fn(self)
+            )
+            generation_time = time() - start_time
+
+            tried_once = True
+            no_valid_response = response.status_code == self.rate_limit_code
 
         return OutputDict(output_raw=response.json(), metadata={"latency": generation_time})
 
     def judge(self, prompts: list[str] | str) -> list[OutputDict]:
-        """Evaluate a batch of prompts simultaneously.
+        """Evaluate a (batch of) prompt(s simultaneously).
 
         Args:
             prompts: List of prompts.
@@ -99,9 +118,7 @@ class RestSupervisor(Supervisor):
             # the next statement runs a request for every prompt in parallel
             outputs = list(
                 executor.map(
-                    lambda prompt: self._judge_sample(
-                        prompt,
-                    ),
+                    lambda prompt: self._judge_sample(prompt),
                     prompts,
                 )
             )

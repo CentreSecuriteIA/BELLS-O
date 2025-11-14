@@ -1,4 +1,4 @@
-"""Module structure for XGuardSupervisor."""
+"""Module structure for Saillab models."""
 
 from .xguard_supervisor import XGuardSupervisor
 

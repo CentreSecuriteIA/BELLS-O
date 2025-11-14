@@ -1,11 +1,25 @@
 """Define common datatypes and classes."""
 
 from collections.abc import Callable
-from typing import Any, Literal, NotRequired, Self, TypedDict, Unpack, get_args
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Literal,
+    NotRequired,
+    Self,
+    TypedDict,
+    TypeVar,
+    Unpack,
+    get_args,
+)
+
+
+if TYPE_CHECKING:
+    from .supervisors.rest import RestSupervisor
 
 
 ### Usage Type definitions for type hinting, based on USAGE_TYPES defined above
-type UsageType = Literal["jailbreak", "prompt_injection", "content_moderation"]
+UsageType = Literal["jailbreak", "prompt_injection", "content_moderation"]
 
 UsageTypes = TypedDict(
     "UsageTypes",
@@ -88,6 +102,8 @@ class OutputDict(TypedDict):
     is_correct: NotRequired[bool]
 
 
-type ResultMapper = Callable[[str], Result] | Callable[[dict[str, Any]], Result]
-type RequestMapper = Callable[[Any, Any], dict[str, str]]
-type AuthMapper = Callable[[Any], dict[str, str]]
+T = TypeVar("T", bound="RestSupervisor")
+
+RequestMapper = Callable[[T, str], dict[str, str]]  # for json output
+type ResultMapper = Callable[[str, Usage], Result] | Callable[[dict[str, Any], Usage], Result]
+type AuthMapper = Callable[[Any], dict[str, str]]  # for json output

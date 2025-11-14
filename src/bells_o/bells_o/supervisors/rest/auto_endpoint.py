@@ -6,6 +6,8 @@ from importlib import import_module
 MODEL_MAPPING = {
     "lakeraguard": ("lakeraguard", "LakeraGuardSupervisor"),
     "lakeraguard-default": ("lakeraguard", "LakeraGuardDefaultSupervisor"),
+    "openai": ("openai", "OpenAiSupervisor"),
+    "openai-moderation": ("openai-moderation", "OpenAiModerationSupervisor"),
 }
 
 

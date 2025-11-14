@@ -19,6 +19,15 @@ class XGuardSupervisor(HuggingFaceSupervisor):
         tokenizer_kwargs: dict[str, Any] = {},
         generation_kwargs: dict[str, Any] = {},
     ):
+        """Initialize the supervisor.
+
+        Args:
+            pre_processing (list[PreProcessing], optional): List of PreProcessing steps to apply to prompts. Defaults to []
+            model_kwargs (dict[str, Any], optional):  Keyword arguments to configure the model. Defaults to {}.
+            tokenizer_kwargs (dict[str, Any], optional):  Keyword arguments to configure the tokenizer. Defaults to {}.
+            generation_kwargs (dict[str, Any], optional): Keyword arguments to configure generation. Defaults to {}.
+
+        """
         self.name: str = "saillab/x-guard"
         self.usage: Usage = Usage("content_moderation")
         self.res_map_fn: ResultMapper = xguard_result_map

@@ -3,7 +3,11 @@
 from importlib import import_module
 
 
-MODEL_MAPPING = {"saillab/x-guard": ("xguard", "XGuardSupervisor")}
+MODEL_MAPPING = {
+    "saillab/x-guard": ("saillab", "XGuardSupervisor", {}),
+    "openai/gpt-oss-safeguard-20b": ("openai", "GptOssSafeGuardSupervisor", {"variant": "20b"}),
+    "openai/gpt-oss-safeguard-120b": ("openai", "GptOssSafeGuardSupervisor", {"variant": "120b"}),
+}
 
 
 class AutoHuggingFaceSupervisor:
@@ -18,7 +22,7 @@ class AutoHuggingFaceSupervisor:
             **kwargs: Optional keyword arguments to override default parameters.
 
         """
-        module_name, class_attribute = MODEL_MAPPING[model_id]
+        module_name, class_attribute, special_kwargs = MODEL_MAPPING[model_id]
         model_module = import_module(f".{module_name}", "bells_o.supervisors.huggingface")
 
         if hasattr(model_module, class_attribute):
@@ -27,4 +31,13 @@ class AutoHuggingFaceSupervisor:
             raise NotImplementedError(
                 f"Did not find attribute `{class_attribute}` in module `bells_o.supervisors.huggingface.{module_name}`."
             )
-        return model_class(**kwargs)
+
+        # clean kwargs - passed kwargs take priority
+        keys_to_delete = []
+        for key in special_kwargs:
+            if key in kwargs:
+                keys_to_delete.append(key)
+        for key in keys_to_delete:
+            del special_kwargs[key]
+
+        return model_class(**kwargs, **special_kwargs)
