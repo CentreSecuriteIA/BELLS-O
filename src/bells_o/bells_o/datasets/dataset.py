@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from hashlib import sha256
 from typing import Any, Callable, overload
 
 from bells_o.common import Usage
@@ -13,6 +14,7 @@ class Dataset(ABC):
 
     name: str
     usage: Usage
+    input_column: str | None = None
     target_map_fn: Callable | None = field(default=None)
     filters: dict[str, list[Any]] | None = field(default_factory=dict)
     samples: dict[str, list[dict[str, str]]] | list[dict[str, str]] = field(
@@ -23,7 +25,18 @@ class Dataset(ABC):
     def __post_init__(self):
         """Load the dataset from e.g. HuggingFace, or local directories. Must enable filtering."""
         self.clean_name = _clean_string(self.name)
-        _add_prompt_id(self)
+        if self.input_column is None:
+            print(
+                'INFO: No input column passed. Trying to find one of "input", "prompt", or "question"'
+            )
+            for key in ["input", "prompt", "question"]:
+                if key in self[0]:
+                    self.input_column = key
+                    break
+            if self.input_column is None:
+                print("WARNING: No input column was passed or found. This will disable prompt ids.")
+        if self.input_column is not None:
+            self._add_prompt_id()
         pass
 
     # TODO Implement metadata
@@ -34,7 +47,6 @@ class Dataset(ABC):
             return list(self.samples.keys())
         return []
 
-    # TODO: only filter after adding prompt ids
     def filter(self, filters: dict[str, list[Any]] | None = None):
         """Filter a list in-place for given filters.
 
@@ -56,6 +68,16 @@ class Dataset(ABC):
             else:
                 _filter_list(self.samples, filt)
 
+    def _add_prompt_id(self):
+        """Add prompt ids to dataset.
+
+        Prompt IDs are sha256 hashes combined with the dataset name as `dataset.name`_`hash`, where the dataset name is cleaned for file name compliance.
+        """
+        assert isinstance(self.input_column, str)
+        for sample in self:
+            hash_id = sha256(sample[self.input_column].encode()).hexdigest()
+            sample["prompt_id"] = f"{self.clean_name}_{hash_id}"
+
     def _split_lengths(self) -> list:
         """Return list of split lengths."""
         if isinstance(self.samples, list):
@@ -76,13 +98,11 @@ class Dataset(ABC):
         del cuts[-1]  # last cut would be same as len(self)
         return cuts
 
-    def __iter__(self):
-        for i in range(len(self)):
-            yield self[i]
-
     def __len__(self) -> int:
         if isinstance(self.samples, list):
             return len(self.samples)
+
+        # at this point, self.samples is dict[str, list]
         length = 0
         for ls in self.samples.values():
             length += len(ls)
@@ -147,12 +167,3 @@ def _clean_string(string: str):
     for forbidden_character in '<>:"/\\|?*':
         string = string.replace(forbidden_character, "-")
     return string
-
-
-def _add_prompt_id(obj: Dataset):
-    """Add prompt ids to dataset.
-
-    Prompt IDs are of shape `dataset.name`_`index`, where the dataset name is cleaned for file name compliance.
-    """
-    for i, sample in enumerate(obj):
-        sample["prompt_id"] = f"{obj.clean_name}_{i}"
