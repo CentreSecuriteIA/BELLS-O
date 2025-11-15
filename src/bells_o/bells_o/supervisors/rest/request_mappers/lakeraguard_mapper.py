@@ -11,9 +11,9 @@ def mapper(
     supervisor: "LakeraGuardSupervisor",
     prompt: str,
 ) -> dict[str, str]:
-    """Generate an authentication payload for the bearer method.
+    """Generate a json payload for an API request to the LakeraGuardSupervisor.
 
-    Maps to {"messages": [{"content": prompt, "role": "user"}],"project_id": project-id},
+    Maps to {"messages": [{"content": `prompt`, "role": "user"}], "project_id": `project-id`}.
 
     Args:
         prompt: The prompt to evaluate.

@@ -1,7 +1,13 @@
 """Impose structure on Class structure."""
 
 from .huggingface import AutoHuggingFaceSupervisor, HuggingFaceSupervisor
-from .rest import AutoRestSupervisor, LakeraGuardSupervisor, RestSupervisor
+from .rest import (
+    AutoRestSupervisor,
+    LakeraGuardSupervisor,
+    OpenAiModerationSupervisor,
+    OpenAiSupervisor,
+    RestSupervisor,
+)
 from .supervisor import Supervisor
 
 
@@ -13,4 +19,6 @@ __all__ = [
     "RestSupervisor",
     "AutoRestSupervisor",
     "LakeraGuardSupervisor",
+    "OpenAiSupervisor",
+    "OpenAiModerationSupervisor",
 ]

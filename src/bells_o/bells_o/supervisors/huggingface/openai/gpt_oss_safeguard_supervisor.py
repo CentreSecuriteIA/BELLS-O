@@ -1,4 +1,4 @@
-"""Implement the pre-configured saillab/x-guard supervisor from HuggingFace."""
+"""Implement openai/gpt-oss-safeguard-{"20b", "120b"} from HuggingFace."""
 
 from typing import Any, Literal
 

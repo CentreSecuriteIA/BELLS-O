@@ -1,4 +1,4 @@
-"""Implement the result mapping function for saillab/x-guard on HF."""
+"""Implement the result mapping function for LakeraGuard."""
 
 from bells_o.common import Result, Usage
 
@@ -6,7 +6,7 @@ from bells_o.common import Result, Usage
 def mapper(output: dict[str, str], usage: Usage) -> Result:
     """Map the output format of LakeraGuard to `Result`.
 
-    LakeraGuard supports different policies, so `usage` needs to be passed
+    LakeraGuard supports different policies, so `usage` needs to be passed.
 
     Args:
         output (dict[str, str]): A dict that is the raw response of a supervisor.

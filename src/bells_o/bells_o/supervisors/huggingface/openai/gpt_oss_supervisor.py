@@ -1,4 +1,4 @@
-"""Implement the pre-configured saillab/x-guard supervisor from HuggingFace."""
+"""Implement openai/gpt-oss-{"20b", "120b"} from HuggingFace."""
 
 from typing import Any, Literal
 
@@ -8,7 +8,7 @@ from bells_o.preprocessors import PreProcessing, RoleWrapper
 from ..custom_model import HuggingFaceSupervisor
 
 
-class GptOssSafeguardSupervisor(HuggingFaceSupervisor):
+class GptOssSupervisor(HuggingFaceSupervisor):
     """Implement the configured openai/gpt-oss-{"20b", "120b"} supervisor from HuggingFace."""
 
     def __init__(

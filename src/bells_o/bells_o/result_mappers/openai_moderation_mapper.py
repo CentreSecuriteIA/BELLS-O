@@ -1,4 +1,4 @@
-"""Implement the result mapping function for saillab/x-guard on HF."""
+"""Implement the result mapping function for OpenAI Moderation."""
 
 from typing import Any
 

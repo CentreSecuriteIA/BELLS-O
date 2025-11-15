@@ -6,7 +6,7 @@ from ..custom_endpoint import RestSupervisor
 def mapper(supervisor: RestSupervisor) -> dict[str, str]:
     """Generate an authentication payload for the bearer method.
 
-    Maps to {"Authorization": "Bearer {<API_KEY>}"}
+    Maps to {"Authorization": f"Bearer {`API_KEY`}"}.
 
     Args:
         supervisor (RestSupervisor): The supervisor for which to generate the authentication payload.

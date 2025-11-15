@@ -1,7 +1,8 @@
 """Module structure."""
 
-from . import auth_mappers, requestmappers
+from . import auth_mappers, request_mappers
 from .auto_endpoint import AutoRestSupervisor
+from .azure import AzureAnalyzeTextSupervisor
 from .custom_endpoint import RestSupervisor
 from .lakeraguard import LakeraGuardDefaultSupervisor, LakeraGuardSupervisor
 from .openai import OpenAiModerationSupervisor, OpenAiSupervisor
@@ -14,6 +15,7 @@ __all__ = [
     "LakeraGuardDefaultSupervisor",
     "OpenAiModerationSupervisor",
     "OpenAiSupervisor",
-    "requestmappers",
+    "request_mappers",
     "auth_mappers",
+    "AzureAnalyzeTextSupervisor",
 ]

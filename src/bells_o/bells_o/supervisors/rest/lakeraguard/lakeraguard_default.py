@@ -1,4 +1,4 @@
-"""Implement the pre-configured saillab/x-guard supervisor from HuggingFace."""
+"""Implement the LakeraGuard supervisor via REST API."""
 
 from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing
@@ -7,7 +7,7 @@ from ..lakeraguard import LakeraGuardSupervisor
 
 
 class LakeraGuardDefaultSupervisor(LakeraGuardSupervisor):
-    """Implement the LakeraGuard supervisor via REST API, with any policy."""
+    """Implement the LakeraGuard supervisor via REST API, with the default policy."""
 
     def __init__(
         self,
@@ -16,17 +16,15 @@ class LakeraGuardDefaultSupervisor(LakeraGuardSupervisor):
         api_key: str | None = None,
         api_variable: str | None = None,
     ):
-        """Initialize the custom LakeraGuardSupervisor with a custom policy.
+        """Initialize the LakeraGuardDefaultSupervisor.
 
-        This implementation needs a specified `usage_type`. It assumes that the project of specified `project_id` can have any custom policy.
+        It assumes that the project of specified `project_id` has the default policy.
 
         Args:
-            usage (Usage): _description_
-            base_url (str): _description_
-            project_id (str): _description_
-            pre_processing (list[PreProcessing], optional): _description_. Defaults to [].
-            api_key (str | None, optional): _description_. Defaults to None.
-            api_variable (str | None, optional): _description_. Defaults to None.
+            project_id (str): The id of the project to authenticate with.
+            pre_processing (list[PreProcessing], optional): List of PreProcessing steps to apply to prompts. Defaults to [].
+            api_key (str | None, optional): API key to use, takes priority over `api_variable`. Defaults to None.
+            api_variable (str | None, optional): Environment variable name that stores the API key. Defaults to "LAKERA_API_KEY"
 
         """
         super().__init__(

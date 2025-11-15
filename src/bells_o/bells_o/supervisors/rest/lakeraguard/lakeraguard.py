@@ -1,13 +1,13 @@
-"""Implement the pre-configured saillab/x-guard supervisor from HuggingFace."""
+"""Implement the LakeraGuard supervisor via REST API."""
 
 from functools import partial
-from typing import cast
+from typing import Self, cast
 
 from bells_o.common import AuthMapper, RequestMapper, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
-from bells_o.resultmappers import lakeraguard as lakera_result_map
+from bells_o.result_mappers import lakeraguard as lakera_result_map
 from bells_o.supervisors.rest.auth_mappers import auth_bearer as auth_map
-from bells_o.supervisors.rest.requestmappers import lakeraguard as lakera_request_map
+from bells_o.supervisors.rest.request_mappers import lakeraguard as lakera_request_map
 
 from ..custom_endpoint import RestSupervisor
 
@@ -21,19 +21,18 @@ class LakeraGuardSupervisor(RestSupervisor):
         usage: Usage,
         pre_processing: list[PreProcessing] = [],
         api_key: str | None = None,
-        api_variable: str | None = None,
+        api_variable: str | None = "LAKERA_API_KEY",
     ):
         """Initialize the custom LakeraGuardSupervisor with a custom policy.
 
         This implementation needs a specified `usage_type`. It assumes that the project of specified `project_id` can have any custom policy.
 
         Args:
-            usage (Usage): _description_
-            base_url (str): _description_
-            project_id (str): _description_
-            pre_processing (list[PreProcessing], optional): _description_. Defaults to [].
-            api_key (str | None, optional): _description_. Defaults to None.
-            api_variable (str | None, optional): _description_. Defaults to None.
+            usage (Usage): The usage of the supervisor, defined by the policy of the passed `project_id`
+            project_id (str): The id of the project to authenticate with.
+            pre_processing (list[PreProcessing], optional): List of PreProcessing steps to apply to prompts. Defaults to [].
+            api_key (str | None, optional): API key to use, takes priority over `api_variable`. Defaults to None.
+            api_variable (str | None, optional): Environment variable name that stores the API key. Defaults to "LAKERA_API_KEY".
 
         """
         self.name: str = "LakeraGuard"
@@ -43,7 +42,7 @@ class LakeraGuardSupervisor(RestSupervisor):
         self.res_map_fn: ResultMapper = cast(
             ResultMapper, partial(lakera_result_map, usage=self.usage)
         )
-        self.req_map_fn: RequestMapper = cast(RequestMapper, lakera_request_map)
+        self.req_map_fn: RequestMapper[Self] = lakera_request_map
         self.auth_map_fn: AuthMapper = auth_map
         self.pre_processing = pre_processing
         self.project_id = project_id

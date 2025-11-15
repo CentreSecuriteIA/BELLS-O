@@ -1,4 +1,4 @@
-"""Implement the payload mapper for LakeraGuard."""
+"""Generate a json payload for an API request to the OpenAiSupervisor."""
 
 from typing import TYPE_CHECKING
 
@@ -11,13 +11,13 @@ def mapper(
     supervisor: "OpenAiSupervisor",
     prompt: str,
 ) -> dict[str, str]:
-    """Generate an authentication payload for the bearer method.
+    """Generate a json payload for an API request to the OpenAiSupervisor.
 
-    Maps to {"messages": [{"content": prompt, "role": "user"}],"project_id": project-id},
+    Maps to {"model": `supervisor.name`, "input": `prompt`, "instructions": `supervisor.instructions`}.
 
     Args:
         prompt: The prompt to evaluate.
-        supervisor (LakeraGuardSupervisor): The LakeraGuardSupervisor for which to generate the authentication payload.
+        supervisor (OpenAiSupervisor): The OpenAiSupervisor for which to generate the authentication payload.
 
     Returns:
         The mapped authentication payload.

@@ -4,7 +4,7 @@ from typing import Any
 
 from bells_o.common import ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing, RoleWrapper
-from bells_o.resultmappers import xguard as xguard_result_map
+from bells_o.result_mappers import xguard as xguard_result_map
 
 from ..custom_model import HuggingFaceSupervisor
 

@@ -1,7 +1,7 @@
 """Implement the base class for REST-accessible supersivors."""
 
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from os import getenv
 from time import time
 from typing import Any
@@ -25,6 +25,7 @@ class RestSupervisor(Supervisor):
     provider_name: str | None = None
     needs_api: bool = True
     rate_limit_code: int = 429
+    custom_header: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self):
         """Load the model and tokenizer from HuggingFace."""
@@ -34,7 +35,7 @@ class RestSupervisor(Supervisor):
         super().__post_init__()
 
     @property
-    def api_key(self) -> str:
+    def api_key(self) -> str:  # TODO: solve redefinition via rewrite.
         """Return the API key set for this supervisor."""
         return self._api_key or getenv(self.api_variable, "")
 
@@ -89,7 +90,9 @@ class RestSupervisor(Supervisor):
 
             start_time = time()
             response = post(
-                self.base_url, json=self.req_map_fn(self, prompt), headers=self.auth_map_fn(self)
+                self.base_url,
+                json=self.req_map_fn(self, prompt),
+                headers=self.auth_map_fn(self) | self.custom_header,
             )
             generation_time = time() - start_time
 

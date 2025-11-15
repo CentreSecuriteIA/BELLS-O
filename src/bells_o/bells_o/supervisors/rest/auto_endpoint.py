@@ -7,7 +7,8 @@ MODEL_MAPPING = {
     "lakeraguard": ("lakeraguard", "LakeraGuardSupervisor"),
     "lakeraguard-default": ("lakeraguard", "LakeraGuardDefaultSupervisor"),
     "openai": ("openai", "OpenAiSupervisor"),
-    "openai-moderation": ("openai-moderation", "OpenAiModerationSupervisor"),
+    "openai-moderation": ("openai", "OpenAiModerationSupervisor"),
+    "azure-analyze-text": ("azure", "AzureAnalyzeTextSupervisor"),
 }
 
 
