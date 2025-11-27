@@ -14,7 +14,7 @@ def mapper(
 ) -> dict[str, Any]:
     """Generate a json payload for an API request to the GeminiSupervisor.
 
-    Maps to Vertex Gemini generateContent format with contents, system_instruction,
+    Maps to Google AI Studio Gemini generateContent format with contents, system_instruction,
     and safetySettings.
 
     Args:
@@ -25,10 +25,9 @@ def mapper(
     Returns:
         The mapped request payload as a dictionary.
     """
-    # Assuming your PreProcessing pipeline produced a single string `prompt`
+    # Google AI Studio API format - no "role" field needed
     contents = [
         {
-            "role": "user",
             "parts": [{"text": prompt}],
         }
     ]

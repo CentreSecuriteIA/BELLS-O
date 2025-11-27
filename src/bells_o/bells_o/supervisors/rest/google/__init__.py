@@ -1,8 +1,9 @@
 """Module structure."""
 
 from .gemini import GeminiSupervisor
-from .vertex_moderation import VertexModerationSupervisor
+from .gemini_classification import GeminiClassificationSupervisor
+from .gemini_moderation import GeminiModerationSupervisor
 
 
-__all__ = ["GeminiSupervisor", "VertexModerationSupervisor"]
+__all__ = ["GeminiSupervisor", "GeminiClassificationSupervisor", "GeminiModerationSupervisor"]
 
