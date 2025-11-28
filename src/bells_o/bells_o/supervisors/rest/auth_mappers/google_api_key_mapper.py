@@ -18,6 +18,10 @@ def mapper(supervisor: RestSupervisor) -> dict[str, str]:
     if not api_key:
         # Debug: check if API key is missing
         print(f"WARNING: API key is empty. api_variable={supervisor.api_variable}")
-    json_repr = {"x-goog-api-key": f"{api_key}"}
+    # Add default Google API "Content-Type" header as well (see @custom_endpoint.py 94-95)
+    json_repr = {
+        "x-goog-api-key": f"{api_key}",
+        "Content-Type": "application/json"
+    }
     return json_repr
 

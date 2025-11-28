@@ -1,6 +1,7 @@
 """Module structure."""
 
 from . import auth_mappers, request_mappers
+from .anthropic import AnthropicClassificationSupervisor, AnthropicSupervisor
 from .auto_endpoint import AutoRestSupervisor
 from .azure import AzureAnalyzeTextSupervisor
 from .custom_endpoint import RestSupervisor
@@ -10,7 +11,9 @@ from .google import (
     GeminiModerationSupervisor,
 )
 from .lakeraguard import LakeraGuardDefaultSupervisor, LakeraGuardSupervisor
+from .mistral import MistralClassificationSupervisor, MistralSupervisor
 from .openai import OpenAiModerationSupervisor, OpenAiSupervisor
+from .xai import XAiClassificationSupervisor, XAiSupervisor
 
 
 __all__ = [
@@ -26,4 +29,10 @@ __all__ = [
     "GeminiClassificationSupervisor",
     "GeminiSupervisor",
     "GeminiModerationSupervisor",
+    "MistralSupervisor",
+    "MistralClassificationSupervisor",
+    "XAiSupervisor",
+    "XAiClassificationSupervisor",
+    "AnthropicSupervisor",
+    "AnthropicClassificationSupervisor",
 ]

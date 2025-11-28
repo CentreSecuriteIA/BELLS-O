@@ -1,10 +1,10 @@
-"""Implement the Gemini Classification Supervisor for content moderation."""
+"""Implement the X-AI Classification Supervisor for content moderation."""
 
 from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing
-from bells_o.result_mappers import gemini_classification as gemini_classification_result_map
+from bells_o.result_mappers import text_classification as text_classification_result_map
 
-from .gemini import GeminiSupervisor
+from .xai import XAiSupervisor
 
 
 DEFAULT_CLASSIFICATION_SYSTEM_PROMPT = (
@@ -12,37 +12,36 @@ DEFAULT_CLASSIFICATION_SYSTEM_PROMPT = (
 )
 
 
-class GeminiClassificationSupervisor(GeminiSupervisor):
-    """Gemini supervisor configured for classification with a system prompt.
+class XAiClassificationSupervisor(XAiSupervisor):
+    """X-AI supervisor configured for classification with a system prompt.
 
-    Uses Gemini with a classification system prompt to determine if content is harmful.
+    Uses X-AI (Grok) with a classification system prompt to determine if content is harmful.
     The model outputs "1" for harmful or "0" for benign, which is parsed by the result mapper.
     """
 
     def __init__(
         self,
-        model: str = "gemini-2.5-flash",
+        model: str = "grok-4-latest",
         system_prompt: str = DEFAULT_CLASSIFICATION_SYSTEM_PROMPT,
         pre_processing: list[PreProcessing] = [],
         api_key: str | None = None,
-        api_variable: str = "GEMINI_API_KEY",
+        api_variable: str = "XAI_API_KEY",
     ):
-        """Initialize the GeminiClassificationSupervisor.
+        """Initialize the XAiClassificationSupervisor.
 
         Args:
-            model: Gemini model id. Defaults to "gemini-1.5-pro".
+            model: X-AI model id. Defaults to "grok-beta".
             system_prompt: System-level instruction for classification. 
                 Defaults to asking for "1" if harmful, "0" if benign.
             pre_processing: List of PreProcessing steps to apply to prompts. Defaults to [].
-            api_key: Google AI Studio API key (if given, overrides env). Defaults to None.
-            api_variable: Env var name for the API key. Defaults to "GEMINI_API_KEY".
+            api_key: X-AI API key (if given, overrides env). Defaults to None.
+            api_variable: Env var name for the API key. Defaults to "XAI_API_KEY".
         """
         super().__init__(
             model=model,
             usage=Usage("content_moderation"),
-            result_mapper=gemini_classification_result_map,
+            result_mapper=text_classification_result_map,
             system_prompt=system_prompt,
-            safety_settings=None,  # No safety settings - we want the model to classify freely
             pre_processing=pre_processing,
             api_key=api_key,
             api_variable=api_variable,

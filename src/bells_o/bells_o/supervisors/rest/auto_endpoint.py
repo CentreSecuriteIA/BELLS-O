@@ -9,6 +9,15 @@ MODEL_MAPPING = {
     "openai": ("openai", "OpenAiSupervisor"),
     "openai-moderation": ("openai", "OpenAiModerationSupervisor"),
     "azure-analyze-text": ("azure", "AzureAnalyzeTextSupervisor"),
+    "google": ("google", "GeminiSupervisor"),
+    "google-moderation": ("google", "GeminiModerationSupervisor"),
+    "google-classification": ("google", "GeminiClassificationSupervisor"),
+    "mistral": ("mistral", "MistralSupervisor"),
+    "mistral-classification": ("mistral", "MistralClassificationSupervisor"),
+    "xai": ("xai", "XAiSupervisor"),
+    "xai-classification": ("xai", "XAiClassificationSupervisor"),
+    "anthropic": ("anthropic", "AnthropicSupervisor"),
+    "anthropic-classification": ("anthropic", "AnthropicClassificationSupervisor"),
 }
 
 

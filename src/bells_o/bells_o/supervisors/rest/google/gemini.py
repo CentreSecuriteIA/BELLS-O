@@ -39,7 +39,7 @@ class GeminiSupervisor(RestSupervisor):
             result_mapper: ResultMapper for this Supervisor.
             system_prompt: System-level instruction → mapped to `system_instruction`.
             safety_settings: Optional list of safetySettings dicts (category + threshold).
-                Defaults to None (no safety settings). For moderation use cases, use VertexModerationSupervisor.
+                Defaults to None (no safety settings).
             pre_processing: PreProcessing steps.
             api_key: Google AI Studio API key (if given, overrides env).
             api_variable: Env var name for the API key. Defaults to "GEMINI_API_KEY".
