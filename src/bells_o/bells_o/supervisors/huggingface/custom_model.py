@@ -44,24 +44,28 @@ class HuggingFaceSupervisor(Supervisor):
             metadata["tokenizer_kwargs"] = self.tokenizer_kwargs
         return metadata
 
-    def pre_process(self, message: str):
+    def pre_process(self, inputs: str | list[str]) -> BatchEncoding:
         """Apply all preprocessing steps.
 
         Concrete classes will likely need a tokenization equivalent implemented.
         """  # TODO: improve this docstring
+        if isinstance(inputs, str):
+            inputs = [inputs]
+
         if self.pre_processing:
             for pre_processor in self.pre_processing:
-                message = pre_processor(message)
+                inputs = [pre_processor(input) for input in inputs]
         if self._tokenizer.chat_template is not None:
-            assert isinstance(message, list), (
+            assert isinstance(inputs, list), (
                 "If `tokenizer.chat_template` is not None, then use a `RoleWrapper` as the last pre-processor."
             )
-            message = self._tokenizer.apply_chat_template(
-                message, tokenize=False, add_generation_prompt=True
+            inputs = self._tokenizer.apply_chat_template(
+                inputs, tokenize=False, add_generation_prompt=True
             )  # TODO customize the kwargs of apply_chat_template?
-        return self._tokenizer(message, return_tensors="pt")
+        # TODO: figure out padding side
+        return self._tokenizer(inputs, return_tensors="pt", padding=True)
 
-    def judge(self, input_ids: BatchEncoding) -> list[OutputDict]:
+    def judge(self, encoded_batch: BatchEncoding) -> list[OutputDict]:
         """Run one evaluation on the supervisor model.
 
         Expects tokenized inputs
@@ -73,15 +77,14 @@ class HuggingFaceSupervisor(Supervisor):
             str: Output of the supversior model of the classifier
 
         """
-        assert isinstance(self.generation_kwargs, dict), (
-            "Expected argument to not be None at this stage."
-        )
-        input_ids = input_ids.to(device=self._model.device)
+        assert isinstance(self.generation_kwargs, dict), "Expected argument to not be None at this stage."
+
+        encoded_batch = encoded_batch.to(device=self._model.device)
         start_time = time()
-        outputs = self._model.generate(**input_ids, **self.generation_kwargs)
+        outputs = self._model.generate(**encoded_batch, **self.generation_kwargs)
         decoded_outputs: list[str] = self._tokenizer.batch_decode(outputs)
-        generation_time = start_time - time()
-        batch_size = len(input_ids)
+        generation_time = time() - start_time
+        batch_size = len(encoded_batch)
         return [
             OutputDict(
                 output_raw=output,

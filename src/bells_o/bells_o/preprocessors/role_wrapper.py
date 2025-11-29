@@ -22,6 +22,19 @@ class RoleWrapper(PreProcessing):
         opposite_prompt: str | None = None,
         starts_with: Literal["user", "assistant"] = "user",
     ):
+        """Initialize the RoleWrapper.
+
+        This pre processor maps a string to the dictionary list template that specified messages in HF.
+        You can choose for what role the prompt string should be used (`assistant` or `user`), if/what the other opposite role should start with,
+        and a system prompt string.
+
+        Args:
+            role (Literal["user", "assistant"], optional): The role of the prompt string. Defaults to "user".
+            system_prompt (str, optional): The system prompt string for the conversation. Defaults to an empty string.
+            opposite_prompt (str | None, optional): The string for the opposite role than specified in `role`. Defaults to None.
+            starts_with (Literal["user", "assistant"], optional): With which role's message the conversation should start with. Defaults to "user".
+
+        """
         self.role = role
         self.system_prompt = system_prompt
         self.opposite_prompt = opposite_prompt

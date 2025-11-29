@@ -83,9 +83,7 @@ class Result(dict):
         # for proper comparison, one has to be a subset of the other
         keys_self = list(self.keys())
         keys_other = list(other.keys())
-        is_subset = all(key in keys_self for key in keys_other) or all(
-            key in keys_other for key in keys_self
-        )
+        is_subset = all(key in keys_self for key in keys_other) or all(key in keys_other for key in keys_self)
         if is_subset:
             smallest_key_set = min(keys_self, keys_other, key=len)
             return all(self[key] == other[key] for key in smallest_key_set)
@@ -105,5 +103,5 @@ class OutputDict(TypedDict):
 T = TypeVar("T", bound="RestSupervisor")
 
 RequestMapper = Callable[[T, str], dict[str, str]]  # for json output
+type AuthMapper = Callable[["RestSupervisor"], dict[str, str]]  # for json output
 type ResultMapper = Callable[[str, Usage], Result] | Callable[[dict[str, Any], Usage], Result]
-type AuthMapper = Callable[[Any], dict[str, str]]  # for json output
