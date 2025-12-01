@@ -5,8 +5,9 @@ from importlib import import_module
 
 MODEL_MAPPING = {
     "saillab/x-guard": ("saillab", "XGuardSupervisor", {}),
-    "openai/gpt-oss-safeguard-20b": ("openai", "GptOssSafeGuardSupervisor", {"variant": "20b"}),
-    "openai/gpt-oss-safeguard-120b": ("openai", "GptOssSafeGuardSupervisor", {"variant": "120b"}),
+    "openai/gpt-oss-safeguard-20b": ("openai", "GptOssSafeguardSupervisor", {"variant": "20b"}),
+    "openai/gpt-oss-safeguard-120b": ("openai", "GptOssSafeguardSupervisor", {"variant": "120b"}),
+    "meta-llama/Llama-Guard-4-12B": ("meta", "LlamaGuard4Supervisor", {}),
 }
 
 
