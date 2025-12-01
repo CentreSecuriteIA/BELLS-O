@@ -35,5 +35,10 @@ class XGuardSupervisor(HuggingFaceSupervisor):
         self.pre_processing = pre_processing
         self.model_kwargs = model_kwargs
         self.tokenizer_kwargs = tokenizer_kwargs
-        self.generation_kwargs = generation_kwargs
+
+        base_kwargs = {"temperature": 0.0000001, "do_sample": True}
+        for key in base_kwargs:
+            if key in generation_kwargs:
+                print(f"INFO: ignoring set generation kwarg {key}. This kwarg should not be set for this supervisor.")
+        self.generation_kwargs = generation_kwargs | base_kwargs
         super().__post_init__()
