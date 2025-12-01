@@ -1,7 +1,6 @@
 """Implement the OpenAI API via REST."""
 
-from functools import partial
-from typing import Self, cast
+from typing import Self
 
 from bells_o.common import AuthMapper, RequestMapper, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
@@ -47,12 +46,13 @@ class OpenAiSupervisor(RestSupervisor):
         self.provider_name: str | None = "OpenAI"
         self.base_url: str = base_url
         self.usage: Usage = usage
-        self.res_map_fn: ResultMapper = cast(ResultMapper, partial(result_mapper, usage=self.usage))
+        self.res_map_fn: ResultMapper = result_mapper
         self.req_map_fn: RequestMapper[Self] = openai_request_map
         self.auth_map_fn: AuthMapper = auth_map
         self.pre_processing = pre_processing
         self.api_key = api_key
         self.api_variable = api_variable
         self.system_prompt = system_prompt
+        self.custom_header = {}
 
         super().__post_init__()

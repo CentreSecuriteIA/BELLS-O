@@ -35,10 +35,12 @@ class Supervisor(ABC):
         """Complete full judging process."""
         if not isinstance(inputs, list):
             inputs = [inputs]
-        inputs = [self.pre_process(input) for input in inputs]
+
+        inputs = self.pre_process(inputs)
+
         outputs: list[OutputDict] = self.judge(inputs)
         for output in outputs:
-            output["output_result"] = self.res_map_fn(output["output_raw"])  # pyright: ignore[reportArgumentType]
+            output["output_result"] = self.res_map_fn(output["output_raw"], self.usage)  # pyright: ignore[reportArgumentType]
         return outputs
 
     def metadata(self) -> dict[str, Any]:
@@ -66,12 +68,12 @@ class Supervisor(ABC):
         """
         pass
 
-    def pre_process(self, string):
+    def pre_process(self, inputs):
         """Apply all preprocessing steps.
 
         Concrete classes will likely need a tokenization equivalent implemented.
         """
         if self.pre_processing:
             for pre_processor in self.pre_processing:
-                string = pre_processor(string)
-        return string
+                inputs = [pre_processor(input) for input in inputs]
+        return inputs

@@ -1,7 +1,6 @@
 """Implement the LakeraGuard supervisor via REST API."""
 
-from functools import partial
-from typing import Self, cast
+from typing import Self
 
 from bells_o.common import AuthMapper, RequestMapper, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
@@ -39,14 +38,13 @@ class LakeraGuardSupervisor(RestSupervisor):
         self.provider_name: str | None = "Lakera"
         self.base_url: str = "https://api.lakera.ai/v2/guard"
         self.usage: Usage = usage
-        self.res_map_fn: ResultMapper = cast(
-            ResultMapper, partial(lakera_result_map, usage=self.usage)
-        )
+        self.res_map_fn: ResultMapper = lakera_result_map
         self.req_map_fn: RequestMapper[Self] = lakera_request_map
         self.auth_map_fn: AuthMapper = auth_map
         self.pre_processing = pre_processing
         self.project_id = project_id
         self.api_key = api_key
         self.api_variable = api_variable
+        self.custom_header = {}
 
         super().__post_init__()

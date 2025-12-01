@@ -18,5 +18,7 @@ def mapper(output: str, usage: Usage = Usage()) -> Result:
         Result: The result that the output maps to.
 
     """
-    label = findall(r"<label>(.*)</label>", output)[0]
-    return Result(content_moderation=not label == "safe")
+    labels = findall(r"<label>(.*)</label>", output)
+    if len(labels) == 0:
+        return Result(content_moderation=False)
+    return Result(content_moderation=not labels[0] == "safe")

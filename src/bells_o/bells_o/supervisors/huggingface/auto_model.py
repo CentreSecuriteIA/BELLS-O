@@ -33,6 +33,7 @@ class AutoHuggingFaceSupervisor:
                 f"Did not find attribute `{class_attribute}` in module `bells_o.supervisors.huggingface.{module_name}`."
             )
 
+        # TODO: This is super stupid logic, and can be solved much easier (solution is obvious). Retouch
         # clean kwargs - passed kwargs take priority
         keys_to_delete = []
         for key in special_kwargs:
