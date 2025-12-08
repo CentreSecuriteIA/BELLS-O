@@ -8,7 +8,10 @@ from .gemini_moderation_mapper import mapper as gemini_moderation
 from .gemini_classification_mapper import mapper as gemini_classification
 from .text_classification_mapper import mapper as text_classification
 from .xguard_mapper import mapper as xguard
-from .llama_guard_4_mapper import mapper as llama_guard_4
+from .llama_guard_4_rest_mapper import mapper as llama_guard_4_rest
+from .virtue_guard_mapper import mapper as virtue_guard
+from .shieldgemma_mapper import mapper as shieldgemma
+from .aegis_mapper import mapper as aegis
 
 
 __all__ = [
@@ -18,7 +21,10 @@ __all__ = [
     "azure_analyze_text",
     "gemini_moderation",
     "gemini_classification",
-    "llama_guard_4",
+    "llama_guard_4_rest",
+    "virtue_guard",
     "text_classification",
     "anthropic_classification",
+    "shieldgemma",
+    "aegis",
 ]
