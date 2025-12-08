@@ -35,7 +35,7 @@ class GeminiModerationSupervisor(GeminiSupervisor):
 
     def __init__(
         self,
-        model: str = "gemini-2.5-flash",
+        model: str = "gemini-2.0-flash",
         pre_processing: list[PreProcessing] = [],
         safety_settings: list[dict] | None = None,
         system_prompt: str = "",
@@ -45,7 +45,7 @@ class GeminiModerationSupervisor(GeminiSupervisor):
         """Initialize the GeminiModerationSupervisor.
 
         Args:
-            model: Gemini model id. Defaults to "gemini-2.5-flash".
+            model: Gemini model id. Defaults to "gemini-2.0-flash".
             pre_processing: List of PreProcessing steps to apply to prompts. Defaults to [].
             safety_settings: List of safetySettings dicts. Defaults to DEFAULT_SAFETY_SETTINGS.
             system_prompt: System-level instruction. Defaults to "".

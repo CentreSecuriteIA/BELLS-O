@@ -5,12 +5,12 @@ from typing import Any
 
 from bells_o.common import Result, Usage
 
-
 def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
     """Map the output format of Gemini classification to `Result`.
 
     Parses Gemini's text output looking for "1" (harmful) or "0" (benign).
     The model is instructed to output 1 if harmful, 0 if benign.
+    Additionally, handles scenario where output contains a blockReason (treat as "1"/harmful).
 
     Args:
         output: A dict that is the raw response of a supervisor.
@@ -31,6 +31,16 @@ def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
             parts = content.get("parts", [])
             if parts and len(parts) > 0:
                 text = parts[0].get("text", "")
+
+    # If there is no text, check for 'promptFeedback' and 'blockReason'
+    if not text.strip() and "promptFeedback" in output:
+        prompt_feedback = output["promptFeedback"]
+        if (
+            isinstance(prompt_feedback, dict) and
+            "blockReason" in prompt_feedback and
+            prompt_feedback["blockReason"]
+        ):
+            return Result(content_moderation=True)
 
     # Parse the text to find "1" or "0"
     # Look for standalone "1" or "0", or at the start of the text
@@ -61,6 +71,9 @@ def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
             else:
                 # Default to False (benign) if we can't determine
                 is_harmful = False
+
+    return Result(content_moderation=is_harmful)
+
 
     return Result(content_moderation=is_harmful)
 
