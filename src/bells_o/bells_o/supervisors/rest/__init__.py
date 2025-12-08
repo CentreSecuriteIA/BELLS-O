@@ -13,7 +13,18 @@ from .google import (
 from .lakeraguard import LakeraGuardDefaultSupervisor, LakeraGuardSupervisor
 from .mistral import MistralClassificationSupervisor, MistralSupervisor
 from .openai import OpenAiModerationSupervisor, OpenAiSupervisor
+from .together import (
+    GptOssSupervisor,
+    LlamaGuard4BModerationSupervisor,
+    TogetherAISupervisor,
+    VirtueGuardTextLiteModerationSupervisor,
+)
+from .openrouter import (
+    GptOssSafeguard20Supervisor,
+    OpenRouterSupervisor,
+)
 from .xai import XAiClassificationSupervisor, XAiSupervisor
+from .huggingface_api import HuggingFaceApiSupervisor
 
 
 __all__ = [
@@ -23,6 +34,12 @@ __all__ = [
     "LakeraGuardDefaultSupervisor",
     "OpenAiModerationSupervisor",
     "OpenAiSupervisor",
+    "TogetherAISupervisor",
+    "GptOssSupervisor",
+    "LlamaGuard4BModerationSupervisor",
+    "VirtueGuardTextLiteModerationSupervisor",
+    "OpenRouterSupervisor",
+    "GptOssSafeguard20Supervisor",
     "request_mappers",
     "auth_mappers",
     "AzureAnalyzeTextSupervisor",
@@ -35,4 +52,5 @@ __all__ = [
     "XAiClassificationSupervisor",
     "AnthropicSupervisor",
     "AnthropicClassificationSupervisor",
+    "HuggingFaceApiSupervisor",
 ]
