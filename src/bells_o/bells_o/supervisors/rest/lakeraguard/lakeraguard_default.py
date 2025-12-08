@@ -14,7 +14,7 @@ class LakeraGuardDefaultSupervisor(LakeraGuardSupervisor):
         project_id: str,
         pre_processing: list[PreProcessing] = [],
         api_key: str | None = None,
-        api_variable: str | None = None,
+        api_variable: str | None = "LAKERA_API_KEY",
     ):
         """Initialize the LakeraGuardDefaultSupervisor.
 
