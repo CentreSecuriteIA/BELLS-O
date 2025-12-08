@@ -2,6 +2,7 @@
 
 from .anthropic_classification_mapper import mapper as anthropic_classification
 from .azure_analyze_text_mapper import mapper as azure_analyze_text
+from .bedrock_guardrail_mapper import mapper as bedrock_guardrail
 from .lakeraguard_mapper import mapper as lakeraguard
 from .openai_moderation_mapper import mapper as openai_moderation
 from .gemini_moderation_mapper import mapper as gemini_moderation
@@ -27,4 +28,5 @@ __all__ = [
     "anthropic_classification",
     "shieldgemma",
     "aegis",
+    "bedrock_guardrail",
 ]

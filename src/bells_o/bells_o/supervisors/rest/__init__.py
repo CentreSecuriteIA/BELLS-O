@@ -3,6 +3,7 @@
 from . import auth_mappers, request_mappers
 from .anthropic import AnthropicClassificationSupervisor, AnthropicSupervisor
 from .auto_endpoint import AutoRestSupervisor
+from .aws import AwsSupervisor, BedrockGuardrailSupervisor
 from .azure import AzureAnalyzeTextSupervisor
 from .custom_endpoint import RestSupervisor
 from .google import (
@@ -53,4 +54,6 @@ __all__ = [
     "AnthropicSupervisor",
     "AnthropicClassificationSupervisor",
     "HuggingFaceApiSupervisor",
+    "AwsSupervisor",
+    "BedrockGuardrailSupervisor",
 ]

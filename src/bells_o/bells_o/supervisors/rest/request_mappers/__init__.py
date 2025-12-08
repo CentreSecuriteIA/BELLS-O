@@ -1,6 +1,7 @@
 """Module structure."""
 
 from .anthropic_mapper import mapper as anthropic
+from .aws_mapper import mapper as aws
 from .azure_analyze_text_mapper import mapper as azure_analyze_text
 from .huggingface_mapper import mapper as huggingface
 from .lakeraguard_mapper import mapper as lakeraguard
@@ -12,4 +13,4 @@ from .xai_mapper import mapper as xai
 from .google_mapper import mapper as google
 
 
-__all__ = ["lakeraguard", "openai", "azure_analyze_text", "google", "mistral", "xai", "anthropic", "huggingface", "together", "openrouter"]
+__all__ = ["lakeraguard", "openai", "azure_analyze_text", "google", "mistral", "xai", "anthropic", "huggingface", "together", "openrouter", "aws"]
