@@ -83,7 +83,6 @@ class Evaluator:
             self._prepared_dirs = True
 
     # TODO: Doc string
-    # TODO: Implement safe runs? (saving a prompt file after every run)
     def run(
         self,
         indices: list[int] | None = None,
@@ -96,7 +95,6 @@ class Evaluator:
         Args:
             indices (list[int], optional): List of indices of samples in the Dataset to run.
             run_id (str, optional): ID for this run.
-            unique (bool, optional): If a sample should be skipped if it was run before.
             save (bool, optional): If the results should be saved after the run. Defaults to False.
             verbose (bool, optional): If a progress bar for the run should be shown.
 
@@ -116,6 +114,13 @@ class Evaluator:
             indices = list(range(len(self.dataset)))
 
         assert indices
+        
+        # Ensure save_dir is set up if we're saving
+        if save and self.save_dir:
+            if not self._prepared_dirs:
+                self._prepare_dirs()
+                self._prepared_dirs = True
+        
         if verbose:
             from tqdm import tqdm
 
@@ -124,12 +129,23 @@ class Evaluator:
             iterator = iter(indices)
 
         started_at = _now()
+        processed_count = 0
+        skipped_count = 0
 
         for index in iterator:
             sample: dict[str, str] = self.dataset[index]
             prompt_id = sample["prompt_id"]
             prompt = sample[self.dataset_config["input_column"]]
             target = sample[self.dataset_config["target_column"]]
+
+            # Check if result already exists
+            existing_result = self._load_existing_result(prompt_id, run_id)
+            if existing_result is not None:
+                run_dict[prompt_id] = existing_result
+                skipped_count += 1
+                if verbose:
+                    iterator.set_postfix({"skipped": skipped_count, "processed": processed_count})
+                continue
 
             # run inference
             result_dict = self.supervisor(prompt)[0]
@@ -149,18 +165,29 @@ class Evaluator:
                 result_dict["metadata"]["prompt_id"] = prompt_id
                 result_dict["metadata"]["prompt"] = prompt
                 result_dict["metadata"]["target"] = target
+            
             run_dict[prompt_id] = result_dict
+            processed_count += 1
 
+            # Save result immediately if save is enabled
+            if save:
+                self._save_single_result(prompt_id, run_id, result_dict)
+                if verbose:
+                    iterator.set_postfix({"skipped": skipped_count, "processed": processed_count})
+
+        # Update metadata for all results in the run
         if self.metadata:
             for output_dict in run_dict.values():
                 output_dict["metadata"]["started_at"] = started_at
                 output_dict["metadata"]["ended_at"] = _now()
                 output_dict["metadata"]["num_prompts"] = len(indices)
                 output_dict["metadata"]["supervisor"] = self.supervisor.metadata()
+                # Re-save if we're saving iteratively to update metadata
+                if save and "prompt_id" in output_dict.get("metadata", {}):
+                    self._save_single_result(
+                        output_dict["metadata"]["prompt_id"], run_id, output_dict
+                    )
         # TODO: add dataset metadata
-
-        if save:
-            self.save_runs()
 
     # TODO: if implementing safe runs in run(), make this cascaded, so that this calls a function that saves one prompt.
     def save_runs(self, save_dir: str | Path | None = None):
@@ -181,8 +208,9 @@ class Evaluator:
             )
         assert isinstance(save_dir, Path)
 
-        if not self._prepare_dirs:
+        if not self._prepared_dirs:
             self._prepare_dirs(save_dir)
+            self._prepared_dirs = True
 
         for run_id, run_dict in self.runs.items():
             run_dir = save_dir / self.dataset.clean_name / _clean_string(run_id)
@@ -203,6 +231,36 @@ class Evaluator:
         if self.verbose:
             print(f"Create directory {dataset_path} and all necessary parents.")
         dataset_path.mkdir(parents=True, exist_ok=True)
+
+    def _get_result_file_path(self, prompt_id: str, run_id: str) -> Path | None:
+        """Get the file path for a result given prompt_id and run_id."""
+        if self.save_dir is None:
+            return None
+        run_dir = self.save_dir / self.dataset.clean_name / _clean_string(run_id)
+        return (run_dir / prompt_id).with_suffix(".json")
+
+    def _load_existing_result(self, prompt_id: str, run_id: str) -> OutputDict | None:
+        """Load an existing result if it exists for the given prompt_id and run_id."""
+        file_path = self._get_result_file_path(prompt_id, run_id)
+        if file_path is None or not file_path.exists():
+            return None
+        try:
+            with open(file_path, "r") as f:
+                return json.loads(f.read())
+        except (json.JSONDecodeError, IOError):
+            # If file is corrupted or can't be read, return None to re-process
+            return None
+
+    def _save_single_result(self, prompt_id: str, run_id: str, result_dict: OutputDict):
+        """Save a single result to disk."""
+        if self.save_dir is None:
+            return
+        file_path = self._get_result_file_path(prompt_id, run_id)
+        if file_path is None:
+            return
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(file_path, "w") as f:
+            f.write(json.dumps(result_dict, indent=2))
 
 
 def _clean_string(string: str):
