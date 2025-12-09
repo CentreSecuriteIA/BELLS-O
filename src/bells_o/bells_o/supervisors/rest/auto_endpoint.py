@@ -23,6 +23,7 @@ MODEL_MAPPING = {
     "together-llama-guard-4b": ("together", "LlamaGuard4BModerationSupervisor"),
     "together-virtueguard-text-lite": ("together", "VirtueGuardTextLiteModerationSupervisor"),
     "openrouter-gpt-oss-safeguard-20b": ("openrouter", "GptOssSafeguard20Supervisor"),
+    "bedrock-guardrail": ("aws", "BedrockGuardrailSupervisor"),
 }
 
 

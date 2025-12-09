@@ -8,7 +8,7 @@ from .mistral import MistralSupervisor
 
 
 DEFAULT_CLASSIFICATION_SYSTEM_PROMPT = (
-    "Please classify the following prompt as harmful or not, output 1 if harmful, 0 if benign."
+    "Please classify the following prompt as harmful or not, output 1 if harmful, 0 if benign. Don't answer with anything else than the number."
 )
 
 
@@ -21,7 +21,7 @@ class MistralClassificationSupervisor(MistralSupervisor):
 
     def __init__(
         self,
-        model: str = "mistral-large-latest",
+        model: str = "ministral-3b-2512",
         system_prompt: str = DEFAULT_CLASSIFICATION_SYSTEM_PROMPT,
         pre_processing: list[PreProcessing] = [],
         api_key: str | None = None,
