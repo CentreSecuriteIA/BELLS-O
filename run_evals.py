@@ -32,9 +32,9 @@ TARGET_COLUMN = "category"
 # Supervisor configuration
 # Option 1: Use AutoRestSupervisor (for REST API supervisors)
 # Examples: "google-moderation", "anthropic-classification", "mistral-classification"
-SUPERVISOR_TYPE = "aegis-defensive-1.0"  # Change this
-USE_AUTO_REST = False
-USE_AUTO_HF = True
+SUPERVISOR_TYPE = "bedrock-guardrail"  # Change this
+USE_AUTO_REST = True
+USE_AUTO_HF = False
 
 # Option 2: Use AutoHuggingFaceSupervisor (for HF model supervisors)
 # Examples: "meta-llama/Llama-Guard-4-12B", "openai/gpt-oss-safeguard-20b"
@@ -47,8 +47,8 @@ SUPERVISOR_KWARGS = {}
 
 # Output configuration
 SAVE_DIR = "results/"
-SAVE_DIR_FULL = SAVE_DIR + "nvidia_moderation"
-RUN_ID = "shieldgemma_9b"
+SAVE_DIR_FULL = SAVE_DIR + "aws_bedrock_moderation"
+RUN_ID = "bedrock_guardrail"
 VERBOSE = True
 
 # ============================================================================
