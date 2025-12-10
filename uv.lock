@@ -260,12 +260,11 @@ wheels = [
 ]
 
 [[package]]
-name = "bells-base"
+name = "bells-o"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "accelerate" },
-    { name = "bells-o" },
     { name = "datasets" },
     { name = "torch" },
     { name = "tqdm" },
@@ -281,7 +280,6 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "accelerate", specifier = ">=1.10.1" },
-    { name = "bells-o", editable = "src/bells_o" },
     { name = "datasets", specifier = ">=4.1.1" },
     { name = "ipykernel", marker = "extra == 'dev'" },
     { name = "jupyter", marker = "extra == 'dev'" },
@@ -290,11 +288,6 @@ requires-dist = [
     { name = "transformers", specifier = ">=4.57.0" },
 ]
 provides-extras = ["dev"]
-
-[[package]]
-name = "bells-o"
-version = "0.1.0"
-source = { editable = "src/bells_o" }
 
 [[package]]
 name = "bleach"
