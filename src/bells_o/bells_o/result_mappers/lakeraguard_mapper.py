@@ -14,6 +14,7 @@ def mapper(output: dict[str, str], usage: Usage) -> Result:
 
     """
     result = Result()
+    print(output)
     for usage_type in usage:
         result[usage_type] = output["flagged"]
     return result

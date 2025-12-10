@@ -89,10 +89,11 @@ class RestSupervisor(Supervisor):
                 print("INFO: Generating judgement.")
 
             start_time = time()
+            headers = self.auth_map_fn(self) | self.custom_header
             response = post(
                 self.base_url,
                 json=self.req_map_fn(self, prompt),
-                headers=self.auth_map_fn(self) | self.custom_header,
+                headers=headers,
             )
             generation_time = time() - start_time
 

@@ -8,7 +8,22 @@ MODEL_MAPPING = {
     "lakeraguard-default": ("lakeraguard", "LakeraGuardDefaultSupervisor"),
     "openai": ("openai", "OpenAiSupervisor"),
     "openai-moderation": ("openai", "OpenAiModerationSupervisor"),
+    "openai-classification": ("openai", "OpenAIClassificationSupervisor"),
     "azure-analyze-text": ("azure", "AzureAnalyzeTextSupervisor"),
+    "google": ("google", "GeminiSupervisor"),
+    "google-moderation": ("google", "GeminiModerationSupervisor"),
+    "google-classification": ("google", "GeminiClassificationSupervisor"),
+    "mistral": ("mistral", "MistralSupervisor"),
+    "mistral-classification": ("mistral", "MistralClassificationSupervisor"),
+    "xai": ("xai", "XAiSupervisor"),
+    "xai-classification": ("xai", "XAiClassificationSupervisor"),
+    "anthropic": ("anthropic", "AnthropicSupervisor"),
+    "anthropic-classification": ("anthropic", "AnthropicClassificationSupervisor"),
+    "together-gpt-oss": ("together", "GptOssSupervisor"),
+    "together-llama-guard-4b": ("together", "LlamaGuard4BModerationSupervisor"),
+    "together-virtueguard-text-lite": ("together", "VirtueGuardTextLiteModerationSupervisor"),
+    "openrouter-gpt-oss-safeguard-20b": ("openrouter", "GptOssSafeguard20Supervisor"),
+    "bedrock-guardrail": ("aws", "BedrockGuardrailSupervisor"),
 }
 
 
