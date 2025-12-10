@@ -1,12 +1,15 @@
 [project]
-name = "bells-base"
+name = "bells-o"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
+authors = [
+    { name = "Felix Michalak", email = "felix@michalax.de" },
+    { name = "Leonhard Waibl", email = "leonhardwaibl@gmail.com"}
+]
 requires-python = ">=3.12"
 dependencies = [
     "accelerate>=1.10.1",
-    "bells-o",
     "datasets>=4.1.1",
     "torch>=2.8.0",
     "tqdm>=4.67.1",
@@ -16,11 +19,15 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["ipykernel", "jupyter"]
 
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.uv.sources]
-bells-o = { path = "src/bells_o", editable = true}
 
 [tool.ruff]
 line-length = 120

@@ -4,14 +4,13 @@ from importlib import import_module
 
 
 MODEL_MAPPING = {
-    "xguard-moderation": ("saillab", "XGuardSupervisor", {}),
-    "gptossafeguard-20b": ("openai", "GptOssSafeguardSupervisor", {"variant": "20b"}),
-    "gptossafeguard-120b": ("openai", "GptOssSafeguardSupervisor", {"variant": "120b"}),
-    "llamaguard4-12b": ("meta", "LlamaGuard4Supervisor", {}),
-    "shieldgemma-2b": ("google", "ShieldGemmaSupervisor", {"variant": "2b"}),
-    "shieldgemma-9b": ("google", "ShieldGemmaSupervisor", {"variant": "9b"}),
-    "shieldgemma-27b": ("google", "ShieldGemmaSupervisor", {"variant": "27b"}),
-    "aegis-defensive-1.0": ("nvidia", "AegisSupervisor", {}),
+    "saillab/xguard": ("saillab", "XGuardSupervisor", {}),
+    "openai/gptossafeguard-20b": ("openai", "GptOssSafeguardSupervisor", {"variant": "20b"}),
+    "openai/gptossafeguard-120b": ("openai", "GptOssSafeguardSupervisor", {"variant": "120b"}),
+    "google/shieldgemma-2b": ("google", "ShieldGemmaSupervisor", {"variant": "2b"}),
+    "google/shieldgemma-9b": ("google", "ShieldGemmaSupervisor", {"variant": "9b"}),
+    "google/shieldgemma-27b": ("google", "ShieldGemmaSupervisor", {"variant": "27b"}),
+    "nvidia/Aegis-AI-Content-Safety-LlamaGuard-Defensive-1.0": ("nvidia", "AegisSupervisor", {}),
 }
 
 
