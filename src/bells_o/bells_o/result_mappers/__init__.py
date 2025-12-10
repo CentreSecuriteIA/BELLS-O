@@ -13,6 +13,7 @@ from .llama_guard_4_rest_mapper import mapper as llama_guard_4_rest
 from .virtue_guard_mapper import mapper as virtue_guard
 from .shieldgemma_mapper import mapper as shieldgemma
 from .aegis_mapper import mapper as aegis
+from .qwen3guard_mapper import mapper as qwen3guard
 
 
 __all__ = [
@@ -29,4 +30,5 @@ __all__ = [
     "shieldgemma",
     "aegis",
     "bedrock_guardrail",
+    "qwen3guard",
 ]

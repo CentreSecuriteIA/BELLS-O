@@ -12,6 +12,7 @@ MODEL_MAPPING = {
     "shieldgemma-9b": ("google", "ShieldGemmaSupervisor", {"variant": "9b"}),
     "shieldgemma-27b": ("google", "ShieldGemmaSupervisor", {"variant": "27b"}),
     "aegis-defensive-1.0": ("nvidia", "AegisSupervisor", {}),
+    "qwen3guard-gen-8b": ("qwen", "Qwen3GuardSupervisor", {}),
 }
 
 
