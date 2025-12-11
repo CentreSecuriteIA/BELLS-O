@@ -1,5 +1,7 @@
 """Implement the pre-configured nvidia/Aegis-AI-Content-Safety-LlamaGuard-Defensive-1.0 supervisor from HuggingFace."""
 
+from typing import Any
+
 from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -228,8 +230,19 @@ class AegisSupervisor(HuggingFaceSupervisor):
     def __init__(
         self,
         pre_processing: list[PreProcessing] = [],
+        model_kwargs: dict[str, Any] = {},
+        tokenizer_kwargs: dict[str, Any] = {},
+        generation_kwargs: dict[str, Any] = {},
     ):
-        """Initialize the supervisor."""
+        """Initialize the supervisor.
+
+        Args:
+            pre_processing (list[PreProcessing], optional): List of PreProcessing steps to apply to prompts. Defaults to []
+            model_kwargs (dict[str, Any], optional):  Keyword arguments to configure the model. Defaults to {}.
+            tokenizer_kwargs (dict[str, Any], optional):  Keyword arguments to configure the tokenizer. Defaults to {}.
+            generation_kwargs (dict[str, Any], optional): Keyword arguments to configure generation. Defaults to {}.
+
+        """
         # Store adapter model ID for loading later
         self.base_model_id = "meta-llama/LlamaGuard-7b"
         self.adapter_model_id = "nvidia/Aegis-AI-Content-Safety-LlamaGuard-Defensive-1.0"
@@ -237,10 +250,16 @@ class AegisSupervisor(HuggingFaceSupervisor):
         self.usage: Usage = Usage("content_moderation")
         self.res_map_fn: ResultMapper = aegis_result_map
 
+        self.model_kwargs = model_kwargs
+        self.tokenizer_kwargs = tokenizer_kwargs
+        self.generation_kwargs = generation_kwargs
+
         pre_processing.append(TemplateWrapper(PROMPT_TEMPLATE))
         self.pre_processing = pre_processing
 
-    def __post_init__(self):
+        self._load_peft()  # replaces post init
+
+    def _load_peft(self):
         """Override parent's __post_init__ to prevent automatic model loading.
 
         The parent class would try to load the model using self.name (adapter_model_id),
