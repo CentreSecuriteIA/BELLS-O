@@ -6,7 +6,7 @@ from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from bells_o.common import ResultMapper, Usage
-from bells_o.preprocessors import PreProcessing, TemplateWrapper
+from bells_o.preprocessors import PreProcessing, RoleWrapper, TemplateWrapper
 from bells_o.result_mappers import aegis as aegis_result_map
 
 from ..custom_model import HuggingFaceSupervisor
@@ -255,6 +255,7 @@ class AegisSupervisor(HuggingFaceSupervisor):
         self.generation_kwargs = generation_kwargs
 
         pre_processing.append(TemplateWrapper(PROMPT_TEMPLATE))
+        pre_processing.append(RoleWrapper("user"))
         self.pre_processing = pre_processing
 
         self._load_peft()  # replaces post init
