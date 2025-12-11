@@ -84,7 +84,7 @@ class HuggingFaceSupervisor(Supervisor):
         outputs = self._model.generate(**encoded_batch, **self.generation_kwargs)
         decoded_outputs: list[str] = self._tokenizer.batch_decode(outputs)
         generation_time = time() - start_time
-        batch_size = len(encoded_batch)
+        batch_size = len(encoded_batch["input_ids"])
         return [
             OutputDict(
                 output_raw=output,

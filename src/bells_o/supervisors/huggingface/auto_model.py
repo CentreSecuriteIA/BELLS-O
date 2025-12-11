@@ -11,7 +11,10 @@ MODEL_MAPPING = {
     "google/shieldgemma-9b": ("google", "ShieldGemmaSupervisor", {"variant": "9b"}),
     "google/shieldgemma-27b": ("google", "ShieldGemmaSupervisor", {"variant": "27b"}),
     "nvidia/Aegis-AI-Content-Safety-LlamaGuard-Defensive-1.0": ("nvidia", "AegisSupervisor", {}),
-    "qwen/qwen3guard-gen-8b": ("qwen", "Qwen3GuardSupervisor", {}),
+    "qwen/qwen3guard-gen-8b": ("qwen", "Qwen3GuardSupervisor", {"variant": "8B"}),
+    "qwen/qwen3guard-gen-4b": ("qwen", "Qwen3GuardSupervisor", {"variant": "4B"}),
+    "qwen/qwen3guard-gen-0.6b": ("qwen", "Qwen3GuardSupervisor", {"variant": "0.6B"}),
+    "rakancorle1/thinkguard": ("thinkguard", "ThinkGuardSupervisor", {}),
     }
 
 

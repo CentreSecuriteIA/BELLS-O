@@ -5,4 +5,4 @@ from .role_wrapper import RoleWrapper
 from .template_wrapper import TemplateWrapper
 
 
-__all__ = ["PreProcessing", "RoleWrapper"]
+__all__ = ["PreProcessing", "RoleWrapper", "TemplateWrapper"]

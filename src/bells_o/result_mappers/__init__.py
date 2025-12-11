@@ -14,6 +14,7 @@ from .virtue_guard_mapper import mapper as virtue_guard
 from .shieldgemma_mapper import mapper as shieldgemma
 from .aegis_mapper import mapper as aegis
 from .qwen3guard_mapper import mapper as qwen3guard
+from .thinkguard_mapper import mapper as thinkguard
 
 
 __all__ = [
