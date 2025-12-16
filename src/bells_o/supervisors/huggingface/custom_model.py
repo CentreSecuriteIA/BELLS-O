@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from time import time
 from typing import Any
 
+import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BatchEncoding
 
 from bells_o.common import OutputDict
@@ -86,6 +87,13 @@ class HuggingFaceSupervisor(Supervisor):
         encoded_batch = encoded_batch.to(device=self._model.device)
         start_time = time()
         outputs = self._model.generate(**encoded_batch, **self.generation_kwargs)
+
+        # cut outputs to only include generated tokens, assume that all samples were padded to the same length
+        input_ids = encoded_batch["input_ids"]
+        assert isinstance(input_ids, torch.Tensor)
+        sequence_length = input_ids.size(1)  # padded sequence length
+        outputs = outputs[:, sequence_length:, ...]
+
         decoded_outputs: list[str] = self._tokenizer.batch_decode(outputs)
         generation_time = time() - start_time
         batch_size = len(encoded_batch)
