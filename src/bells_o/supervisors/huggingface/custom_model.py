@@ -28,6 +28,17 @@ class HuggingFaceSupervisor(Supervisor):
         self._model = AutoModelForCausalLM.from_pretrained(self.name, **self.model_kwargs)
         self._tokenizer = AutoTokenizer.from_pretrained(self.name, **self.tokenizer_kwargs)
 
+    def _tokenize(self, inputs: list[str]) -> BatchEncoding:
+        if self._tokenizer.chat_template is not None:
+            assert isinstance(inputs, list), (
+                "If `tokenizer.chat_template` is not None, then use a `RoleWrapper` as the last pre-processor."
+            )
+            inputs = self._tokenizer.apply_chat_template(
+                inputs, tokenize=False, add_generation_prompt=True
+            )  # TODO customize the kwargs of apply_chat_template?
+        # TODO: figure out padding side
+        return self._tokenizer(inputs, return_tensors="pt", padding=True)
+
     def metadata(self) -> dict[str, Any]:
         """Return metadata dictionary for this Supervisor.
 
@@ -55,16 +66,9 @@ class HuggingFaceSupervisor(Supervisor):
         if self.pre_processing:
             for pre_processor in self.pre_processing:
                 inputs = [pre_processor(input) for input in inputs]
-        if self._tokenizer.chat_template is not None:
-            assert isinstance(inputs, list), (
-                "If `tokenizer.chat_template` is not None, then use a `RoleWrapper` as the last pre-processor."
-            )
-            inputs = self._tokenizer.apply_chat_template(
-                inputs, tokenize=False, add_generation_prompt=True
-            )  # TODO customize the kwargs of apply_chat_template?
-        # TODO: figure out padding side
-        return self._tokenizer(inputs, return_tensors="pt", padding=True)
+        return self._tokenize(inputs)
 
+    # TODO: add forward pass of generation kwargs? Would have to handle logic to discern necessary kwargs in self.gen_kwargs
     def judge(self, encoded_batch: BatchEncoding) -> list[OutputDict]:
         """Run one evaluation on the supervisor model.
 
