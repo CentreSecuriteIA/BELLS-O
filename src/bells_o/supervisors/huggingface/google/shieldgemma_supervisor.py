@@ -4,13 +4,13 @@ from time import time
 from typing import Any
 
 import torch
+from transformers import BatchEncoding
 
 from bells_o.common import OutputDict, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
 from bells_o.result_mappers import shieldgemma as shieldgemma_result_map
 
 from ..custom_model import HuggingFaceSupervisor
-from transformers import BatchEncoding
 
 
 # Default safety policy for content moderation (Prompt-only use case)
@@ -79,22 +79,12 @@ class ShieldGemmaSupervisor(HuggingFaceSupervisor):
         self.res_map_fn: ResultMapper = shieldgemma_result_map
         self.safety_policy = safety_policy.strip()
         self.use_chat_template = use_chat_template
-        
-        # Set default generation_kwargs as per documentation
-        # Note: Using slight temperature to allow reasoning, but still deterministic enough for classification
-        default_generation_kwargs = {
-            "max_new_tokens": 512,
-            "temperature": 0.1,  # Slight temperature to encourage reasoning text
-            "do_sample": True,  # Allow sampling to get full reasoning
-            "top_p": 0.95,  # Nucleus sampling for better text generation
-        }
-        # Merge user-provided kwargs with defaults (user kwargs take precedence)
-        self.generation_kwargs = {**default_generation_kwargs, **generation_kwargs}
-        
+        self.generation_kwargs = generation_kwargs
+
         # Ensure max_length is not set (it can override max_new_tokens)
         if "max_length" in self.generation_kwargs:
             del self.generation_kwargs["max_length"]
-        
+
         self.pre_processing = pre_processing
         self.model_kwargs = model_kwargs
         self.tokenizer_kwargs = tokenizer_kwargs
@@ -114,6 +104,7 @@ class ShieldGemmaSupervisor(HuggingFaceSupervisor):
 
         Returns:
             BatchEncoding: Tokenized input ready for the model.
+
         """
         if isinstance(inputs, str):
             inputs = [inputs]
@@ -172,20 +163,21 @@ class ShieldGemmaSupervisor(HuggingFaceSupervisor):
 
         Returns:
             list[OutputDict]: List of output dictionaries with decoded responses.
+
         """
         assert isinstance(self.generation_kwargs, dict), "Expected argument to not be None at this stage."
 
         encoded_batch = encoded_batch.to(device=self._model.device)
-        
+
         # Ensure generation parameters are set correctly
         generation_kwargs = self.generation_kwargs.copy()
-        
+
         # CRITICAL: Ensure max_new_tokens is set and max_length is not (max_length can override max_new_tokens)
         if "max_length" in generation_kwargs:
             del generation_kwargs["max_length"]
         if "max_new_tokens" not in generation_kwargs:
             generation_kwargs["max_new_tokens"] = 512
-        
+
         # Set EOS token but don't let it stop too early
         # The model should generate reasoning after "Yes"/"No"
         if "eos_token_id" not in generation_kwargs:
@@ -193,67 +185,68 @@ class ShieldGemmaSupervisor(HuggingFaceSupervisor):
                 generation_kwargs["eos_token_id"] = self._tokenizer.eos_token_id
             elif hasattr(self._model.config, "eos_token_id") and self._model.config.eos_token_id is not None:
                 generation_kwargs["eos_token_id"] = self._model.config.eos_token_id
-        
+
         # Important: Don't stop generation immediately after "Yes" or "No"
         # Allow at least some reasoning tokens before considering EOS
         # We'll rely primarily on max_new_tokens for stopping
-        
+
         # Remove any stop sequences that might cause early stopping
         if "stop_strings" in generation_kwargs:
             del generation_kwargs["stop_strings"]
         if "stopping_criteria" in generation_kwargs:
             del generation_kwargs["stopping_criteria"]
-        
+
         # Don't stop on newline or other common stop tokens that might cut off reasoning
         # The model should generate full reasoning text
-        
+
         # Ensure pad_token_id is set
         if "pad_token_id" not in generation_kwargs:
             if self._tokenizer.pad_token_id is not None:
                 generation_kwargs["pad_token_id"] = self._tokenizer.pad_token_id
             elif hasattr(self._model.config, "pad_token_id") and self._model.config.pad_token_id is not None:
                 generation_kwargs["pad_token_id"] = self._model.config.pad_token_id
-        
+
         # Process each item in the batch individually to handle variable lengths correctly
         all_outputs = []
         batch_size = encoded_batch["input_ids"].shape[0] if len(encoded_batch["input_ids"].shape) > 1 else 1
-        
+
         for i in range(batch_size):
             # Extract single input from batch
             single_input = {
-                "input_ids": encoded_batch["input_ids"][i:i+1],
+                "input_ids": encoded_batch["input_ids"][i : i + 1],
             }
             if "attention_mask" in encoded_batch:
-                single_input["attention_mask"] = encoded_batch["attention_mask"][i:i+1]
-            
+                single_input["attention_mask"] = encoded_batch["attention_mask"][i : i + 1]
+
             start_time = time()
-            
+
             # Get the input length for slicing later
             input_length = single_input["input_ids"].shape[-1]
-            
+
             # Generate with explicit max_new_tokens to ensure it stops
             outputs = self._model.generate(**single_input, **generation_kwargs)
-            
+
             # Decode only the newly generated tokens (skip the input)
             if isinstance(outputs, torch.Tensor):
                 generated_tokens = outputs[:, input_length:]
             else:
                 # If outputs is a ModelOutput object, extract the sequences
-                generated_tokens = outputs.sequences[:, input_length:] if hasattr(outputs, 'sequences') else outputs[:, input_length:]
-            
-            decoded_outputs: list[str] = self._tokenizer.batch_decode(
-                generated_tokens, skip_special_tokens=True
-            )
-            
-            generation_time = time() - start_time
-            
-            all_outputs.extend([
-                OutputDict(
-                    output_raw=output,
-                    metadata={"latency": generation_time, "batch_size": 1},
+                generated_tokens = (
+                    outputs.sequences[:, input_length:] if hasattr(outputs, "sequences") else outputs[:, input_length:]
                 )
-                for output in decoded_outputs
-            ])
-        
-        return all_outputs
 
+            decoded_outputs: list[str] = self._tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)
+
+            generation_time = time() - start_time
+
+            all_outputs.extend(
+                [
+                    OutputDict(
+                        output_raw=output,
+                        metadata={"latency": generation_time, "batch_size": 1},
+                    )
+                    for output in decoded_outputs
+                ]
+            )
+
+        return all_outputs
