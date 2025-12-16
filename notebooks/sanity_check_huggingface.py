@@ -27,9 +27,9 @@ generation_kwargs = {
 
 
 supervisor = AutoHuggingFaceSupervisor.load(
-    "nvidia/Aegis-AI-Content-Safety-LlamaGuard-Defensive-1.0",
+    "google/shieldgemma-27b",
     model_kwargs=model_kwargs,
-    generation_kwargs=generation_kwargs,
+    # generation_kwargs=generation_kwargs,
 )
 
 # %%
