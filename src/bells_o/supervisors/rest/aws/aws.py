@@ -5,6 +5,7 @@ from os import getenv
 from time import sleep, time
 from typing import Any, cast
 
+
 try:
     import boto3
     from botocore.exceptions import ClientError, NoCredentialsError
@@ -17,8 +18,8 @@ from bells_o.common import AuthMapper, OutputDict, RequestMapper, ResultMapper, 
 from bells_o.preprocessors import PreProcessing
 
 from ..auth_mappers import aws as aws_auth_map
-from ..custom_endpoint import RestSupervisor
 from ..request_mappers import aws as aws_request_map
+from ..rest_supervisor import RestSupervisor
 
 
 class AwsSupervisor(RestSupervisor):
@@ -51,9 +52,7 @@ class AwsSupervisor(RestSupervisor):
 
         """
         if boto3 is None:
-            raise ImportError(
-                "boto3 is required for AWS supervisors. Install it with: pip install boto3"
-            )
+            raise ImportError("boto3 is required for AWS supervisors. Install it with: pip install boto3")
 
         self.name: str = name
         self.provider_name: str | None = "AWS"
@@ -89,14 +88,14 @@ class AwsSupervisor(RestSupervisor):
                 # Provide helpful error message
                 access_key = getenv("AWS_ACCESS_KEY_ID")
                 secret_key = getenv("AWS_SECRET_ACCESS_KEY")
-                
+
                 error_msg = (
                     "AWS credentials not found. Please configure credentials using one of:\n"
                     "1. Environment variables: Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY\n"
                     "2. AWS credentials file: ~/.aws/credentials\n"
                     "3. IAM role (if running on AWS infrastructure)\n\n"
                 )
-                
+
                 if not access_key and not secret_key:
                     error_msg += (
                         "Tip: Create a .env file with:\n"
@@ -104,7 +103,7 @@ class AwsSupervisor(RestSupervisor):
                         "AWS_SECRET_ACCESS_KEY=your_secret_key\n"
                         "And load it with: from dotenv import load_dotenv; load_dotenv()"
                     )
-                
+
                 raise NoCredentialsError(error_msg)
         return self._bedrock_client
 
@@ -172,4 +171,3 @@ class AwsSupervisor(RestSupervisor):
 
         """
         raise NotImplementedError("Subclasses must implement _call_bedrock_api")
-

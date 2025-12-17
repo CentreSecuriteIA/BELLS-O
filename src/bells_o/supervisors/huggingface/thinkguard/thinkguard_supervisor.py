@@ -1,16 +1,12 @@
 """Implement the configuration for Rakancorle1/ThinkGuard supervisor from HuggingFace."""
 
-from time import time
 from typing import Any
 
-import torch
-
-from bells_o.common import OutputDict, ResultMapper, Usage
+from bells_o.common import ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing, TemplateWrapper
 from bells_o.result_mappers import thinkguard as thinkguard_result_map
 
-from ..custom_model import HuggingFaceSupervisor
-from transformers import BatchEncoding
+from ..hf_supervisor import HuggingFaceSupervisor
 
 
 # Instruction format for ThinkGuard
@@ -35,9 +31,10 @@ categories = "Physical Harm, Sexual Content, CBRN (societal harm), Cyber (societ
 
 response = ""
 
+
 class ThinkGuardSupervisor(HuggingFaceSupervisor):
     """Implement the pre-configured Rakancorle1/ThinkGuard supervisor from HuggingFace.
-    
+
     ThinkGuard is a content moderation model that outputs safety labels (Safe, Unsafe, or Controversial)
     along with categories of detected violations.
     """
@@ -58,10 +55,10 @@ class ThinkGuardSupervisor(HuggingFaceSupervisor):
             generation_kwargs (dict[str, Any], optional): Keyword arguments to configure generation. Defaults to {}.
 
         """
-        self.name: str = f"Rakancorle1/ThinkGuard"
+        self.name: str = "Rakancorle1/ThinkGuard"
         self.usage: Usage = Usage("content_moderation")
         self.res_map_fn: ResultMapper = thinkguard_result_map
-        
+
         PROMPT_TEMPLATE = instruction_format.format(categories=categories, prompt="{prompt}", response=response)
         pre_processing.append(TemplateWrapper(PROMPT_TEMPLATE))
         self.pre_processing = pre_processing
@@ -69,4 +66,3 @@ class ThinkGuardSupervisor(HuggingFaceSupervisor):
         self.tokenizer_kwargs = tokenizer_kwargs
         self.generation_kwargs = generation_kwargs
         super().__post_init__()
-

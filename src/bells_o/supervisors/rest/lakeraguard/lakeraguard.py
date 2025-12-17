@@ -8,7 +8,7 @@ from bells_o.result_mappers import lakeraguard as lakera_result_map
 from bells_o.supervisors.rest.auth_mappers import auth_bearer as auth_map
 from bells_o.supervisors.rest.request_mappers import lakeraguard as lakera_request_map
 
-from ..custom_endpoint import RestSupervisor
+from ..rest_supervisor import RestSupervisor
 
 
 class LakeraGuardSupervisor(RestSupervisor):

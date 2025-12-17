@@ -1,6 +1,6 @@
 """Implement the authentication mapper for Anthropic API."""
 
-from ..custom_endpoint import RestSupervisor
+from ..rest_supervisor import RestSupervisor
 
 
 def mapper(supervisor: RestSupervisor) -> dict[str, str]:
@@ -20,4 +20,3 @@ def mapper(supervisor: RestSupervisor) -> dict[str, str]:
         "anthropic-version": "2023-06-01",
     }
     return json_repr
-

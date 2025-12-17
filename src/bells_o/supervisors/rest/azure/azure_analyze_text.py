@@ -8,7 +8,7 @@ from bells_o.result_mappers import azure_analyze_text as azure_result_map
 from bells_o.supervisors.rest.auth_mappers import ocp_apim_subscription as auth_map
 from bells_o.supervisors.rest.request_mappers import azure_analyze_text as azure_request_map
 
-from ..custom_endpoint import RestSupervisor
+from ..rest_supervisor import RestSupervisor
 
 
 class AzureAnalyzeTextSupervisor(RestSupervisor):

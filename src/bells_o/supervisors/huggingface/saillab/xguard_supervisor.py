@@ -6,7 +6,7 @@ from bells_o.common import ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing, RoleWrapper
 from bells_o.result_mappers import xguard as xguard_result_map
 
-from ..custom_model import HuggingFaceSupervisor
+from ..hf_supervisor import HuggingFaceSupervisor
 
 
 class XGuardSupervisor(HuggingFaceSupervisor):

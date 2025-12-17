@@ -5,11 +5,10 @@ from typing import Self, cast
 
 from bells_o.common import AuthMapper, RequestMapper, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
-
 from bells_o.supervisors.rest.auth_mappers import auth_bearer as auth_map
 from bells_o.supervisors.rest.request_mappers import mistral as mistral_request_map
 
-from ..custom_endpoint import RestSupervisor
+from ..rest_supervisor import RestSupervisor
 
 
 class MistralSupervisor(RestSupervisor):
@@ -53,4 +52,3 @@ class MistralSupervisor(RestSupervisor):
         self.system_prompt = system_prompt
 
         super().__post_init__()
-

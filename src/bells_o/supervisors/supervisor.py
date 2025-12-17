@@ -1,7 +1,6 @@
 """Implements the abstract Supervisor Class."""
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from abc import ABC, abstractmethod, property
 from functools import partial
 from typing import Any
 
@@ -9,9 +8,6 @@ from bells_o.common import OutputDict, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
 
 
-# Define an abstract base class
-# TODO: get rid of dataclass
-@dataclass
 class Supervisor(ABC):
     """Abstract base class for Supervisors.
 
@@ -22,15 +18,32 @@ class Supervisor(ABC):
 
     """
 
-    name: str
-    usage: Usage
-    res_map_fn: ResultMapper
-    pre_processing: list[PreProcessing] | None
+    def __init__(self, name: str, usage: Usage, res_map_fn: ResultMapper, pre_processing: list[PreProcessing] = []):
+        """Initialize the supervisor.
 
-    @abstractmethod
-    def __post_init__(self):
-        """Set up the rest of the supervisor. E.g. load the model from HuggingFace."""
-        self.pre_processing = self.pre_processing or []
+        Args:
+            name (str): Name of the supervisor
+            usage (Usage): The usage type of the supervisor.
+            res_map_fn (ResultMapper): The `ResultMapper` used to convert results.
+            pre_processing (list[PreProcessing] | None, optional): List of Preprocessing techniques for inputs. Defaults to None.
+
+        """
+        self._name = name
+        self._usage = Usage
+        self._res_map_fn = res_map_fn
+        self.pre_processing = pre_processing
+
+    @property
+    def name(self) -> str:  # noqa: D102
+        return self._name
+
+    @property
+    def usage(self) -> str:  # noqa: D102
+        return self._usage
+
+    def __repr__(self) -> str:
+        """Represent class object as string."""
+        return f'{self.__name__}("{self.name}", "{self.usage}")'
 
     def __call__(self, inputs: str | list[str], *args, **kwargs) -> list[OutputDict]:
         """Complete full judging process."""

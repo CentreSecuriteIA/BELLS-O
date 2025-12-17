@@ -1,16 +1,23 @@
 """Implement the pre-configured nvidia/Aegis-AI-Content-Safety-LlamaGuard-Defensive-1.0 supervisor from HuggingFace."""
 
-from typing import Any
+from time import time
+from typing import TYPE_CHECKING, Any, Literal
 
-from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from bells_o.common import ResultMapper, Usage
+from bells_o.common import OutputDict, Usage
 from bells_o.preprocessors import PreProcessing, RoleWrapper, TemplateWrapper
 from bells_o.result_mappers import aegis as aegis_result_map
 
-from ..custom_model import HuggingFaceSupervisor
+from ..hf_supervisor import HuggingFaceSupervisor
 
+
+if TYPE_CHECKING:
+    from peft import PeftModel
+    from vllm import LLM, LoRARequest, SamplingParams  # noqa:F401
+
+
+SUPPORTED_BACKENDS = ["transformers", "vllm"]
 
 PROMPT_TEMPLATE = """[INST] Task: Check if there is unsafe content in 'User' messages in conversations according our safety policy with the below categories.
 
@@ -233,6 +240,7 @@ class AegisSupervisor(HuggingFaceSupervisor):
         model_kwargs: dict[str, Any] = {},
         tokenizer_kwargs: dict[str, Any] = {},
         generation_kwargs: dict[str, Any] = {},
+        backend: Literal["transformers", "vllm"] = "transformers",
     ):
         """Initialize the supervisor.
 
@@ -241,49 +249,79 @@ class AegisSupervisor(HuggingFaceSupervisor):
             model_kwargs (dict[str, Any], optional):  Keyword arguments to configure the model. Defaults to {}.
             tokenizer_kwargs (dict[str, Any], optional):  Keyword arguments to configure the tokenizer. Defaults to {}.
             generation_kwargs (dict[str, Any], optional): Keyword arguments to configure generation. Defaults to {}.
+            backend: The inference backend to use. Defaults to "transformers".
 
         """
-        # Store adapter model ID for loading later
-        self.base_model_id = "meta-llama/LlamaGuard-7b"
-        self.adapter_model_id = "nvidia/Aegis-AI-Content-Safety-LlamaGuard-Defensive-1.0"
-        self.name = "nvidia/Aegis-AI-Content-Safety-LlamaGuard-Defensive-1.0"  # Use adapter model ID as the name
-        self.usage: Usage = Usage("content_moderation")
-        self.res_map_fn: ResultMapper = aegis_result_map
-
-        self.model_kwargs = model_kwargs
-        self.tokenizer_kwargs = tokenizer_kwargs
-        self.generation_kwargs = generation_kwargs
-
         pre_processing.append(TemplateWrapper(PROMPT_TEMPLATE))
         pre_processing.append(RoleWrapper("user"))
-        self.pre_processing = pre_processing
 
-        self._load_peft()  # replaces post init
+        super().__init__(
+            name="nvidia/Aegis-AI-Content-Safety-LlamaGuard-Defensive-1.0",
+            usage=Usage("content_moderation"),
+            res_map_fn=aegis_result_map,
+            pre_processing=pre_processing,
+            model_kwargs=model_kwargs,
+            tokenizer_kwargs=tokenizer_kwargs,
+            generation_kwargs=generation_kwargs,
+            provider_name="Google",
+            backend=backend,
+        )
 
-    def _load_peft(self):
-        """Override parent's __post_init__ to prevent automatic model loading.
+    def _load_model_tokenizer(self):
+        # needs lora loading which is different to parent class
+        # gets executed at end of super().__init__(...)
+        if self.backend not in SUPPORTED_BACKENDS:
+            raise NotImplementedError(
+                f"The requested backend `{self.backend}` is not supported. Choose one of {SUPPORTED_BACKENDS}."
+            )
 
-        The parent class would try to load the model using self.name (adapter_model_id),
-        but we need to load the base model first and then apply the PEFT adapter.
-        Model loading is handled in __init__ via _load_model_with_adapter().
-        """
-        # Load base model and adapter (override parent's model loading)
-        # We don't call super().__post_init__() because it would try to load the model
-        # using self.name (adapter_model_id), but we need to load base model first
-        assert isinstance(self.tokenizer_kwargs, dict)
-        self._tokenizer = AutoTokenizer.from_pretrained(self.base_model_id, **self.tokenizer_kwargs)
+        if self.backend == "transformers":
+            assert isinstance(self.tokenizer_kwargs, dict)
+            self._tokenizer = AutoTokenizer.from_pretrained("meta-llama/LlamaGuard-7b", **self.tokenizer_kwargs)
 
-        # Set padding token if not present (required for batch processing)
-        if self._tokenizer.pad_token is None:
-            if self._tokenizer.eos_token is not None:
-                self._tokenizer.pad_token = self._tokenizer.eos_token
-            else:
-                # Fallback: add a new pad token
-                self._tokenizer.add_special_tokens({"pad_token": "[PAD]"})
+            assert isinstance(self.model_kwargs, dict)
+            base_model = AutoModelForCausalLM.from_pretrained("meta-llama/LlamaGuard-7b", **self.model_kwargs)
+            self._model = PeftModel.from_pretrained(base_model, self.name)
 
-        # Load base model
-        assert isinstance(self.model_kwargs, dict)
-        base_model = AutoModelForCausalLM.from_pretrained(self.base_model_id, **self.model_kwargs)
+        if self.backend == "vllm":
+            try:
+                from peft import PeftConfig
+                from vllm import LLM, LoRARequest, SamplingParams  # noqa: F401
+            except ModuleNotFoundError:
+                raise ModuleNotFoundError(
+                    "This model requires the `peft` and `vllm` modules. Please install them with `pip install bells_o[peft, vllm]`."
+                )
 
-        # Load PEFT adapter weights
-        self._model = PeftModel.from_pretrained(base_model, self.adapter_model_id)
+            config = PeftConfig.from_pretrained(self.name)
+            max_rank = config.r
+
+            self.lora_request = LoRARequest(
+                lora_name="nvidia-aegis",
+                lora_int_id=1,  # Unique ID for this adapter
+                lora_path=self.name,  # Local path or HF repo
+            )
+            self._model = LLM("meta-llama/LlamaGuard-7b", enable_lora=True, max_lora_rank=max_rank)
+            self._tokenizer = self._model.get_tokenizer()
+
+    def _judge_vllm(self, inputs: list[str]):
+        """Identical to super()._judge_vllm() but passes lora_request parameter in self._model.generate()."""
+        assert self.backend == "vllm", f'Backend should be "vllm" at this point, but got "{self.backend}".'
+        sampling_params = SamplingParams(**self.generation_kwargs)
+        start = time()
+        outputs = self._model.generate(inputs, sampling_params, lora_request=self.lora_request)  # only changed line
+        generation_time = time() - start
+
+        batch_size = len(inputs)
+
+        return [
+            OutputDict(
+                output_raw=output.outputs[0].text,
+                metadata={
+                    "latency": generation_time / batch_size,
+                    "batch_size": batch_size,
+                    "input_tokens": len(output.prompt_token_ids),
+                    "output_tokens": len(output.outputs[0].token_ids),
+                },
+            )
+            for output in outputs
+        ]

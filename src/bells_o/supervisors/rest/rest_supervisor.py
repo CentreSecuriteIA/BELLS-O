@@ -1,14 +1,15 @@
 """Implement the base class for REST-accessible supersivors."""
 
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from os import getenv
 from time import time
 from typing import Any
 
+from bells_preprocessors import PreProcessing
 from requests import post
 
-from bells_o.common import AuthMapper, OutputDict, RequestMapper
+from bells_o.common import AuthMapper, OutputDict, RequestMapper, ResultMapper, Usage
 
 from ..supervisor import Supervisor
 
@@ -17,35 +18,56 @@ from ..supervisor import Supervisor
 class RestSupervisor(Supervisor):
     """A concrete class that enables access to supervisors via REST API."""
 
-    base_url: str
-    req_map_fn: RequestMapper
-    auth_map_fn: AuthMapper  # type: ignore
-    api_key: str | None = None  # type: ignore
-    api_variable: str | None = None  # type: ignore
-    provider_name: str | None = None
-    needs_api: bool = True
-    rate_limit_code: int = 429
-    custom_header: dict[str, str] = field(default_factory=dict)
-
-    def __post_init__(self):
-        """Load the model and tokenizer from HuggingFace."""
-        assert not self.needs_api or self.api_key, (
+    # TODO: doc string
+    def __init__(
+        self,
+        name: str,
+        usage: Usage,
+        res_map_fn: ResultMapper,
+        base_url: str,
+        req_map_fn: RequestMapper,
+        auth_map_fn: AuthMapper,
+        pre_processing: list[PreProcessing] = [],
+        provider_name: str | None = None,
+        api_key: str | None = None,
+        api_variable: str | None = None,
+        need_api: bool = True,
+        rate_limit_code: int = 429,
+        custom_header: dict[str, str] = {},
+    ):
+        assert not need_api or self.api_key, (
             "You have to specify either the environment variabe in which the API key can be found (`api_variable`), or the API key itself (`api_key`)."
         )
-        super().__post_init__()
+        super().__init__(name, usage, res_map_fn, pre_processing)
+
+        self.base_url = base_url
+        self.req_map_fn = req_map_fn
+        self.auth_map_fn = auth_map_fn
+        self.pre_processing = pre_processing
+        self._provider_name = provider_name  # private
+        self._api_key = api_key
+        self._api_variable = api_variable
+        self._need_api = need_api
+        self.rate_limit_code = rate_limit_code
+        self.custom_header = custom_header
 
     @property
-    def api_key(self) -> str:  # TODO: solve redefinition via rewrite.
-        """Return the API key set for this supervisor."""
+    def provider_name(self) -> str:  # noqa: D102
+        return self._provider_name
+
+    @property
+    def api_key(self) -> str:  # noqa: D102
+        if not self._need_api:
+            return ""
         return self._api_key or getenv(self.api_variable, "")
 
     @api_key.setter
-    def api_key(self, value: str | None):
+    def api_key(self, value: str):
         self._api_key = value
+        self._need_api = True
 
     @property
-    def api_variable(self) -> str:  # noqa: F811
-        """Return the environment variable set for the API key set for this supervisor."""
+    def api_variable(self) -> str:  # noqa: D102
         return self._api_variable if self._api_variable is not None else ""
 
     @api_variable.setter

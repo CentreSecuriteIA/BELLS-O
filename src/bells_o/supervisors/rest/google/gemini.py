@@ -5,11 +5,10 @@ from typing import Self, cast
 
 from bells_o.common import AuthMapper, RequestMapper, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
-
 from bells_o.supervisors.rest.auth_mappers import google_api_key as auth_map
 from bells_o.supervisors.rest.request_mappers import google as google_request_map
 
-from ..custom_endpoint import RestSupervisor
+from ..rest_supervisor import RestSupervisor
 
 
 class GeminiSupervisor(RestSupervisor):
@@ -43,15 +42,14 @@ class GeminiSupervisor(RestSupervisor):
             pre_processing: PreProcessing steps.
             api_key: Google AI Studio API key (if given, overrides env).
             api_variable: Env var name for the API key. Defaults to "GEMINI_API_KEY".
+
         """
         self.name: str = model
         self.provider_name: str | None = "GoogleAIStudio"
         self.custom_header = {}
 
         # Google AI Studio generateContent endpoint
-        self.base_url: str = (
-            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-        )
+        self.base_url: str = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
         self.usage: Usage = usage
         self.res_map_fn: ResultMapper = cast(ResultMapper, partial(result_mapper, usage=self.usage))
@@ -66,4 +64,3 @@ class GeminiSupervisor(RestSupervisor):
         self.safety_settings = safety_settings or []
 
         super().__post_init__()
-

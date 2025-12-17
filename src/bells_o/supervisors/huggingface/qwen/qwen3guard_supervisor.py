@@ -1,21 +1,17 @@
 """Implement the configuration for Qwen/Qwen3Guard-Gen-8B supervisor from HuggingFace."""
 
-from time import time
 from typing import Any
 
-import torch
-
-from bells_o.common import OutputDict, ResultMapper, Usage
+from bells_o.common import ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing, RoleWrapper
 from bells_o.result_mappers import qwen3guard as qwen3guard_result_map
 
-from ..custom_model import HuggingFaceSupervisor
-from transformers import BatchEncoding
+from ..hf_supervisor import HuggingFaceSupervisor
 
 
 class Qwen3GuardSupervisor(HuggingFaceSupervisor):
     """Implement the pre-configured Qwen/Qwen3Guard-Gen-8B supervisor from HuggingFace.
-    
+
     Qwen3Guard is a content moderation model that outputs safety labels (Safe, Unsafe, or Controversial)
     along with categories of detected violations.
     """
@@ -47,4 +43,3 @@ class Qwen3GuardSupervisor(HuggingFaceSupervisor):
         self.tokenizer_kwargs = tokenizer_kwargs
         self.generation_kwargs = generation_kwargs
         super().__post_init__()
-

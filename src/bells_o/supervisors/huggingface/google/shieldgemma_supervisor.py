@@ -4,12 +4,14 @@ from typing import Any, Literal
 
 from transformers import BatchEncoding
 
-from bells_o.common import ResultMapper, Usage
+from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing, RoleWrapper
 from bells_o.result_mappers import shieldgemma as shieldgemma_result_map
 
-from ..custom_model import HuggingFaceSupervisor
+from ..hf_supervisor import HuggingFaceSupervisor
 
+
+SUPPORTED_BACKENDS = ["transformers", "vllm"]
 
 # Default safety policy for content moderation (Prompt-only use case)
 # Based on comprehensive harm taxonomy
@@ -66,6 +68,7 @@ class ShieldGemmaSupervisor(HuggingFaceSupervisor):
         model_kwargs: dict[str, Any] = {},
         tokenizer_kwargs: dict[str, Any] = {},
         generation_kwargs: dict[str, Any] = {},
+        backend: Literal["transformers", "vllm"] = "transformers",
     ):
         """Initialize the supervisor.
 
@@ -77,12 +80,9 @@ class ShieldGemmaSupervisor(HuggingFaceSupervisor):
             model_kwargs: Keyword arguments to configure the model. Defaults to {}.
             tokenizer_kwargs: Keyword arguments to configure the tokenizer. Defaults to {}.
             generation_kwargs: Keyword arguments to configure generation. Defaults to {}.
-            use_chat_template: Whether to use the chat template format. Defaults to True.
+            backend: The inference backend to use. Defaults to "transformers".
 
         """
-        self.name: str = f"google/shieldgemma-{variant}"
-        self.usage: Usage = Usage("content_moderation")
-        self.res_map_fn: ResultMapper = shieldgemma_result_map
         if safety_policy == "input":
             self.safety_policy = INPUT_SAFETY_POLICY
         elif safety_policy == "output":
@@ -91,17 +91,36 @@ class ShieldGemmaSupervisor(HuggingFaceSupervisor):
             self.safety_policy = safety_policy
 
         pre_processing.append(RoleWrapper("user"))
-        self.pre_processing = pre_processing
 
-        self.model_kwargs = model_kwargs
-        self.tokenizer_kwargs = tokenizer_kwargs
+        if backend not in SUPPORTED_BACKENDS:
+            raise NotImplementedError(
+                f"The requested backend `{self.backend}` is not supported. Choose one of {SUPPORTED_BACKENDS}."
+            )
 
         # classification should work with a single forward pass, so let max 2 tokens be generated
-        custom_generation_kwargs = {"max_new_tokens": 2}
-        if "max_new_tokens" in generation_kwargs:
-            print("INFO: Ignoring passed `max_new_tokens` as this supervisor works with a single forward pass.")
-        self.generation_kwargs = generation_kwargs | custom_generation_kwargs
-        super().__post_init__()
+        # different backends have different kwargs names
+        if backend == "transformers":
+            custom_generation_kwargs = {"max_new_tokens": 2}
+            if "max_new_tokens" in generation_kwargs:
+                print("INFO: Ignoring passed `max_new_tokens` as this supervisor works with a single forward pass.")
+            generation_kwargs |= custom_generation_kwargs
+        elif backend == "vllm":
+            custom_generation_kwargs = {"max_tokens": 2}
+            if "max_tokens" in generation_kwargs:
+                print("INFO: Ignoring passed `max_tokens` as this supervisor works with a single forward pass.")
+            generation_kwargs |= custom_generation_kwargs
+
+        super().__init__(
+            name=f"google/shieldgemma-{variant}",
+            usage=Usage("content_moderation"),
+            res_map_fn=shieldgemma_result_map,
+            pre_processing=pre_processing,
+            model_kwargs=model_kwargs,
+            tokenizer_kwargs=tokenizer_kwargs,
+            generation_kwargs=generation_kwargs,
+            provider_name="Google",
+            backend=backend,
+        )
 
     def _tokenize(self, inputs: list[str]) -> BatchEncoding:
         inputs = self._tokenizer.apply_chat_template(

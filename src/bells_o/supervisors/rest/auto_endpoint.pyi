@@ -4,8 +4,8 @@ from typing import Literal, overload
 
 from bells_o import PreProcessing, Usage
 
-from .custom_endpoint import RestSupervisor
 from .lakeraguard import LakeraGuardDefaultSupervisor, LakeraGuardSupervisor
+from .rest_supervisor import RestSupervisor
 
 # TODO: think about using NewType to have the supervisors be different types
 class AutoRestSupervisor:

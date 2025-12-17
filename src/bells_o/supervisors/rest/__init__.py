@@ -5,27 +5,27 @@ from .anthropic import AnthropicClassificationSupervisor, AnthropicSupervisor
 from .auto_endpoint import AutoRestSupervisor
 from .aws import AwsSupervisor, BedrockGuardrailSupervisor
 from .azure import AzureAnalyzeTextSupervisor
-from .custom_endpoint import RestSupervisor
 from .google import (
     GeminiClassificationSupervisor,
-    GeminiSupervisor,
     GeminiModerationSupervisor,
+    GeminiSupervisor,
 )
+from .huggingface_api import HuggingFaceApiSupervisor
 from .lakeraguard import LakeraGuardDefaultSupervisor, LakeraGuardSupervisor
 from .mistral import MistralClassificationSupervisor, MistralSupervisor
 from .openai import OpenAiModerationSupervisor, OpenAiSupervisor
+from .openrouter import (
+    GptOssSafeguard20Supervisor,
+    OpenRouterSupervisor,
+)
+from .rest_supervisor import RestSupervisor
 from .together import (
     GptOssSupervisor,
     LlamaGuard4BModerationSupervisor,
     TogetherAISupervisor,
     VirtueGuardTextLiteModerationSupervisor,
 )
-from .openrouter import (
-    GptOssSafeguard20Supervisor,
-    OpenRouterSupervisor,
-)
 from .xai import XAiClassificationSupervisor, XAiSupervisor
-from .huggingface_api import HuggingFaceApiSupervisor
 
 
 __all__ = [

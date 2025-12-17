@@ -5,11 +5,10 @@ from typing import Self, cast
 
 from bells_o.common import AuthMapper, RequestMapper, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
-
 from bells_o.supervisors.rest.auth_mappers import auth_bearer as auth_map
 from bells_o.supervisors.rest.request_mappers import openrouter as openrouter_request_map
 
-from ..custom_endpoint import RestSupervisor
+from ..rest_supervisor import RestSupervisor
 
 
 class OpenRouterSupervisor(RestSupervisor):
@@ -39,6 +38,7 @@ class OpenRouterSupervisor(RestSupervisor):
             api_key: API key to use, takes priority over `api_variable`. Defaults to None.
             api_variable: Environment variable name that stores the API key. Defaults to "OPENROUTER_API_KEY".
             reasoning_enabled: Whether to enable reasoning for models that support it. Defaults to False.
+
         """
         self.name: str = model
         self.provider_name: str | None = "OpenRouter"
@@ -55,4 +55,3 @@ class OpenRouterSupervisor(RestSupervisor):
         self.reasoning_enabled = reasoning_enabled
 
         super().__post_init__()
-

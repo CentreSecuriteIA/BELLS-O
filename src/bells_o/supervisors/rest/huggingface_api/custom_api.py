@@ -9,8 +9,8 @@ from bells_o.common import AuthMapper, OutputDict, RequestMapper, ResultMapper, 
 from bells_o.preprocessors import PreProcessing
 
 from ..auth_mappers import auth_bearer
-from ..custom_endpoint import RestSupervisor
 from ..request_mappers import huggingface as hf_request_map
+from ..rest_supervisor import RestSupervisor
 
 
 class HuggingFaceApiSupervisor(RestSupervisor):
@@ -38,6 +38,7 @@ class HuggingFaceApiSupervisor(RestSupervisor):
             api_key: API key to use, takes priority over `api_variable`.
             api_variable: Environment variable name that stores the API key.
             provider_name: Name of the provider.
+
         """
         self.name = model_id
         self.model_id = model_id  # Store for request mapper
@@ -67,6 +68,7 @@ class HuggingFaceApiSupervisor(RestSupervisor):
 
         Returns:
             OutputDict: The output of the Supervisor and corresponding metadata.
+
         """
         tried_once = False
         no_valid_response = True
@@ -92,7 +94,7 @@ class HuggingFaceApiSupervisor(RestSupervisor):
 
         # Handle response - check status code first
         if response.status_code != 200:
-            error_text = response.text[:1000] if response.text else 'No response body'
+            error_text = response.text[:1000] if response.text else "No response body"
             response_data = {
                 "error": f"HTTP {response.status_code}: {error_text}",
                 "status_code": response.status_code,
@@ -118,6 +120,7 @@ class HuggingFaceApiSupervisor(RestSupervisor):
 
         Returns:
             List of preprocessed strings or message lists (for chat completions API).
+
         """
         if isinstance(inputs, str):
             inputs = [inputs]
@@ -147,6 +150,7 @@ class HuggingFaceApiSupervisor(RestSupervisor):
 
         Returns:
             List of OutputDict with parsed responses.
+
         """
         if not prompts:
             return []
@@ -165,13 +169,13 @@ class HuggingFaceApiSupervisor(RestSupervisor):
                 processed_prompts.append(str(prompt))
 
         outputs = super().judge(processed_prompts)
-        
+
         # Parse HuggingFace Router API chat completions response format
         parsed_outputs = []
         for output in outputs:
             raw = output["output_raw"]
             parsed_text = ""
-            
+
             # Handle error responses
             if isinstance(raw, dict) and "error" in raw:
                 parsed_text = f"Error: {raw.get('error', 'Unknown error')}"
@@ -200,11 +204,12 @@ class HuggingFaceApiSupervisor(RestSupervisor):
                     parsed_text = str(raw[0])
             else:
                 parsed_text = str(raw) if raw else ""
-            
-            parsed_outputs.append({
-                "output_raw": parsed_text,
-                "metadata": output["metadata"],
-            })
-        
-        return parsed_outputs
 
+            parsed_outputs.append(
+                {
+                    "output_raw": parsed_text,
+                    "metadata": output["metadata"],
+                }
+            )
+
+        return parsed_outputs

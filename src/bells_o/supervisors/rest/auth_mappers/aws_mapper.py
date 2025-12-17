@@ -1,6 +1,6 @@
 """Implement the authentication mapper for AWS (placeholder - uses boto3 for actual auth)."""
 
-from ..custom_endpoint import RestSupervisor
+from ..rest_supervisor import RestSupervisor
 
 
 def mapper(supervisor: RestSupervisor) -> dict[str, str]:
@@ -19,4 +19,3 @@ def mapper(supervisor: RestSupervisor) -> dict[str, str]:
     """
     # AWS authentication is handled by boto3, not via headers
     return {}
-
