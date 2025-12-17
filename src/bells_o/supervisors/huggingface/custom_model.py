@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from time import time
 from typing import Any
 
+import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BatchEncoding
 
 from bells_o.common import OutputDict
@@ -27,6 +28,17 @@ class HuggingFaceSupervisor(Supervisor):
         )
         self._model = AutoModelForCausalLM.from_pretrained(self.name, **self.model_kwargs)
         self._tokenizer = AutoTokenizer.from_pretrained(self.name, **self.tokenizer_kwargs)
+
+    def _tokenize(self, inputs: list[str]) -> BatchEncoding:
+        if self._tokenizer.chat_template is not None:
+            assert isinstance(inputs, list), (
+                "If `tokenizer.chat_template` is not None, then use a `RoleWrapper` as the last pre-processor."
+            )
+            inputs = self._tokenizer.apply_chat_template(
+                inputs, tokenize=False, add_generation_prompt=True
+            )  # TODO customize the kwargs of apply_chat_template?
+        # TODO: figure out padding side
+        return self._tokenizer(inputs, return_tensors="pt", padding=True)
 
     def metadata(self) -> dict[str, Any]:
         """Return metadata dictionary for this Supervisor.
@@ -55,16 +67,9 @@ class HuggingFaceSupervisor(Supervisor):
         if self.pre_processing:
             for pre_processor in self.pre_processing:
                 inputs = [pre_processor(input) for input in inputs]
-        if self._tokenizer.chat_template is not None:
-            assert isinstance(inputs, list), (
-                "If `tokenizer.chat_template` is not None, then use a `RoleWrapper` as the last pre-processor."
-            )
-            inputs = self._tokenizer.apply_chat_template(
-                inputs, tokenize=False, add_generation_prompt=True
-            )  # TODO customize the kwargs of apply_chat_template?
-        # TODO: figure out padding side
-        return self._tokenizer(inputs, return_tensors="pt", padding=True)
+        return self._tokenize(inputs)
 
+    # TODO: add forward pass of generation kwargs? Would have to handle logic to discern necessary kwargs in self.gen_kwargs
     def judge(self, encoded_batch: BatchEncoding) -> list[OutputDict]:
         """Run one evaluation on the supervisor model.
 
@@ -82,6 +87,13 @@ class HuggingFaceSupervisor(Supervisor):
         encoded_batch = encoded_batch.to(device=self._model.device)
         start_time = time()
         outputs = self._model.generate(**encoded_batch, **self.generation_kwargs)
+
+        # cut outputs to only include generated tokens, assume that all samples were padded to the same length
+        input_ids = encoded_batch["input_ids"]
+        assert isinstance(input_ids, torch.Tensor)
+        sequence_length = input_ids.size(1)  # padded sequence length
+        outputs = outputs[:, sequence_length:, ...]
+
         decoded_outputs: list[str] = self._tokenizer.batch_decode(outputs)
         generation_time = time() - start_time
         batch_size = len(encoded_batch["input_ids"])
