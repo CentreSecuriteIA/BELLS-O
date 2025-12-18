@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     print("loading model now")
     supervisor = AutoHuggingFaceSupervisor.load(
-        "google/shieldgemma-27b",
+        "google/shieldgemma-2b",
         model_kwargs=model_kwargs,
         generation_kwargs=generation_kwargs,
     )

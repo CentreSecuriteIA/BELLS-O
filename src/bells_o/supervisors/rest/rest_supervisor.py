@@ -6,10 +6,10 @@ from os import getenv
 from time import time
 from typing import Any
 
-from bells_preprocessors import PreProcessing
 from requests import post
 
 from bells_o.common import AuthMapper, OutputDict, RequestMapper, ResultMapper, Usage
+from bells_o.preprocessors import PreProcessing
 
 from ..supervisor import Supervisor
 
@@ -31,11 +31,11 @@ class RestSupervisor(Supervisor):
         provider_name: str | None = None,
         api_key: str | None = None,
         api_variable: str | None = None,
-        need_api: bool = True,
+        needs_api: bool = True,
         rate_limit_code: int = 429,
         custom_header: dict[str, str] = {},
     ):
-        assert not need_api or self.api_key, (
+        assert not needs_api or self.api_key, (
             "You have to specify either the environment variabe in which the API key can be found (`api_variable`), or the API key itself (`api_key`)."
         )
         super().__init__(name, usage, res_map_fn, pre_processing)
@@ -47,24 +47,20 @@ class RestSupervisor(Supervisor):
         self._provider_name = provider_name  # private
         self._api_key = api_key
         self._api_variable = api_variable
-        self._need_api = need_api
+        self._needs_api = needs_api
         self.rate_limit_code = rate_limit_code
         self.custom_header = custom_header
 
     @property
-    def provider_name(self) -> str:  # noqa: D102
-        return self._provider_name
-
-    @property
     def api_key(self) -> str:  # noqa: D102
-        if not self._need_api:
+        if not self._needs_api:
             return ""
         return self._api_key or getenv(self.api_variable, "")
 
     @api_key.setter
     def api_key(self, value: str):
         self._api_key = value
-        self._need_api = True
+        self._needs_api = True
 
     @property
     def api_variable(self) -> str:  # noqa: D102

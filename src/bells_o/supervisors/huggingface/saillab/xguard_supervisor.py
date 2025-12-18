@@ -1,8 +1,8 @@
 """Implement the pre-configured saillab/x-guard supervisor from HuggingFace."""
 
-from typing import Any
+from typing import Any, Literal
 
-from bells_o.common import ResultMapper, Usage
+from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing, RoleWrapper
 from bells_o.result_mappers import xguard as xguard_result_map
 
@@ -18,6 +18,7 @@ class XGuardSupervisor(HuggingFaceSupervisor):
         model_kwargs: dict[str, Any] = {},
         tokenizer_kwargs: dict[str, Any] = {},
         generation_kwargs: dict[str, Any] = {},
+        backend: Literal["transformers", "vllm"] = "transformers",
     ):
         """Initialize the supervisor.
 
@@ -26,19 +27,24 @@ class XGuardSupervisor(HuggingFaceSupervisor):
             model_kwargs (dict[str, Any], optional):  Keyword arguments to configure the model. Defaults to {}.
             tokenizer_kwargs (dict[str, Any], optional):  Keyword arguments to configure the tokenizer. Defaults to {}.
             generation_kwargs (dict[str, Any], optional): Keyword arguments to configure generation. Defaults to {}.
+            backend (Literal["transformers", "vllm"]): The inference backend to use. Defaults to "transformers".
 
         """
-        self.name: str = "saillab/x-guard"
-        self.usage: Usage = Usage("content_moderation")
-        self.res_map_fn: ResultMapper = xguard_result_map
         pre_processing.append(RoleWrapper("user", opposite_prompt="\n <think>"))
-        self.pre_processing = pre_processing
-        self.model_kwargs = model_kwargs
-        self.tokenizer_kwargs = tokenizer_kwargs
 
         base_kwargs = {"temperature": 0.0000001, "do_sample": True}
         for key in base_kwargs:
             if key in generation_kwargs:
                 print(f"INFO: ignoring set generation kwarg {key}. This kwarg should not be set for this supervisor.")
-        self.generation_kwargs = generation_kwargs | base_kwargs
-        super().__post_init__()
+
+        super().__init__(
+            name="saillab/x-guard",
+            usage=Usage("content_moderation"),
+            res_map_fn=xguard_result_map,
+            pre_processing=pre_processing,
+            model_kwargs=model_kwargs,
+            tokenizer_kwargs=tokenizer_kwargs,
+            generation_kwargs=generation_kwargs,
+            provider_name="SAIL Lab",
+            backend=backend,
+        )

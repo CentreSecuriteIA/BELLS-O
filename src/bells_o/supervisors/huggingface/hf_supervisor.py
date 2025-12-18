@@ -1,8 +1,7 @@
 """Implement the base class for HuggingFace-accessible supersivor models."""
 
-from abc import property
 from time import time
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import torch
 
@@ -13,16 +12,7 @@ from ..supervisor import Supervisor
 
 
 if TYPE_CHECKING:
-    from transformers import AutoModelForCausalLM, AutoTokenizer
-    from vllm import LLM, SamplingParams
-
-
-def _load_vllm():
-    from vllm import LLM, SamplingParams  # noqa: F401
-
-
-def _load_transformers():
-    from transformers import AutoModelForCausalLM, AutoTokenizer  # noqa: F401
+    pass
 
 
 SUPPORTED_BACKENDS = ["transformers", "vllm"]
@@ -58,33 +48,36 @@ class HuggingFaceSupervisor(Supervisor):
         self.generation_kwargs = generation_kwargs
         self._provider_name = provider_name
 
-        self._backend = backend
+        if getattr(self, "_supported_backends", None) is None:
+            self._supported_backends = ["transformers", "vllm"]
 
+        self._backend = backend
         self._load_model_tokenizer()
 
     def _load_model_tokenizer(self):
         # loading model and tokenizer for different backend implementations
         # making this a separate method such that it can be easily changed by supervisor implementations (e.g. for LORA)
-        if self.backend not in SUPPORTED_BACKENDS:
+        if self.backend not in self._supported_backends:
             raise NotImplementedError(
-                f"The requested backend `{self.backend}` is not supported. Choose one of {SUPPORTED_BACKENDS}."
+                f"The requested backend `{self.backend}` is not supported. Choose one of {self._supported_backends}."
             )
         if self.backend == "transformers":
-            _load_transformers()
-            self._model = AutoModelForCausalLM.from_pretrained(self.name, **self.model_kwargs)
-            self._tokenizer = AutoTokenizer.from_pretrained(self.name, **self.tokenizer_kwargs)
+            import transformers
+
+            self._transformers = transformers
+
+            self._model = self._transformers.AutoModelForCausalLM.from_pretrained(self.name, **self.model_kwargs)
+            self._tokenizer = self._transformers.AutoTokenizer.from_pretrained(self.name, **self.tokenizer_kwargs)
         elif self.backend == "vllm":
-            _load_vllm()
-            self._model = LLM(self.name, **self.model_kwargs)
+            import vllm
+
+            self._vllm = vllm
+            self._model = self._vllm.LLM(self.name, **self.model_kwargs, tensor_parallel_size=torch.cuda.device_count())
             self._tokenizer = self._model.get_tokenizer()
 
     @property
     def backend(self) -> str:  # noqa: D102
         return self._backend
-
-    @property
-    def provider_name(self) -> str:  # noqa: D102
-        return self._provider_name
 
     @property
     def model_kwargs(self) -> dict[str, Any]:  # noqa: D102
@@ -122,13 +115,20 @@ class HuggingFaceSupervisor(Supervisor):
             for pre_processor in self.pre_processing:
                 inputs = [pre_processor(input) for input in inputs]
 
-        if self._tokenizer.chat_template is not None:
+        inputs = self._apply_chat_template(inputs)
+        return inputs
+
+    def _apply_chat_template(self, inputs: list[str]) -> list[str]:
+        if getattr(self._tokenizer, "chat_template", None) is not None:
             assert isinstance(inputs, list), (
                 "If `tokenizer.chat_template` is not None, then use a `RoleWrapper` as the last pre-processor."
             )
             inputs = self._tokenizer.apply_chat_template(
-                inputs, tokenize=False, add_generation_prompt=True
+                inputs,  # type: ignore
+                tokenize=False,
+                add_generation_prompt=True,
             )  # TODO customize the kwargs of apply_chat_template?
+        return inputs
 
     def judge(self, inputs: str | list[str]) -> list[OutputDict]:
         """Evaluate samples with model.
@@ -156,10 +156,13 @@ class HuggingFaceSupervisor(Supervisor):
         assert self.backend == "transformers", (
             f'Backend should be "transformers" at this point, but got "{self.backend}".'
         )
-
-        encoded_batch = self._tokenizer(inputs, return_tensors="pt", padding=True).to(device=self._model.device)
+        assert isinstance(self._tokenizer, self._transformers.PreTrainedTokenizerBase), f"got {type(self._tokenizer)}"
+        self._transformers.PreTrainedModel
+        encoded_batch = self._tokenizer(inputs, return_tensors="pt", padding=True).to(
+            device=getattr(self._model, "device")
+        )
         start_time = time()
-        outputs = self._model.generate(**encoded_batch, **self.generation_kwargs)
+        outputs = cast(torch.Tensor, self._model.generate(**encoded_batch, **self.generation_kwargs))
         generation_time = time() - start_time
 
         # cut outputs to only include generated tokens, assume that all samples were padded to the same length
@@ -171,7 +174,7 @@ class HuggingFaceSupervisor(Supervisor):
 
         decoded_outputs: list[str] = self._tokenizer.batch_decode(outputs)
         batch_size = len(inputs)
-        input_tokens = encoded_batch["attention_mask"].sum().item()  # only count non-padding tokens
+        input_tokens = cast(torch.Tensor, encoded_batch["attention_mask"]).sum().item()  # only count non-padding tokens
         output_tokens = outputs.sum().item()  # only count non-padding tokens
 
         return [
@@ -189,7 +192,9 @@ class HuggingFaceSupervisor(Supervisor):
 
     def _judge_vllm(self, inputs: list[str]):
         assert self.backend == "vllm", f'Backend should be "vllm" at this point, but got "{self.backend}".'
-        sampling_params = SamplingParams(
+        assert isinstance(self._model, self._vllm.LLM)
+
+        sampling_params = self._vllm.SamplingParams(
             **self.generation_kwargs
         )  # TODO: somehow make it obvious that this takes vllm arguments
         start = time()  # note that by doing this, we are generalizing latency per prompt as batch_latency/n_prompts
@@ -204,7 +209,7 @@ class HuggingFaceSupervisor(Supervisor):
                 metadata={
                     "latency": generation_time / batch_size,
                     "batch_size": batch_size,
-                    "input_tokens": len(output.prompt_token_ids),
+                    "input_tokens": len(cast(list[int], output.prompt_token_ids)),
                     "output_tokens": len(output.outputs[0].token_ids),
                 },
             )

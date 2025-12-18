@@ -2,16 +2,12 @@
 
 from typing import Any, Literal
 
-from transformers import BatchEncoding
-
 from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing, RoleWrapper
 from bells_o.result_mappers import shieldgemma as shieldgemma_result_map
 
 from ..hf_supervisor import HuggingFaceSupervisor
 
-
-SUPPORTED_BACKENDS = ["transformers", "vllm"]
 
 # Default safety policy for content moderation (Prompt-only use case)
 # Based on comprehensive harm taxonomy
@@ -80,7 +76,7 @@ class ShieldGemmaSupervisor(HuggingFaceSupervisor):
             model_kwargs: Keyword arguments to configure the model. Defaults to {}.
             tokenizer_kwargs: Keyword arguments to configure the tokenizer. Defaults to {}.
             generation_kwargs: Keyword arguments to configure generation. Defaults to {}.
-            backend: The inference backend to use. Defaults to "transformers".
+            backend (Literal["transformers", "vllm"]): The inference backend to use. Defaults to "transformers".
 
         """
         if safety_policy == "input":
@@ -92,11 +88,7 @@ class ShieldGemmaSupervisor(HuggingFaceSupervisor):
 
         pre_processing.append(RoleWrapper("user"))
 
-        if backend not in SUPPORTED_BACKENDS:
-            raise NotImplementedError(
-                f"The requested backend `{self.backend}` is not supported. Choose one of {SUPPORTED_BACKENDS}."
-            )
-
+        self._supported_backends = ["transformers", "vllm"]
         # classification should work with a single forward pass, so let max 2 tokens be generated
         # different backends have different kwargs names
         if backend == "transformers":
@@ -122,8 +114,15 @@ class ShieldGemmaSupervisor(HuggingFaceSupervisor):
             backend=backend,
         )
 
-    def _tokenize(self, inputs: list[str]) -> BatchEncoding:
-        inputs = self._tokenizer.apply_chat_template(
-            inputs, guideline=self.safety_policy, tokenize=False, add_generation_prompt=True
-        )
-        return self._tokenizer(inputs, return_tensors="pt", padding=True)
+    def _apply_chat_template(self, inputs: list[str]) -> list[str]:
+        if getattr(self._tokenizer, "chat_template", None) is not None:
+            assert isinstance(inputs, list), (
+                "If `tokenizer.chat_template` is not None, then use a `RoleWrapper` as the last pre-processor."
+            )
+            inputs = self._tokenizer.apply_chat_template(
+                inputs,  # type: ignore
+                tokenize=False,
+                guideline=self.safety_policy,
+                add_generation_prompt=True,
+            )  # TODO customize the kwargs of apply_chat_template?
+        return inputs

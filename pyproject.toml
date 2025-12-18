@@ -1,6 +1,6 @@
 [project]
 name = "bells-o"
-version = "0.1.0"
+version = "0.1.1"
 description = "Add your description here"
 readme = "README.md"
 authors = [
@@ -11,15 +11,15 @@ requires-python = ">=3.12"
 dependencies = [
     "accelerate>=1.10.1",
     "datasets>=4.1.1",
-    "peft>=0.18.0",
     "torch>=2.8.0",
     "tqdm>=4.67.1",
-    "transformers>=4.57.0",
+    "transformers>=4.57.3",
 ]
 
 [project.optional-dependencies]
 dev = ["ipykernel", "jupyter", "dotenv"]
 vllm = ["vllm>=0.11.0"]
+peft = ["peft>=0.18.0", "hf-transfer>=0.1.9"]
 
 [build-system]
 requires = ["setuptools>=61", "wheel"]

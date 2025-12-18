@@ -1,6 +1,6 @@
 """Implements the abstract Supervisor Class."""
 
-from abc import ABC, abstractmethod, property
+from abc import ABC, abstractmethod
 from functools import partial
 from typing import Any
 
@@ -18,7 +18,14 @@ class Supervisor(ABC):
 
     """
 
-    def __init__(self, name: str, usage: Usage, res_map_fn: ResultMapper, pre_processing: list[PreProcessing] = []):
+    def __init__(
+        self,
+        name: str,
+        usage: Usage,
+        res_map_fn: ResultMapper,
+        pre_processing: list[PreProcessing] = [],
+        provider_name: str | None = None,
+    ):
         """Initialize the supervisor.
 
         Args:
@@ -26,20 +33,26 @@ class Supervisor(ABC):
             usage (Usage): The usage type of the supervisor.
             res_map_fn (ResultMapper): The `ResultMapper` used to convert results.
             pre_processing (list[PreProcessing] | None, optional): List of Preprocessing techniques for inputs. Defaults to None.
+            provider_name (str | None, optional): The name of the provider of this model. Defaults to None.
 
         """
         self._name = name
-        self._usage = Usage
+        self._usage = usage
         self._res_map_fn = res_map_fn
         self.pre_processing = pre_processing
+        self._provider_name = provider_name
 
     @property
     def name(self) -> str:  # noqa: D102
         return self._name
 
     @property
-    def usage(self) -> str:  # noqa: D102
+    def usage(self) -> Usage:  # noqa: D102
         return self._usage
+
+    @property
+    def provider_name(self) -> str:  # noqa: D102
+        return self._provider_name if self._provider_name else "N/A"
 
     def __repr__(self) -> str:
         """Represent class object as string."""
@@ -55,10 +68,10 @@ class Supervisor(ABC):
         outputs: list[OutputDict] = self.judge(inputs)
         for output in outputs:
             # Check if res_map_fn is a partial function (usage already bound)
-            if isinstance(self.res_map_fn, partial):
-                output["output_result"] = self.res_map_fn(output["output_raw"])  # pyright: ignore[reportArgumentType]
+            if isinstance(self._res_map_fn, partial):
+                output["output_result"] = self._res_map_fn(output["output_raw"])  # pyright: ignore[reportArgumentType]
             else:
-                output["output_result"] = self.res_map_fn(output["output_raw"], self.usage)  # pyright: ignore[reportArgumentType]
+                output["output_result"] = self._res_map_fn(output["output_raw"], self.usage)  # pyright: ignore[reportArgumentType]
         return outputs
 
     def metadata(self) -> dict[str, Any]:

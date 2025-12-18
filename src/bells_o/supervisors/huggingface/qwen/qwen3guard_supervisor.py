@@ -1,8 +1,8 @@
 """Implement the configuration for Qwen/Qwen3Guard-Gen-8B supervisor from HuggingFace."""
 
-from typing import Any
+from typing import Any, Literal
 
-from bells_o.common import ResultMapper, Usage
+from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing, RoleWrapper
 from bells_o.result_mappers import qwen3guard as qwen3guard_result_map
 
@@ -23,6 +23,7 @@ class Qwen3GuardSupervisor(HuggingFaceSupervisor):
         model_kwargs: dict[str, Any] = {},
         tokenizer_kwargs: dict[str, Any] = {},
         generation_kwargs: dict[str, Any] = {},
+        backend: Literal["transformers", "vllm"] = "transformers",
     ):
         """Initialize the supervisor.
 
@@ -32,14 +33,19 @@ class Qwen3GuardSupervisor(HuggingFaceSupervisor):
             model_kwargs (dict[str, Any], optional):  Keyword arguments to configure the model. Defaults to {}.
             tokenizer_kwargs (dict[str, Any], optional):  Keyword arguments to configure the tokenizer. Defaults to {}.
             generation_kwargs (dict[str, Any], optional): Keyword arguments to configure generation. Defaults to {}.
+            backend (Literal["transformers", "vllm"]): The inference backend to use. Defaults to "transformers".
 
         """
-        self.name: str = f"Qwen/Qwen3Guard-Gen-{variant}"
-        self.usage: Usage = Usage("content_moderation")
-        self.res_map_fn: ResultMapper = qwen3guard_result_map
         pre_processing.append(RoleWrapper("user"))
-        self.pre_processing = pre_processing
-        self.model_kwargs = model_kwargs
-        self.tokenizer_kwargs = tokenizer_kwargs
-        self.generation_kwargs = generation_kwargs
-        super().__post_init__()
+
+        super().__init__(
+            name=f"Qwen/Qwen3Guard-Gen-{variant}",
+            usage=Usage("content_moderation"),
+            res_map_fn=qwen3guard_result_map,
+            pre_processing=pre_processing,
+            model_kwargs=model_kwargs,
+            tokenizer_kwargs=tokenizer_kwargs,
+            generation_kwargs=generation_kwargs,
+            provider_name="Qwen",
+            backend=backend,
+        )

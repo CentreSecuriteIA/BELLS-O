@@ -1,9 +1,8 @@
 """Implement the AWS Bedrock base supervisor via boto3."""
 
-from functools import partial
 from os import getenv
 from time import sleep, time
-from typing import Any, cast
+from typing import Any
 
 
 try:
@@ -14,7 +13,7 @@ except ImportError:
     ClientError = Exception  # type: ignore
     NoCredentialsError = Exception  # type: ignore
 
-from bells_o.common import AuthMapper, OutputDict, RequestMapper, ResultMapper, Usage
+from bells_o.common import OutputDict, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
 
 from ..auth_mappers import aws as aws_auth_map
@@ -51,28 +50,29 @@ class AwsSupervisor(RestSupervisor):
             source (str, optional): Content source, either "INPUT" or "OUTPUT". Defaults to "INPUT".
 
         """
+        # TODO: make this an optional dependency
         if boto3 is None:
             raise ImportError("boto3 is required for AWS supervisors. Install it with: pip install boto3")
 
-        self.name: str = name
-        self.provider_name: str | None = "AWS"
-        self.custom_header = {}
-        self.base_url: str = base_url
-        self.usage: Usage = usage
-        self.res_map_fn: ResultMapper = cast(ResultMapper, partial(result_mapper, usage=self.usage))
-        self.req_map_fn: RequestMapper = aws_request_map
-        self.auth_map_fn: AuthMapper = aws_auth_map
-        self.pre_processing = pre_processing
         self.region: str = region
         self.source: str = source
-        self.api_key = api_key
-        self.api_variable = api_variable
-        self.needs_api = False  # AWS uses boto3 credentials, not API key in headers
 
         # Initialize boto3 client
-        self._bedrock_client = None
+        self._bedrock_client = None  # TODO: Was this tested?
 
-        super().__post_init__()
+        super().__init__(
+            name=name,
+            usage=usage,
+            res_map_fn=result_mapper,
+            base_url=base_url,
+            req_map_fn=aws_request_map,
+            auth_map_fn=aws_auth_map,
+            pre_processing=pre_processing,
+            provider_name="AWS",
+            api_key=api_key,
+            api_variable=api_variable,
+            needs_api=False,
+        )
 
     @property
     def bedrock_client(self):

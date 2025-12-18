@@ -1,9 +1,6 @@
 """Implement the Mistral AI API via REST."""
 
-from functools import partial
-from typing import Self, cast
-
-from bells_o.common import AuthMapper, RequestMapper, ResultMapper, Usage
+from bells_o.common import ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
 from bells_o.supervisors.rest.auth_mappers import auth_bearer as auth_map
 from bells_o.supervisors.rest.request_mappers import mistral as mistral_request_map
@@ -19,8 +16,7 @@ class MistralSupervisor(RestSupervisor):
         model: str,
         usage: Usage,
         result_mapper: ResultMapper,
-        base_url: str = "https://api.mistral.ai/v1/chat/completions",
-        system_prompt: str = "",
+        system_prompt: str,
         pre_processing: list[PreProcessing] = [],
         api_key: str | None = None,
         api_variable: str = "MISTRAL_API_KEY",
@@ -31,24 +27,23 @@ class MistralSupervisor(RestSupervisor):
             model (str): The model id for the Mistral API (e.g., "mistral-large-latest", "pixtral-12b-2409").
             usage (Usage): The usage type of the supervisor.
             result_mapper (ResultMapper): ResultMapper to use for this Supervisor.
-            base_url (str): Base URL of the API endpoint. Defaults to "https://api.mistral.ai/v1/chat/completions".
-            system_prompt (str): System prompt/instruction for the model. Defaults to "".
+            system_prompt (str): System prompt/instruction for the model.
             pre_processing (list[PreProcessing], optional): List of PreProcessing steps to apply to prompts. Defaults to [].
             api_key (str | None, optional): API key to use, takes priority over `api_variable`. Defaults to None.
             api_variable (str | None, optional): Environment variable name that stores the API key. Defaults to "MISTRAL_API_KEY".
 
         """
-        self.name: str = model
-        self.provider_name: str | None = "Mistral"
-        self.custom_header = {}
-        self.base_url: str = base_url
-        self.usage: Usage = usage
-        self.res_map_fn: ResultMapper = cast(ResultMapper, partial(result_mapper, usage=self.usage))
-        self.req_map_fn: RequestMapper[Self] = mistral_request_map
-        self.auth_map_fn: AuthMapper = auth_map
-        self.pre_processing = pre_processing
-        self.api_key = api_key
-        self.api_variable = api_variable
         self.system_prompt = system_prompt
 
-        super().__post_init__()
+        super().__init__(
+            name=model,
+            usage=usage,
+            res_map_fn=result_mapper,
+            base_url="https://api.mistral.ai/v1/chat/completions",
+            req_map_fn=mistral_request_map,
+            auth_map_fn=auth_map,
+            pre_processing=pre_processing,
+            provider_name="Mistral",
+            api_key=api_key,
+            api_variable=api_variable,
+        )

@@ -5,7 +5,7 @@ from typing import Any
 
 from requests import post
 
-from bells_o.common import AuthMapper, OutputDict, RequestMapper, ResultMapper, Usage
+from bells_o.common import OutputDict, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
 
 from ..auth_mappers import auth_bearer
@@ -13,6 +13,7 @@ from ..request_mappers import huggingface as hf_request_map
 from ..rest_supervisor import RestSupervisor
 
 
+# TODO: check why all of the functions were redefined
 class HuggingFaceApiSupervisor(RestSupervisor):
     """A concrete class that enables access to HuggingFace models via Inference API."""
 
@@ -21,8 +22,8 @@ class HuggingFaceApiSupervisor(RestSupervisor):
         model_id: str,
         usage: Usage,
         result_mapper: ResultMapper,
-        pre_processing: list[PreProcessing] = None,
-        generation_kwargs: dict[str, Any] = None,
+        pre_processing: list[PreProcessing] = [],
+        generation_kwargs: dict[str, Any] = {},
         api_key: str | None = None,
         api_variable: str = "HUGGINGFACE_API_KEY",
         provider_name: str = "HuggingFace",
@@ -40,23 +41,20 @@ class HuggingFaceApiSupervisor(RestSupervisor):
             provider_name: Name of the provider.
 
         """
-        self.name = model_id
-        self.model_id = model_id  # Store for request mapper
-        self.provider_name = provider_name
-        # Use router API chat completions endpoint
-        self.base_url = "https://router.huggingface.co/v1/chat/completions"
-        self.usage = usage
-        self.res_map_fn = result_mapper
-        self.req_map_fn: RequestMapper = hf_request_map
-        self.auth_map_fn: AuthMapper = auth_bearer
-        self.pre_processing = pre_processing or []
-        self.generation_kwargs = generation_kwargs or {}
-        self.api_key = api_key
-        self.api_variable = api_variable
-        self.needs_api = True
-        self.custom_header = {}
+        self.generation_kwargs = generation_kwargs
 
-        super().__post_init__()
+        super().__init__(
+            name=model_id,
+            usage=usage,
+            res_map_fn=result_mapper,
+            base_url="https://router.huggingface.co/v1/chat/completions",
+            req_map_fn=hf_request_map,
+            auth_map_fn=auth_bearer,
+            pre_processing=pre_processing,
+            provider_name=provider_name,
+            api_key=api_key,
+            api_variable=api_variable,
+        )
 
     def _judge_sample(self, prompt: str | list[dict[str, str]]) -> OutputDict:
         """Run an individual POST request for inference.
