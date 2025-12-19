@@ -3,7 +3,8 @@
 from typing import Any
 
 from bells_o.common import Result, Usage
-from bells_o.result_mappers import one_mapper
+
+from .one_mapper import mapper as one_map
 
 
 def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
@@ -34,4 +35,4 @@ def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
             if parts and len(parts) > 0:
                 text = parts[0].get("text", "")
 
-    return one_mapper(text, usage)
+    return one_map(text, usage)

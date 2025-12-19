@@ -89,6 +89,10 @@ class Result(dict):
             return all(self[key] == other[key] for key in smallest_key_set)
         return False
 
+    def __bool__(self):
+        """Return boolean value of this result. True if any of the usage_types are True."""
+        return any(self.values())
+
 
 class OutputDict(TypedDict):
     """Structured dictionary for type hinting `judge` outputs."""

@@ -18,6 +18,6 @@ def mapper(output: str, usage: Usage = Usage()) -> Result:
 
     result = Result()
     for usage_type in usage:
-        result[usage] = flag
+        result[usage_type] = flag
 
     return result

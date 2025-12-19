@@ -3,8 +3,8 @@
 from typing import Any, Literal
 
 from bells_o.common import Usage
-from bells_o.preprocessors import PreProcessing, TemplateWrapper
-from bells_o.result_mappers import unsafe_mapper as thinkguard_result_map
+from bells_o.preprocessors import PreProcessing, RoleWrapper, TemplateWrapper
+from bells_o.result_mappers import unsafe_map as thinkguard_result_map
 
 from ..hf_supervisor import HuggingFaceSupervisor
 
@@ -60,6 +60,7 @@ class ThinkGuardSupervisor(HuggingFaceSupervisor):
         """
         prompt_template = instruction_format.format(categories=categories, prompt="{prompt}", response=response)
         pre_processing.append(TemplateWrapper(prompt_template))
+        pre_processing.append(RoleWrapper())
 
         super().__init__(
             name="Rakancorle1/ThinkGuard",
@@ -69,6 +70,6 @@ class ThinkGuardSupervisor(HuggingFaceSupervisor):
             model_kwargs=model_kwargs,
             tokenizer_kwargs=tokenizer_kwargs,
             generation_kwargs=generation_kwargs,
-            provider_name="SAIL Lab",
+            provider_name="Rakancorle1",
             backend=backend,
         )
