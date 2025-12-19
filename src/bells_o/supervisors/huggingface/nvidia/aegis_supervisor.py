@@ -5,7 +5,7 @@ from typing import Any, Literal, cast
 
 from bells_o.common import OutputDict, Usage
 from bells_o.preprocessors import PreProcessing, RoleWrapper, TemplateWrapper
-from bells_o.result_mappers import aegis as aegis_result_map
+from bells_o.result_mappers import unsafe_mapper as aegis_result_map
 
 from ..hf_supervisor import HuggingFaceSupervisor
 

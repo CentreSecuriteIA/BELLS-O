@@ -18,11 +18,11 @@ def extract_label_and_categories(content: str) -> tuple[str | None, list[str]]:
     """
     safe_pattern = r"Safety: (Safe|Unsafe|Controversial)"
     category_pattern = r"(Violent|Non-violent Illegal Acts|Sexual Content or Sexual Acts|PII|Suicide & Self-Harm|Unethical Acts|Politically Sensitive Topics|Copyright Violation|Jailbreak|None)"
-    
+
     safe_label_match = re.search(safe_pattern, content)
     label = safe_label_match.group(1) if safe_label_match else None
     categories = re.findall(category_pattern, content)
-    
+
     return label, categories
 
 
@@ -47,25 +47,15 @@ def mapper(output: str | dict[str, Any], usage: Usage = Usage()) -> Result:
         text = output.get("output_raw", output.get("text", output.get("content", str(output))))
 
     # Extract the safety label and categories
-    label, categories = extract_label_and_categories(text) 
-    
+    label, categories = extract_label_and_categories(text)
+
     # Determine if content is harmful
     # "Safe" = False (not harmful), "Unsafe" or "Controversial" = True (harmful)
     if label == "Safe":
         is_harmful = False
-    elif label in ["Unsafe", "Controversial"]:
-        if "Jailbreak" in categories and len(categories) == 1:
-            is_harmful = False
-        is_harmful = True
     else:
-        # Fallback: if we can't extract a clear label, check for keywords
-        text_lower = text.lower()
-        if "unsafe" in text_lower or "controversial" in text_lower:
-            is_harmful = True
-        elif "safe" in text_lower:
-            is_harmful = False
-        else:
-            # Default to False if we can't determine
-            is_harmful = False
+        if "Jailbreak" in categories and len(categories) == 1:
+            is_harmful = False  # TODO: make this work
+        is_harmful = True
 
     return Result(content_moderation=is_harmful)

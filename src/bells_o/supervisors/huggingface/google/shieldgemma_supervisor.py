@@ -4,7 +4,7 @@ from typing import Any, Literal
 
 from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing, RoleWrapper
-from bells_o.result_mappers import shieldgemma as shieldgemma_result_map
+from bells_o.result_mappers import yes_mapper as shieldgemma_result_map
 
 from ..hf_supervisor import HuggingFaceSupervisor
 
@@ -115,6 +115,7 @@ class ShieldGemmaSupervisor(HuggingFaceSupervisor):
         )
 
     def _apply_chat_template(self, inputs: list[str]) -> list[str]:
+        """Identical to super()._apply_chat_template(), just that we also pass the `guideline` parameter here."""
         if getattr(self._tokenizer, "chat_template", None) is not None:
             assert isinstance(inputs, list), (
                 "If `tokenizer.chat_template` is not None, then use a `RoleWrapper` as the last pre-processor."
