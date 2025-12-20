@@ -66,6 +66,9 @@ MODEL_MAPPING = {
         "GraniteGuardianSupervisor",
         {"model_id": "ibm-granite/granite-guardian-3.2-3b-a800m"},
     ),
+    "govtech/lionguard-2": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2"}),
+    "govtech/lionguard-2.1": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2.1"}),
+    "govtech/lionguard-2-lite": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2-lite"}),
 }
 
 

@@ -50,6 +50,7 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
                 api_variable = "GEMINI_API_KEY"
 
         self.api_variable = api_variable if api_variable else ""
+        self._needs_api = True
 
         self._supported_backends = ["transformers"]
         if model_id == "govtech/lionguard-2-lite":
@@ -68,7 +69,7 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
         )
 
     @property
-    def api_key(self) -> str:  # noqa: D102
+    def api_key(self) -> str:  # noqa: D102 # TODO: handle case when no api key variable is set
         if not self._needs_api:
             return ""
         return self._api_key or getenv(self.api_variable, "")
@@ -87,16 +88,15 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
         self._api_variable = value
 
     def _load_model_tokenizer(self):
-        # loading model and tokenizer for different backend implementations
-        # making this a separate method such that it can be easily changed by supervisor implementations (e.g. for LORA)
+        # overwriting super()._load_model_tokenizer()
         if self.backend not in self._supported_backends:
             raise NotImplementedError(
                 f"The requested backend `{self.backend}` is not supported. Choose one of {self._supported_backends}."
             )
         if self.backend == "transformers":
-            from transformers import AutoModelForCausalLM
+            from transformers import AutoModel
 
-            self._model = AutoModelForCausalLM.from_pretrained(self.name, **self.model_kwargs)
+            self._model = AutoModel.from_pretrained(self.name, trust_remote_code=True, **self.model_kwargs)
             self._tokenizer = self._get_tokenizer()
 
     def _apply_chat_template(self, inputs: list[str]) -> list[str]:
@@ -106,7 +106,7 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
             return super()._apply_chat_template(inputs)
 
     def _get_tokenizer(self):
-        if self.name == "govtech/lionguard-2":
+        if self.name == "govtech/lionguard-2":  # TODO: handle case when no api key is set
             #   -d '{
             #     "input": "The food was delicious and the waiter...",
             #     "model": "text-embedding-ada-002",
@@ -138,7 +138,7 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
                 return embeddings, input_tokens
 
             return openai_embedder
-        if self.name == "govtech/lionguard-2.1":
+        if self.name == "govtech/lionguard-2.1":  # TODO: handle case when no api key is set
             from requests import post
 
             def gemini_embedder(inputs: list[str]) -> tuple[Tensor, list[int]]:
@@ -185,12 +185,42 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
             assert isinstance(attention_mask, TTensor)
 
             input_tokens = attention_mask.sum(dim=1).tolist()
-            embeddings = self._tokenizer.encode(inputs)
+            embeddings = Tensor(self._tokenizer.encode(inputs))
 
         batch_size = len(inputs)
+        # outputs = []
+        # generation_times = []
+
+        # for i in range(embeddings.size(0)):
+        #     embedding = embeddings[i, ...].unsqueeze(0).to(device=self._model.device)  # preserve first dimension
+        #     start = time()
+        #     outputs.append(self._model.predict(embedding))
+        #     generation_times.append(time() - start)
+
+        # return [
+        #     OutputDict(
+        #         output_raw=output,
+        #         metadata={
+        #             "latency": generation_time,
+        #             "batch_size": batch_size,
+        #             "input_tokens": input_t,
+        #             "output_tokens": 1,  # only one forward pass
+        #         },
+        #     )
+        #     for output, input_t, generation_time in zip(outputs, input_tokens, generation_times)
+        # ]
+
         start = time()
-        outputs = self._model.predict(embeddings)  # type: ignore
+        outputs = self._model.predict(embeddings.to(device=self._model.device))
         generation_time = time() - start
+
+        # construct separate output dicts
+        output_dicts = []
+        for i in range(batch_size):
+            output_dict = {}
+            for key in outputs:
+                output_dict[key] = outputs[key][i]
+            output_dicts.append(output_dict)
 
         return [
             OutputDict(
@@ -202,5 +232,5 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
                     "output_tokens": 1,  # only one forward pass
                 },
             )
-            for output, input_t in zip(outputs, input_tokens)
+            for output, input_t in zip(output_dicts, input_tokens)
         ]
