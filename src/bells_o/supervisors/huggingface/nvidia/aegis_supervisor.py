@@ -269,30 +269,27 @@ class AegisSupervisor(HuggingFaceSupervisor):
             )
 
         if self.backend == "transformers":
-            import transformers
             from peft import PeftModel
-
-            self._transformers = transformers
+            from transformers import (
+                AutoModelForCausalLM,
+                AutoTokenizer,
+                PreTrainedTokenizerBase,  # noqa: F401, need PreTrainedTokenizerBase in super()._judge_transformers()
+            )
 
             assert isinstance(self.tokenizer_kwargs, dict)
-            self._tokenizer = self._transformers.AutoTokenizer.from_pretrained(
-                "meta-llama/LlamaGuard-7b", **self.tokenizer_kwargs
-            )
+            self._tokenizer = AutoTokenizer.from_pretrained("meta-llama/LlamaGuard-7b", **self.tokenizer_kwargs)
             self._tokenizer.pad_token = self._tokenizer.eos_token  # there is no pad token
 
             assert isinstance(self.model_kwargs, dict)
-            base_model = self._transformers.AutoModelForCausalLM.from_pretrained(
-                "meta-llama/LlamaGuard-7b", **self.model_kwargs
-            )
+            base_model = AutoModelForCausalLM.from_pretrained("meta-llama/LlamaGuard-7b", **self.model_kwargs)
             self._model = PeftModel.from_pretrained(base_model, self.name)
 
         if self.backend == "vllm":
             try:
-                import vllm
                 from peft import PeftConfig
+                from vllm import LLM, SamplingParams  # noqa: F401, need SamplingParams later
                 from vllm.lora.request import LoRARequest
 
-                self._vllm = vllm
             except ModuleNotFoundError:
                 raise ModuleNotFoundError(
                     "This model requires the `peft` and `vllm` modules. Please install them with `pip install bells_o[peft, vllm]`."
@@ -306,15 +303,17 @@ class AegisSupervisor(HuggingFaceSupervisor):
                 lora_int_id=1,  # Unique ID for this adapter
                 lora_path=self.name,  # Local path or HF repo
             )
-            self._model = self._vllm.LLM("meta-llama/LlamaGuard-7b", enable_lora=True, max_lora_rank=max_rank)
+            self._model = LLM("meta-llama/LlamaGuard-7b", enable_lora=True, max_lora_rank=max_rank)
             self._tokenizer = self._model.get_tokenizer()
 
     def _judge_vllm(self, inputs: list[str]):
         """Identical to super()._judge_vllm() but passes lora_request parameter in self._model.generate()."""
-        assert self.backend == "vllm", f'Backend should be "vllm" at this point, but got "{self.backend}".'
-        assert isinstance(self._model, self._vllm.LLM)
+        from vllm import LLM, SamplingParams
 
-        sampling_params = self._vllm.SamplingParams(**self.generation_kwargs)
+        assert self.backend == "vllm", f'Backend should be "vllm" at this point, but got "{self.backend}".'
+        assert isinstance(self._model, LLM)
+
+        sampling_params = SamplingParams(**self.generation_kwargs)
         start = time()
         outputs = self._model.generate(inputs, sampling_params, lora_request=self.lora_request)  # only changed line
         generation_time = time() - start

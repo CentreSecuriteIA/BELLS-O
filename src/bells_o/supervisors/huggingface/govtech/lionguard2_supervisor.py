@@ -94,11 +94,9 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
                 f"The requested backend `{self.backend}` is not supported. Choose one of {self._supported_backends}."
             )
         if self.backend == "transformers":
-            import transformers
+            from transformers import AutoModelForCausalLM
 
-            self._transformers = transformers
-
-            self._model = self._transformers.AutoModelForCausalLM.from_pretrained(self.name, **self.model_kwargs)
+            self._model = AutoModelForCausalLM.from_pretrained(self.name, **self.model_kwargs)
             self._tokenizer = self._get_tokenizer()
 
     def _apply_chat_template(self, inputs: list[str]) -> list[str]:
