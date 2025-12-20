@@ -176,10 +176,18 @@ class HuggingFaceSupervisor(Supervisor):
 
         decoded_outputs: list[str] = self._tokenizer.batch_decode(outputs)
         batch_size = len(inputs)
-        input_tokens = cast(torch.Tensor, encoded_batch["attention_mask"]).sum().item()  # only count non-padding tokens
-        output_tokens = (
-            cast(torch.Tensor, outputs != self._tokenizer.pad_token_id).sum().item()
-        )  # only count non-padding tokens # TODO: fix this (currently counts all output tokens, not per sample)
+
+        input_tokens: list[int] = (
+            cast(torch.Tensor, encoded_batch["attention_mask"]).sum(dim=1).tolist()
+        )  # only count non-padding tokens
+
+        output_tokens: list[int] = (
+            cast(torch.Tensor, outputs != self._tokenizer.pad_token_id).sum(dim=1).tolist()
+        )  # only count non-padding tokens
+
+        assert len(output_tokens) == batch_size == len(input_tokens), (
+            f"Expected all lengths to be equal, but got {len(output_tokens)}, {batch_size} and {len(input_tokens)}."
+        )
 
         return [
             OutputDict(
@@ -187,11 +195,11 @@ class HuggingFaceSupervisor(Supervisor):
                 metadata={
                     "latency": generation_time / batch_size,
                     "batch_size": batch_size,
-                    "input_tokens": input_tokens,
-                    "output_tokens": output_tokens,
+                    "input_tokens": input_t,
+                    "output_tokens": output_t,
                 },
             )
-            for output in decoded_outputs
+            for output, input_t, output_t in zip(decoded_outputs, input_tokens, output_tokens)
         ]
 
     def _judge_vllm(self, inputs: list[str]):

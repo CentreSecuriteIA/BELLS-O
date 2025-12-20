@@ -2,15 +2,18 @@
 
 from os import getenv
 from time import time
-from typing import Any, Literal
+from typing import Any, Callable, Literal, cast
 
-import requests
+from torch import Tensor
 
 from bells_o.common import OutputDict, Usage
 from bells_o.preprocessors import PreProcessing, TemplateWrapper
 from bells_o.result_mappers import lionguard as lionguard_result_mapper
 
 from ..hf_supervisor import HuggingFaceSupervisor
+
+
+TTokenizer = Callable[[list[str]], tuple[Tensor, list[int]]]
 
 
 class LionGuard2Supervisor(HuggingFaceSupervisor):
@@ -25,7 +28,7 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
         generation_kwargs: dict[str, Any] = {},
         backend: Literal["transformers"] = "transformers",
         api_key: str | None = None,
-        api_variable: str | None = "OPENAI_API_KEY",  # has to be variable for different versions
+        api_variable: str | None = None,
     ):
         """Initialize the supervisor.
 
@@ -39,7 +42,14 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
 
         """
         self._api_key = api_key
-        self._api_variable = api_variable
+
+        if api_variable is None:
+            if model_id == "govtech/lionguard-2":
+                api_variable = "OPENAI_API_KEY"
+            elif model_id == "govtech/lionguard-2.1":
+                api_variable = "GEMINI_API_KEY"
+
+        self.api_variable = api_variable if api_variable else ""
 
         self._supported_backends = ["transformers"]
         if model_id == "govtech/lionguard-2-lite":
@@ -73,7 +83,7 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
         return self._api_variable if self._api_variable is not None else ""
 
     @api_variable.setter
-    def api_variable(self, value: str | None):
+    def api_variable(self, value: str):
         self._api_variable = value
 
     def _load_model_tokenizer(self):
@@ -99,42 +109,90 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
 
     def _get_tokenizer(self):
         if self.name == "govtech/lionguard-2":
+            #   -d '{
+            #     "input": "The food was delicious and the waiter...",
+            #     "model": "text-embedding-ada-002",
+            #     "encoding_format": "float"
+            #   }'
+            from requests import post
 
-            def openai_embedder(inputs: list[str]):
-                requests.post("someurl")
-                return inputs
+            from bells_o.supervisors import RestSupervisor
+            from bells_o.supervisors.rest.auth_mappers import auth_bearer
+
+            # TODO: handle max token length of 8192, or other api errors
+            def openai_embedder(inputs: list[str]) -> tuple[Tensor, list[int]]:
+                responses = [  # can't use batched input because this limits dimensions to <= 2048
+                    post(
+                        "https://api.openai.com/v1/embeddings",
+                        json={
+                            "input": inp,
+                            "model": "text-embedding-3-large",
+                            "dimensions": 3072,
+                            "encoding_format": "float",
+                        },
+                        headers=auth_bearer(cast(RestSupervisor, self)) | {"Content-Type": "application/json"},
+                    ).json()
+                    for inp in inputs
+                ]
+
+                embeddings = Tensor([response["data"][0]["embedding"] for response in responses])
+                input_tokens = [response["usage"]["prompt_tokens"] for response in responses]
+                return embeddings, input_tokens
 
             return openai_embedder
-            ...  # write some tokenizer function with requests
         if self.name == "govtech/lionguard-2.1":
+            from requests import post
 
-            def gemini_embedder(inputs: list[str]):
-                requests.post("someurl")
-                return inputs
+            def gemini_embedder(inputs: list[str]) -> tuple[Tensor, list[int]]:
+                response = post(
+                    "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents",
+                    json={
+                        "requests": [
+                            {
+                                "model": "models/gemini-embedding-001",
+                                "content": {"parts": [{"text": inp}]},
+                            }
+                            for inp in inputs
+                        ]
+                    },
+                    headers={"x-goog-api-key": f"{getenv('GEMINI_API_KEY')}"} | {"Content-Type": "application/json"},
+                ).json()
+
+                embeddings = Tensor([emb["values"] for emb in response["embeddings"]])
+                input_tokens = [1] * len(embeddings)  # there is no information about input tokens
+                return embeddings, input_tokens
 
             return gemini_embedder
-            ...  # write some tokenizer function with requests
         elif self.name == "govtech/lionguard-2-lite":
             from sentence_transformers import SentenceTransformer
 
             global TSentenceTransformer
             TSentenceTransformer = SentenceTransformer
-            self._tokenizer = SentenceTransformer("google/embeddinggemma-300m")
+
+            global TTensor
+            TTensor = Tensor
+
+            return SentenceTransformer("google/embeddinggemma-300m")
 
     def _judge_transformers(self, inputs: list[str]) -> list[OutputDict]:
         if not self.name == "govtech/lionguard-2-lite":
-            embeddings, input_tokens = self._tokenizer(inputs)
-        elif self.name == "govtech/lionguard-2-lite":
+            embeddings, input_tokens = cast(TTokenizer, self._tokenizer)(inputs)
+        else:
             global TSentenceTransformer
-            assert isinstance(self._tokenizer, TSentenceTransformer)
-            embeddings, input_tokens = self._tokenizer.encode(inputs)
+            global TTensor
 
+            assert isinstance(self._tokenizer, TSentenceTransformer)
+
+            attention_mask = self._tokenizer.tokenize(inputs)["attention_mask"]
+            assert isinstance(attention_mask, TTensor)
+
+            input_tokens = attention_mask.sum(dim=1).tolist()
+            embeddings = self._tokenizer.encode(inputs)
+
+        batch_size = len(inputs)
         start = time()
         outputs = self._model.predict(embeddings)  # type: ignore
         generation_time = time() - start
-
-        batch_size = len(inputs)
-        output_tokens = 1
 
         return [
             OutputDict(
@@ -142,9 +200,9 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
                 metadata={
                     "latency": generation_time / batch_size,
                     "batch_size": batch_size,
-                    "input_tokens": input_tokens,
-                    "output_tokens": output_tokens,
+                    "input_tokens": input_t,
+                    "output_tokens": 1,  # only one forward pass
                 },
             )
-            for output in outputs
+            for output, input_t in zip(outputs, input_tokens)
         ]

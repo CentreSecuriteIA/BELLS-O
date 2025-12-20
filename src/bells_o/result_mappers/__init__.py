@@ -9,6 +9,7 @@ from .gemini_one_mapper import mapper as gemini_one
 from .granite_33_mapper import mapper as granite_33
 from .harmful_request_mapper import mapper as harmful_request
 from .lakeraguard_mapper import mapper as lakeraguard
+from .lionguard_mapper import mapper as lionguard
 from .one_mapper import mapper as one_map
 from .openai_compatible_one_mapper import mapper as openai_compatible_one
 from .openai_compatible_unsafe_mapper import mapper as openai_compatible_unsafe
@@ -36,4 +37,5 @@ __all__ = [
     "qwen3guard",
     "granite_33",
     "harmful_request",
+    "lionguard",
 ]
