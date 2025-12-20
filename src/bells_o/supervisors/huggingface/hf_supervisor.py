@@ -63,6 +63,7 @@ class HuggingFaceSupervisor(Supervisor):
             )
         if self.backend == "transformers":
             import transformers
+            # TODO: change to global TClass so we don't have to have the whole package as a variable
 
             self._transformers = transformers
 
@@ -130,6 +131,7 @@ class HuggingFaceSupervisor(Supervisor):
             )  # TODO customize the kwargs of apply_chat_template?
         return inputs
 
+    # TODO: pass generation kwargs
     def judge(self, inputs: str | list[str]) -> list[OutputDict]:
         """Evaluate samples with model.
 
@@ -177,7 +179,7 @@ class HuggingFaceSupervisor(Supervisor):
         input_tokens = cast(torch.Tensor, encoded_batch["attention_mask"]).sum().item()  # only count non-padding tokens
         output_tokens = (
             cast(torch.Tensor, outputs != self._tokenizer.pad_token_id).sum().item()
-        )  # only count non-padding tokens
+        )  # only count non-padding tokens # TODO: fix this (currently counts all output tokens, not per sample)
 
         return [
             OutputDict(

@@ -20,6 +20,7 @@ dependencies = [
 dev = ["ipykernel", "jupyter", "dotenv"]
 vllm = ["vllm>=0.11.0"]
 peft = ["peft>=0.18.0", "hf-transfer>=0.1.9"]
+lion = ["sentence_transformers"]
 
 [build-system]
 requires = ["setuptools>=61", "wheel"]
