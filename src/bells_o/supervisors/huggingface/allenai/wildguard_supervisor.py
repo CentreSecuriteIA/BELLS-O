@@ -4,7 +4,7 @@ from typing import Any, Literal
 
 from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing, TemplateWrapper
-from bells_o.result_mappers import wildguard as wildguard_result_map
+from bells_o.result_mappers import harmful_request as wildguard_result_map
 
 from ..hf_supervisor import HuggingFaceSupervisor
 

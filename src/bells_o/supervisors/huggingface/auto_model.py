@@ -16,6 +16,21 @@ MODEL_MAPPING = {
     "qwen/qwen3guard-gen-0.6b": ("qwen", "Qwen3GuardSupervisor", {"variant": "0.6B"}),
     "rakancorle1/thinkguard": ("rakancorle1", "ThinkGuardSupervisor", {}),
     "allenai/wildguard": ("allenai", "WildGuardSupervisor", {}),
+    "toxicityprompts/polyguard-ministral": (
+        "toxicityprompts",
+        "PolyGuardSupervisor",
+        {"model_id": "toxicityprompts/polyguard-ministral"},
+    ),
+    "toxicityprompts/polyguard-qwen": (
+        "toxicityprompts",
+        "PolyGuardSupervisor",
+        {"model_id": "toxicityprompts/polyguard-qwen"},
+    ),
+    "toxicityprompts/polyguard-qwen-smol": (
+        "toxicityprompts",
+        "PolyGuardSupervisor",
+        {"model_id": "toxicityprompts/polyguard-qwen-smol"},
+    ),
     "ibm-granite/granite-guardian-3.3-8b": (
         "ibm-granite",
         "GraniteGuardianSupervisor",
@@ -51,6 +66,9 @@ MODEL_MAPPING = {
         "GraniteGuardianSupervisor",
         {"model_id": "ibm-granite/granite-guardian-3.2-3b-a800m"},
     ),
+    "govtech/lionguard-2": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2"}),
+    "govtech/lionguard-2.1": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2.1"}),
+    "govtech/lionguard-2-lite": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2-lite"}),
 }
 
 

@@ -62,17 +62,15 @@ class HuggingFaceSupervisor(Supervisor):
                 f"The requested backend `{self.backend}` is not supported. Choose one of {self._supported_backends}."
             )
         if self.backend == "transformers":
-            import transformers
+            from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizerBase  # noqa: F401
+            # TODO: change to global TClass so we don't have to have the whole package as a variable
 
-            self._transformers = transformers
-
-            self._model = self._transformers.AutoModelForCausalLM.from_pretrained(self.name, **self.model_kwargs)
-            self._tokenizer = self._transformers.AutoTokenizer.from_pretrained(self.name, **self.tokenizer_kwargs)
+            self._model = AutoModelForCausalLM.from_pretrained(self.name, **self.model_kwargs)
+            self._tokenizer = AutoTokenizer.from_pretrained(self.name, **self.tokenizer_kwargs)
         elif self.backend == "vllm":
-            import vllm
+            from vllm import LLM, SamplingParams  # noqa: F401
 
-            self._vllm = vllm
-            self._model = self._vllm.LLM(self.name, **self.model_kwargs, tensor_parallel_size=torch.cuda.device_count())
+            self._model = LLM(self.name, **self.model_kwargs, tensor_parallel_size=torch.cuda.device_count())
             self._tokenizer = self._model.get_tokenizer()
 
     @property
@@ -130,6 +128,7 @@ class HuggingFaceSupervisor(Supervisor):
             )  # TODO customize the kwargs of apply_chat_template?
         return inputs
 
+    # TODO: pass generation kwargs
     def judge(self, inputs: str | list[str]) -> list[OutputDict]:
         """Evaluate samples with model.
 
@@ -153,10 +152,12 @@ class HuggingFaceSupervisor(Supervisor):
 
     # judge() implementations for different backends
     def _judge_transformers(self, inputs: list[str]) -> list[OutputDict]:
+        from transformers import PreTrainedTokenizerBase
+
         assert self.backend == "transformers", (
             f'Backend should be "transformers" at this point, but got "{self.backend}".'
         )
-        assert isinstance(self._tokenizer, self._transformers.PreTrainedTokenizerBase), f"got {type(self._tokenizer)}"
+        assert isinstance(self._tokenizer, PreTrainedTokenizerBase), f"got {type(self._tokenizer)}"
 
         encoded_batch = self._tokenizer(inputs, return_tensors="pt", padding=True).to(
             device=getattr(self._model, "device")
@@ -174,10 +175,18 @@ class HuggingFaceSupervisor(Supervisor):
 
         decoded_outputs: list[str] = self._tokenizer.batch_decode(outputs)
         batch_size = len(inputs)
-        input_tokens = cast(torch.Tensor, encoded_batch["attention_mask"]).sum().item()  # only count non-padding tokens
-        output_tokens = (
-            cast(torch.Tensor, outputs != self._tokenizer.pad_token_id).sum().item()
+
+        input_tokens: list[int] = (
+            cast(torch.Tensor, encoded_batch["attention_mask"]).sum(dim=1).tolist()
         )  # only count non-padding tokens
+
+        output_tokens: list[int] = (
+            cast(torch.Tensor, outputs != self._tokenizer.pad_token_id).sum(dim=1).tolist()
+        )  # only count non-padding tokens
+
+        assert len(output_tokens) == batch_size == len(input_tokens), (
+            f"Expected all lengths to be equal, but got {len(output_tokens)}, {batch_size} and {len(input_tokens)}."
+        )
 
         return [
             OutputDict(
@@ -185,18 +194,20 @@ class HuggingFaceSupervisor(Supervisor):
                 metadata={
                     "latency": generation_time / batch_size,
                     "batch_size": batch_size,
-                    "input_tokens": input_tokens,
-                    "output_tokens": output_tokens,
+                    "input_tokens": input_t,
+                    "output_tokens": output_t,
                 },
             )
-            for output in decoded_outputs
+            for output, input_t, output_t in zip(decoded_outputs, input_tokens, output_tokens)
         ]
 
     def _judge_vllm(self, inputs: list[str]):
-        assert self.backend == "vllm", f'Backend should be "vllm" at this point, but got "{self.backend}".'
-        assert isinstance(self._model, self._vllm.LLM)
+        from vllm import LLM, SamplingParams
 
-        sampling_params = self._vllm.SamplingParams(
+        assert self.backend == "vllm", f'Backend should be "vllm" at this point, but got "{self.backend}".'
+        assert isinstance(self._model, LLM)
+
+        sampling_params = SamplingParams(
             **self.generation_kwargs
         )  # TODO: somehow make it obvious that this takes vllm arguments
         start = time()  # note that by doing this, we are generalizing latency per prompt as batch_latency/n_prompts
