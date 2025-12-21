@@ -2,7 +2,7 @@
 
 from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing
-from bells_o.result_mappers import gemini_classification as gemini_classification_result_map
+from bells_o.result_mappers import gemini_one as gemini_classification_result_map
 
 from .gemini import GeminiSupervisor
 

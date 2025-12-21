@@ -2,7 +2,7 @@
 
 from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing
-from bells_o.result_mappers import anthropic_classification as anthropic_classification_result_map
+from bells_o.result_mappers import anthropic_one as anthropic_classification_result_map
 
 from .anthropic import AnthropicSupervisor
 
