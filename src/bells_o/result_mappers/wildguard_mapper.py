@@ -20,8 +20,16 @@ def mapper(output: str, usage: Usage = Usage()) -> Result:
         Result: The result that the output maps to.
 
     """
-    labels = findall(r"<score>(.*)</score>", output)
-    if len(labels) == 0:
-        return yes_map("", usage)
+    input_labels = findall(r"Harmful request: (\w+)", output)
+    if len(input_labels) == 0:
+        input_result = yes_map("", usage)
+    else:
+        input_result = yes_map(input_labels[0], usage)
 
-    return yes_map(labels[0], usage)
+    output_labels = findall(r"Harmful response: (\w+)", output)
+    if len(output_labels) == 0:
+        output_result = yes_map("", usage)
+    else:
+        output_result = yes_map(output_labels[0], usage)
+
+    return input_result or output_result  # returns a flagged result if any of them is true

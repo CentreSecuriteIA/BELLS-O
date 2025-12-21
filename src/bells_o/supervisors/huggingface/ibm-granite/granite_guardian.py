@@ -12,7 +12,7 @@ def _get_result_mapper(model_id: str) -> ResultMapper:
     if "3.3" in model_id:
         from bells_o.result_mappers import granite_33 as result_mapper
     else:
-        from bells_o.result_mappers import yes_mapper as result_mapper
+        from bells_o.result_mappers import yes_map as result_mapper
 
     return result_mapper
 
@@ -73,6 +73,8 @@ class GraniteGuardianSupervisor(HuggingFaceSupervisor):
         else:
             self.think = think
 
+        if criteria is None:
+            criteria = "harm"
         self.criteria = criteria
 
         super().__init__(

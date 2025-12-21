@@ -14,7 +14,8 @@ MODEL_MAPPING = {
     "qwen/qwen3guard-gen-8b": ("qwen", "Qwen3GuardSupervisor", {"variant": "8B"}),
     "qwen/qwen3guard-gen-4b": ("qwen", "Qwen3GuardSupervisor", {"variant": "4B"}),
     "qwen/qwen3guard-gen-0.6b": ("qwen", "Qwen3GuardSupervisor", {"variant": "0.6B"}),
-    "rakancorle1/thinkguard": ("thinkguard", "ThinkGuardSupervisor", {}),
+    "rakancorle1/thinkguard": ("rakancorle1", "ThinkGuardSupervisor", {}),
+    "allenai/wildguard": ("allenai", "WildGuardSupervisor", {}),
     "ibm-granite/granite-guardian-3.3-8b": (
         "ibm-granite",
         "GraniteGuardianSupervisor",
@@ -28,27 +29,27 @@ MODEL_MAPPING = {
     "ibm-granite/granite-guardian-3.0-8b": (
         "ibm-granite",
         "GraniteGuardianSupervisor",
-        {"model_id": "ibm-granite/granite-guardian-3.0-2b"},
+        {"model_id": "ibm-granite/granite-guardian-3.0-8b"},
     ),
     "ibm-granite/granite-guardian-3.1-2b": (
         "ibm-granite",
         "GraniteGuardianSupervisor",
-        {"model_id": "ibm-granite/granite-guardian-3.0-2b"},
+        {"model_id": "ibm-granite/granite-guardian-3.1-2b"},
     ),
     "ibm-granite/granite-guardian-3.1-8b": (
         "ibm-granite",
         "GraniteGuardianSupervisor",
-        {"model_id": "ibm-granite/granite-guardian-3.0-2b"},
+        {"model_id": "ibm-granite/granite-guardian-3.1-8b"},
     ),
     "ibm-granite/granite-guardian-3.2-5b": (
         "ibm-granite",
         "GraniteGuardianSupervisor",
-        {"model_id": "ibm-granite/granite-guardian-3.0-2b"},
+        {"model_id": "ibm-granite/granite-guardian-3.2-5b"},
     ),
     "ibm-granite/granite-guardian-3.2-3b-a800m": (
         "ibm-granite",
         "GraniteGuardianSupervisor",
-        {"model_id": "ibm-granite/granite-guardian-3.0-2b"},
+        {"model_id": "ibm-granite/granite-guardian-3.2-3b-a800m"},
     ),
 }
 

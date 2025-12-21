@@ -3,7 +3,8 @@
 from typing import Any
 
 from bells_o.common import Result, Usage
-from bells_o.result_mappers import unsafe_mapper
+
+from .unsafe_mapper import mapper as unsafe_map
 
 
 def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
@@ -30,4 +31,4 @@ def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
         if message:
             text = message.get("content", "")
 
-    return unsafe_mapper(text, usage)
+    return unsafe_map(text, usage)

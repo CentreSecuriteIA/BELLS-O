@@ -2,9 +2,9 @@
 
 from typing import Any
 
-from repo.src.bells_o.result_mappers import one_mapper
-
 from bells_o.common import Result, Usage
+
+from .one_mapper import mapper as one_map
 
 
 def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
@@ -30,4 +30,4 @@ def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
         if message:
             text = message.get("content", "")
 
-    return one_mapper(text, usage)
+    return one_map(text, usage)

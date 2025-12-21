@@ -157,7 +157,7 @@ class HuggingFaceSupervisor(Supervisor):
             f'Backend should be "transformers" at this point, but got "{self.backend}".'
         )
         assert isinstance(self._tokenizer, self._transformers.PreTrainedTokenizerBase), f"got {type(self._tokenizer)}"
-        self._transformers.PreTrainedModel
+
         encoded_batch = self._tokenizer(inputs, return_tensors="pt", padding=True).to(
             device=getattr(self._model, "device")
         )
@@ -175,7 +175,9 @@ class HuggingFaceSupervisor(Supervisor):
         decoded_outputs: list[str] = self._tokenizer.batch_decode(outputs)
         batch_size = len(inputs)
         input_tokens = cast(torch.Tensor, encoded_batch["attention_mask"]).sum().item()  # only count non-padding tokens
-        output_tokens = outputs.sum().item()  # only count non-padding tokens
+        output_tokens = (
+            cast(torch.Tensor, outputs != self._tokenizer.pad_token_id).sum().item()
+        )  # only count non-padding tokens
 
         return [
             OutputDict(
