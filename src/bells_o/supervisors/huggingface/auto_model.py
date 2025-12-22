@@ -14,8 +14,62 @@ MODEL_MAPPING = {
     "qwen/qwen3guard-gen-8b": ("qwen", "Qwen3GuardSupervisor", {"variant": "8B"}),
     "qwen/qwen3guard-gen-4b": ("qwen", "Qwen3GuardSupervisor", {"variant": "4B"}),
     "qwen/qwen3guard-gen-0.6b": ("qwen", "Qwen3GuardSupervisor", {"variant": "0.6B"}),
-    "rakancorle1/thinkguard": ("thinkguard", "ThinkGuardSupervisor", {}),
-    }
+    "rakancorle1/thinkguard": ("rakancorle1", "ThinkGuardSupervisor", {}),
+    "allenai/wildguard": ("allenai", "WildGuardSupervisor", {}),
+    "toxicityprompts/polyguard-ministral": (
+        "toxicityprompts",
+        "PolyGuardSupervisor",
+        {"model_id": "toxicityprompts/polyguard-ministral"},
+    ),
+    "toxicityprompts/polyguard-qwen": (
+        "toxicityprompts",
+        "PolyGuardSupervisor",
+        {"model_id": "toxicityprompts/polyguard-qwen"},
+    ),
+    "toxicityprompts/polyguard-qwen-smol": (
+        "toxicityprompts",
+        "PolyGuardSupervisor",
+        {"model_id": "toxicityprompts/polyguard-qwen-smol"},
+    ),
+    "ibm-granite/granite-guardian-3.3-8b": (
+        "ibm-granite",
+        "GraniteGuardianSupervisor",
+        {"model_id": "ibm-granite/granite-guardian-3.3-8b"},
+    ),
+    "ibm-granite/granite-guardian-3.0-2b": (
+        "ibm-granite",
+        "GraniteGuardianSupervisor",
+        {"model_id": "ibm-granite/granite-guardian-3.0-2b"},
+    ),
+    "ibm-granite/granite-guardian-3.0-8b": (
+        "ibm-granite",
+        "GraniteGuardianSupervisor",
+        {"model_id": "ibm-granite/granite-guardian-3.0-8b"},
+    ),
+    "ibm-granite/granite-guardian-3.1-2b": (
+        "ibm-granite",
+        "GraniteGuardianSupervisor",
+        {"model_id": "ibm-granite/granite-guardian-3.1-2b"},
+    ),
+    "ibm-granite/granite-guardian-3.1-8b": (
+        "ibm-granite",
+        "GraniteGuardianSupervisor",
+        {"model_id": "ibm-granite/granite-guardian-3.1-8b"},
+    ),
+    "ibm-granite/granite-guardian-3.2-5b": (
+        "ibm-granite",
+        "GraniteGuardianSupervisor",
+        {"model_id": "ibm-granite/granite-guardian-3.2-5b"},
+    ),
+    "ibm-granite/granite-guardian-3.2-3b-a800m": (
+        "ibm-granite",
+        "GraniteGuardianSupervisor",
+        {"model_id": "ibm-granite/granite-guardian-3.2-3b-a800m"},
+    ),
+    "govtech/lionguard-2": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2"}),
+    "govtech/lionguard-2.1": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2.1"}),
+    "govtech/lionguard-2-lite": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2-lite"}),
+}
 
 
 class AutoHuggingFaceSupervisor:
@@ -30,7 +84,7 @@ class AutoHuggingFaceSupervisor:
             **kwargs: Optional keyword arguments to override default parameters.
 
         """
-        module_name, class_attribute, special_kwargs = MODEL_MAPPING[model_id]
+        module_name, class_attribute, special_kwargs = MODEL_MAPPING[model_id.lower()]
         model_module = import_module(f".{module_name}", "bells_o.supervisors.huggingface")
 
         if hasattr(model_module, class_attribute):
@@ -40,13 +94,7 @@ class AutoHuggingFaceSupervisor:
                 f"Did not find attribute `{class_attribute}` in module `bells_o.supervisors.huggingface.{module_name}`."
             )
 
-        # TODO: This is super stupid logic, and can be solved much easier (solution is obvious). Retouch
-        # clean kwargs - passed kwargs take priority
-        keys_to_delete = []
-        for key in special_kwargs:
-            if key in kwargs:
-                keys_to_delete.append(key)
-        for key in keys_to_delete:
-            del special_kwargs[key]
+        # merge kwargs, special kwargs take priority because they are determined by the model_id
+        kwargs |= special_kwargs
 
-        return model_class(**kwargs, **special_kwargs)
+        return model_class(**kwargs)

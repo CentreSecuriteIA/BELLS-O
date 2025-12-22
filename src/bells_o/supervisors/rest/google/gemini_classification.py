@@ -2,7 +2,7 @@
 
 from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing
-from bells_o.result_mappers import gemini_classification as gemini_classification_result_map
+from bells_o.result_mappers import gemini_one as gemini_classification_result_map
 
 from .gemini import GeminiSupervisor
 
@@ -31,20 +31,19 @@ class GeminiClassificationSupervisor(GeminiSupervisor):
 
         Args:
             model: Gemini model id. Defaults to "gemini-1.5-pro".
-            system_prompt: System-level instruction for classification. 
+            system_prompt: System-level instruction for classification.
                 Defaults to asking for "1" if harmful, "0" if benign.
             pre_processing: List of PreProcessing steps to apply to prompts. Defaults to [].
             api_key: Google AI Studio API key (if given, overrides env). Defaults to None.
             api_variable: Env var name for the API key. Defaults to "GEMINI_API_KEY".
+
         """
         super().__init__(
             model=model,
             usage=Usage("content_moderation"),
             result_mapper=gemini_classification_result_map,
             system_prompt=system_prompt,
-            safety_settings=None,  # No safety settings - we want the model to classify freely
             pre_processing=pre_processing,
             api_key=api_key,
             api_variable=api_variable,
         )
-

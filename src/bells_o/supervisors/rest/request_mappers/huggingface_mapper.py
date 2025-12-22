@@ -19,6 +19,7 @@ def mapper(
 
     Returns:
         The mapped request payload.
+
     """
     # Handle both string prompts and message lists
     if isinstance(prompt, list):
@@ -26,19 +27,11 @@ def mapper(
         messages = prompt
     else:
         # Convert string to message format
-        messages = [
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
-    
+        messages = [{"role": "user", "content": prompt}]
+
     # Chat completions format
-    json_repr: dict[str, Any] = {
-        "model": supervisor.model_id,
-        "messages": messages
-    }
-    
+    json_repr: dict[str, Any] = {"model": supervisor.name, "messages": messages}
+
     # Add generation parameters if provided (map to OpenAI-compatible format)
     if supervisor.generation_kwargs:
         # Map common generation kwargs to OpenAI format
@@ -52,6 +45,5 @@ def mapper(
         for key in ["stop", "presence_penalty", "frequency_penalty"]:
             if key in supervisor.generation_kwargs:
                 json_repr[key] = supervisor.generation_kwargs[key]
-    
-    return json_repr
 
+    return json_repr

@@ -1,6 +1,6 @@
 """Implement the authentication mapper for the `Ocp-Apim-Subscription-Key` header."""
 
-from ..custom_endpoint import RestSupervisor
+from ..rest_supervisor import RestSupervisor
 
 
 def mapper(supervisor: RestSupervisor) -> dict[str, str]:

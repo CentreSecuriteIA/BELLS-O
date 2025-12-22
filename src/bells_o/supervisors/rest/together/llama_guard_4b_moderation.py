@@ -2,7 +2,7 @@
 
 from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing
-from bells_o.result_mappers import llama_guard_4_rest as llama_guard_4_rest_result_map
+from bells_o.result_mappers import openai_compatible_unsafe as llama_guard_4_rest_result_map
 
 from .together import TogetherAISupervisor
 
@@ -10,7 +10,7 @@ from .together import TogetherAISupervisor
 class LlamaGuard4BModerationSupervisor(TogetherAISupervisor):
     """Together AI supervisor for Llama Guard 4B model configured for direct moderation.
 
-    Uses Together AI's Llama Guard 4B model (meta-llama/Llama-Guard-4-12B) for moderation 
+    Uses Together AI's Llama Guard 4B model (meta-llama/Llama-Guard-4-12B) for moderation
     without a system prompt. The prompt is sent directly as user content for the model to classify.
     """
 
@@ -28,6 +28,7 @@ class LlamaGuard4BModerationSupervisor(TogetherAISupervisor):
             pre_processing: List of PreProcessing steps to apply to prompts. Defaults to [].
             api_key: Together AI API key (if given, overrides env). Defaults to None.
             api_variable: Env var name for the API key. Defaults to "TOGETHER_API_KEY".
+
         """
         super().__init__(
             model=model,
@@ -38,4 +39,3 @@ class LlamaGuard4BModerationSupervisor(TogetherAISupervisor):
             api_key=api_key,
             api_variable=api_variable,
         )
-

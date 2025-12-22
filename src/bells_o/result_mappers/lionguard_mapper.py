@@ -1,11 +1,9 @@
 """Implement the result mapping function for saillab/x-guard on HF."""
 
-from re import findall
-
 from bells_o.common import Result, Usage
 
 
-def mapper(output: str, usage: Usage = Usage()) -> Result:
+def mapper(output: dict[str, float], usage: Usage = Usage()) -> Result:
     """Map the output format of saillab/x-guard to `Result`.
 
     Only maps to `content_moderation`. Checks for content between <label> flags.
@@ -18,7 +16,6 @@ def mapper(output: str, usage: Usage = Usage()) -> Result:
         Result: The result that the output maps to.
 
     """
-    labels = findall(r"<label>(.*)</label>", output)
-    if len(labels) == 0:
-        return Result(content_moderation=False)
-    return Result(content_moderation=not labels[0] == "safe")
+    probability = output["binary"]
+    assert isinstance(probability, float)
+    return Result(content_moderation=probability >= 0.85)

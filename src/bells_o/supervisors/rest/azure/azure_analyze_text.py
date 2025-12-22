@@ -1,14 +1,14 @@
 """Implement the Analyze Text supervisor from Azure via REST API."""
 
-from typing import Literal, Self
+from typing import Literal
 
-from bells_o.common import AuthMapper, RequestMapper, ResultMapper, Usage
+from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing
 from bells_o.result_mappers import azure_analyze_text as azure_result_map
 from bells_o.supervisors.rest.auth_mappers import ocp_apim_subscription as auth_map
 from bells_o.supervisors.rest.request_mappers import azure_analyze_text as azure_request_map
 
-from ..custom_endpoint import RestSupervisor
+from ..rest_supervisor import RestSupervisor
 
 
 class AzureAnalyzeTextSupervisor(RestSupervisor):
@@ -43,20 +43,19 @@ class AzureAnalyzeTextSupervisor(RestSupervisor):
             api_variable (str | None, optional): Environment variable name that stores the API key. Defaults to "AZURE_API_KEY"
 
         """
-        self.name: str = "Analyze text"
-        self.provider_name: str | None = "Azure"
-        self.base_url: str = f"{endpoint}/contentsafety/text:analyze?api-version=2024-09-01"
-        self.usage: Usage = Usage(
-            "content_moderation"
-        )  # TODO: think about adding severity thresholds in the usage object.
+        # TODO: think about adding severity thresholds in the usage object.
         self.categories = categories
         self.output_type = output_type
-        self.res_map_fn: ResultMapper = azure_result_map
-        self.req_map_fn: RequestMapper[Self] = azure_request_map
-        self.auth_map_fn: AuthMapper = auth_map
-        self.custom_header = {"Content-Type": "application/json"}
-        self.pre_processing = pre_processing
-        self.api_key = api_key
-        self.api_variable = api_variable
-
-        super().__post_init__()
+        super().__init__(
+            name="Analyze text",
+            usage=Usage("content_moderation"),
+            res_map_fn=azure_result_map,
+            base_url="{endpoint}/contentsafety/text:analyze?api-version=2024-09-01",
+            req_map_fn=azure_request_map,
+            auth_map_fn=auth_map,
+            pre_processing=pre_processing,
+            provider_name="Azure",
+            api_key=api_key,
+            api_variable=api_variable,
+            custom_header={"Content-Type": "application/json"},
+        )

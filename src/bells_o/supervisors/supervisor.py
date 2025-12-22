@@ -1,7 +1,6 @@
 """Implements the abstract Supervisor Class."""
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from functools import partial
 from typing import Any
 
@@ -9,9 +8,6 @@ from bells_o.common import OutputDict, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
 
 
-# Define an abstract base class
-# TODO: get rid of dataclass
-@dataclass
 class Supervisor(ABC):
     """Abstract base class for Supervisors.
 
@@ -22,15 +18,45 @@ class Supervisor(ABC):
 
     """
 
-    name: str
-    usage: Usage
-    res_map_fn: ResultMapper
-    pre_processing: list[PreProcessing] | None
+    def __init__(
+        self,
+        name: str,
+        usage: Usage,
+        res_map_fn: ResultMapper,
+        pre_processing: list[PreProcessing] = [],
+        provider_name: str | None = None,
+    ):
+        """Initialize the supervisor.
 
-    @abstractmethod
-    def __post_init__(self):
-        """Set up the rest of the supervisor. E.g. load the model from HuggingFace."""
-        self.pre_processing = self.pre_processing or []
+        Args:
+            name (str): Name of the supervisor
+            usage (Usage): The usage type of the supervisor.
+            res_map_fn (ResultMapper): The `ResultMapper` used to convert results.
+            pre_processing (list[PreProcessing] | None, optional): List of Preprocessing techniques for inputs. Defaults to None.
+            provider_name (str | None, optional): The name of the provider of this model. Defaults to None.
+
+        """
+        self._name = name
+        self._usage = usage
+        self._res_map_fn = res_map_fn
+        self.pre_processing = pre_processing
+        self._provider_name = provider_name
+
+    @property
+    def name(self) -> str:  # noqa: D102
+        return self._name
+
+    @property
+    def usage(self) -> Usage:  # noqa: D102
+        return self._usage
+
+    @property
+    def provider_name(self) -> str:  # noqa: D102
+        return self._provider_name if self._provider_name else "N/A"
+
+    def __repr__(self) -> str:
+        """Represent class object as string."""
+        return f'{self.__name__}("{self.name}", "{self.usage}")'
 
     def __call__(self, inputs: str | list[str], *args, **kwargs) -> list[OutputDict]:
         """Complete full judging process."""
@@ -42,10 +68,10 @@ class Supervisor(ABC):
         outputs: list[OutputDict] = self.judge(inputs)
         for output in outputs:
             # Check if res_map_fn is a partial function (usage already bound)
-            if isinstance(self.res_map_fn, partial):
-                output["output_result"] = self.res_map_fn(output["output_raw"])  # pyright: ignore[reportArgumentType]
+            if isinstance(self._res_map_fn, partial):
+                output["output_result"] = self._res_map_fn(output["output_raw"])  # pyright: ignore[reportArgumentType]
             else:
-                output["output_result"] = self.res_map_fn(output["output_raw"], self.usage)  # pyright: ignore[reportArgumentType]
+                output["output_result"] = self._res_map_fn(output["output_raw"], self.usage)  # pyright: ignore[reportArgumentType]
         return outputs
 
     def metadata(self) -> dict[str, Any]:

@@ -5,14 +5,15 @@ from typing import Any
 
 from requests import post
 
-from bells_o.common import AuthMapper, OutputDict, RequestMapper, ResultMapper, Usage
+from bells_o.common import OutputDict, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
 
 from ..auth_mappers import auth_bearer
-from ..custom_endpoint import RestSupervisor
 from ..request_mappers import huggingface as hf_request_map
+from ..rest_supervisor import RestSupervisor
 
 
+# TODO: check why all of the functions were redefined
 class HuggingFaceApiSupervisor(RestSupervisor):
     """A concrete class that enables access to HuggingFace models via Inference API."""
 
@@ -21,8 +22,8 @@ class HuggingFaceApiSupervisor(RestSupervisor):
         model_id: str,
         usage: Usage,
         result_mapper: ResultMapper,
-        pre_processing: list[PreProcessing] = None,
-        generation_kwargs: dict[str, Any] = None,
+        pre_processing: list[PreProcessing] = [],
+        generation_kwargs: dict[str, Any] = {},
         api_key: str | None = None,
         api_variable: str = "HUGGINGFACE_API_KEY",
         provider_name: str = "HuggingFace",
@@ -38,24 +39,22 @@ class HuggingFaceApiSupervisor(RestSupervisor):
             api_key: API key to use, takes priority over `api_variable`.
             api_variable: Environment variable name that stores the API key.
             provider_name: Name of the provider.
-        """
-        self.name = model_id
-        self.model_id = model_id  # Store for request mapper
-        self.provider_name = provider_name
-        # Use router API chat completions endpoint
-        self.base_url = "https://router.huggingface.co/v1/chat/completions"
-        self.usage = usage
-        self.res_map_fn = result_mapper
-        self.req_map_fn: RequestMapper = hf_request_map
-        self.auth_map_fn: AuthMapper = auth_bearer
-        self.pre_processing = pre_processing or []
-        self.generation_kwargs = generation_kwargs or {}
-        self.api_key = api_key
-        self.api_variable = api_variable
-        self.needs_api = True
-        self.custom_header = {}
 
-        super().__post_init__()
+        """
+        self.generation_kwargs = generation_kwargs
+
+        super().__init__(
+            name=model_id,
+            usage=usage,
+            res_map_fn=result_mapper,
+            base_url="https://router.huggingface.co/v1/chat/completions",
+            req_map_fn=hf_request_map,
+            auth_map_fn=auth_bearer,
+            pre_processing=pre_processing,
+            provider_name=provider_name,
+            api_key=api_key,
+            api_variable=api_variable,
+        )
 
     def _judge_sample(self, prompt: str | list[dict[str, str]]) -> OutputDict:
         """Run an individual POST request for inference.
@@ -67,6 +66,7 @@ class HuggingFaceApiSupervisor(RestSupervisor):
 
         Returns:
             OutputDict: The output of the Supervisor and corresponding metadata.
+
         """
         tried_once = False
         no_valid_response = True
@@ -92,7 +92,7 @@ class HuggingFaceApiSupervisor(RestSupervisor):
 
         # Handle response - check status code first
         if response.status_code != 200:
-            error_text = response.text[:1000] if response.text else 'No response body'
+            error_text = response.text[:1000] if response.text else "No response body"
             response_data = {
                 "error": f"HTTP {response.status_code}: {error_text}",
                 "status_code": response.status_code,
@@ -118,6 +118,7 @@ class HuggingFaceApiSupervisor(RestSupervisor):
 
         Returns:
             List of preprocessed strings or message lists (for chat completions API).
+
         """
         if isinstance(inputs, str):
             inputs = [inputs]
@@ -147,6 +148,7 @@ class HuggingFaceApiSupervisor(RestSupervisor):
 
         Returns:
             List of OutputDict with parsed responses.
+
         """
         if not prompts:
             return []
@@ -165,13 +167,13 @@ class HuggingFaceApiSupervisor(RestSupervisor):
                 processed_prompts.append(str(prompt))
 
         outputs = super().judge(processed_prompts)
-        
+
         # Parse HuggingFace Router API chat completions response format
         parsed_outputs = []
         for output in outputs:
             raw = output["output_raw"]
             parsed_text = ""
-            
+
             # Handle error responses
             if isinstance(raw, dict) and "error" in raw:
                 parsed_text = f"Error: {raw.get('error', 'Unknown error')}"
@@ -200,11 +202,12 @@ class HuggingFaceApiSupervisor(RestSupervisor):
                     parsed_text = str(raw[0])
             else:
                 parsed_text = str(raw) if raw else ""
-            
-            parsed_outputs.append({
-                "output_raw": parsed_text,
-                "metadata": output["metadata"],
-            })
-        
-        return parsed_outputs
 
+            parsed_outputs.append(
+                {
+                    "output_raw": parsed_text,
+                    "metadata": output["metadata"],
+                }
+            )
+
+        return parsed_outputs
