@@ -1,1 +1,0 @@
-# BELLS-O framework library

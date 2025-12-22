@@ -1,0 +1,50 @@
+"""Implement the pre-configured saillab/x-guard supervisor from HuggingFace."""
+
+from typing import Any, Literal
+
+from bells_o.common import Usage
+from bells_o.preprocessors import PreProcessing, RoleWrapper
+from bells_o.result_mappers import xguard as xguard_result_map
+
+from ..hf_supervisor import HuggingFaceSupervisor
+
+
+class XGuardSupervisor(HuggingFaceSupervisor):
+    """Implement the pre-configured saillab/x-guard supervisor from HuggingFace."""
+
+    def __init__(
+        self,
+        pre_processing: list[PreProcessing] = [],
+        model_kwargs: dict[str, Any] = {},
+        tokenizer_kwargs: dict[str, Any] = {},
+        generation_kwargs: dict[str, Any] = {},
+        backend: Literal["transformers", "vllm"] = "transformers",
+    ):
+        """Initialize the supervisor.
+
+        Args:
+            pre_processing (list[PreProcessing], optional): List of PreProcessing steps to apply to prompts. Defaults to []
+            model_kwargs (dict[str, Any], optional):  Keyword arguments to configure the model. Defaults to {}.
+            tokenizer_kwargs (dict[str, Any], optional):  Keyword arguments to configure the tokenizer. Defaults to {}.
+            generation_kwargs (dict[str, Any], optional): Keyword arguments to configure generation. Defaults to {}.
+            backend (Literal["transformers", "vllm"]): The inference backend to use. Defaults to "transformers".
+
+        """
+        pre_processing.append(RoleWrapper("user", opposite_prompt="\n <think>"))
+
+        base_kwargs = {"temperature": 0.0000001, "do_sample": True}
+        for key in base_kwargs:
+            if key in generation_kwargs:
+                print(f"INFO: ignoring set generation kwarg {key}. This kwarg should not be set for this supervisor.")
+
+        super().__init__(
+            name="saillab/x-guard",
+            usage=Usage("content_moderation"),
+            res_map_fn=xguard_result_map,
+            pre_processing=pre_processing,
+            model_kwargs=model_kwargs,
+            tokenizer_kwargs=tokenizer_kwargs,
+            generation_kwargs=generation_kwargs,
+            provider_name="SAIL Lab",
+            backend=backend,
+        )
