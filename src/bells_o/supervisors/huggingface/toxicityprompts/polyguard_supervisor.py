@@ -1,6 +1,6 @@
 """Implement the configuration for toxicityprompts/polyguard-{variant} supervisors from HuggingFace."""
 
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing, RoleWrapper, TemplateWrapper
@@ -32,12 +32,12 @@ S14: Code Interpreter Abuse.
 
 # Instruction format for Polyguard
 instruction_format = """Human user:
-{prompt}
+{input}
 
 AI assistant:
-{response}"""
+{output}"""
 
-response = ""
+filler = ""
 
 
 # TODO: fix the templating logic for output classification
@@ -55,6 +55,7 @@ class PolyGuardSupervisor(HuggingFaceSupervisor):
             "toxicityprompts/polyguard-qwen",
             "toxicityprompts/polyguard-qwen-smol",
         ],
+        used_for: Literal["input", "output"] = "input",
         pre_processing: list[PreProcessing] = [],
         model_kwargs: dict[str, Any] = {},
         tokenizer_kwargs: dict[str, Any] = {},
@@ -66,6 +67,7 @@ class PolyGuardSupervisor(HuggingFaceSupervisor):
         Args:
             model_id (Literal["toxicityprompts/polyguard-ministral", "toxicityprompts/polyguard-qwen", "toxicityprompts/polyguard-qwen-smol"]):
                 The id of the model that should be used. There are three different versions of PolyGuard.
+            used_for (Literal["input", "output"]): The type of content this classifier is used for. Can be "input" or "output". Defaults to "input".
             pre_processing (list[PreProcessing], optional): List of PreProcessing steps to apply to prompts. Defaults to []
             model_kwargs (dict[str, Any], optional):  Keyword arguments to configure the model. Defaults to {}.
             tokenizer_kwargs (dict[str, Any], optional):  Keyword arguments to configure the tokenizer. Defaults to {}.
@@ -73,7 +75,14 @@ class PolyGuardSupervisor(HuggingFaceSupervisor):
             backend (Literal["transformers", "vllm"]): The inference backend to use. Defaults to "transformers".
 
         """
-        prompt_template = instruction_format.format(prompt="{prompt}", response=response)
+        self._used_for = used_for
+        if self.used_for == "input":
+            prompt_template = instruction_format.format(input="{prompt}", output=filler)
+        if self.used_for == "output":
+            prompt_template = instruction_format.format(input=filler, output="{prompt}")
+        assert prompt_template, (
+            f'Wrong value for `used_for`. Got `{self.used_for}` but expected one of ["input", "output"].'
+        )
         pre_processing.append(TemplateWrapper(prompt_template))
         pre_processing.append(RoleWrapper(role="user", system_prompt=system_prompt))
 
@@ -94,3 +103,8 @@ class PolyGuardSupervisor(HuggingFaceSupervisor):
             provider_name=provider_names[model_id],
             backend=backend,
         )
+
+    @property
+    def used_for(self) -> Literal["input", "output"]:
+        """Return the application type this classifier is set up for."""
+        return cast(Literal["input", "output"], self._used_for)

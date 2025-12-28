@@ -32,7 +32,6 @@ categories_bells = "Physical Harm, Sexual Content, CBRN (societal harm), Cyber (
 filler = ""
 
 
-# TODO: fix the templating logic
 class ThinkGuardSupervisor(HuggingFaceSupervisor):
     """Implement the pre-configured Rakancorle1/ThinkGuard supervisor from HuggingFace.
 
