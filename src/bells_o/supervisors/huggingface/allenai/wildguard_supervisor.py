@@ -28,7 +28,6 @@ Answers: [/INST]
 filler = ""
 
 
-# TODO: fix the templating logic for output classification
 class WildGuardSupervisor(HuggingFaceSupervisor):
     """Implement the pre-configured allenai/wildguard supervisor from HuggingFace.
 
@@ -48,6 +47,7 @@ class WildGuardSupervisor(HuggingFaceSupervisor):
         """Initialize the supervisor.
 
         Args:
+            used_for (Literal["input", "output"]): The type of content this classifier is used for. Can be "input" or "output". Defaults to "input".
             pre_processing (list[PreProcessing], optional): List of PreProcessing steps to apply to prompts. Defaults to []
             model_kwargs (dict[str, Any], optional):  Keyword arguments to configure the model. Defaults to {}.
             tokenizer_kwargs (dict[str, Any], optional):  Keyword arguments to configure the tokenizer. Defaults to {}.
