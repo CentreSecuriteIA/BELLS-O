@@ -1,6 +1,5 @@
 .env
 .venv/
-results/
 __pycache__/
 **.egg-info
 **.DS_Store
