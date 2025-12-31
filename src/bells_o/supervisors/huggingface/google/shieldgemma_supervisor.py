@@ -102,6 +102,9 @@ class ShieldGemmaSupervisor(HuggingFaceSupervisor):
                 print("INFO: Ignoring passed `max_tokens` as this supervisor works with a single forward pass.")
             generation_kwargs |= custom_generation_kwargs
 
+            custom_model_kwargs = {"attention_backend": "FLASHINFER"}
+            model_kwargs |= custom_model_kwargs
+
         super().__init__(
             name=f"google/shieldgemma-{variant}",
             usage=Usage("content_moderation"),

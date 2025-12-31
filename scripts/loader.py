@@ -1,3 +1,5 @@
+"""Script to download supervisor data from HF."""
+
 from argparse import ArgumentParser
 from os import getenv
 
@@ -22,7 +24,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    script_model_id = "ibm-granite/granite-guardian-3.2-5b"
+    script_model_id = "saillab/xguard"
 
     chosen_model_id = args.model_id or script_model_id
     print(f"loading {chosen_model_id}")

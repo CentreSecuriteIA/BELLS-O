@@ -63,10 +63,10 @@ class HuggingFaceSupervisor(Supervisor):
             )
         if self.backend == "transformers":
             from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizerBase  # noqa: F401
-            # TODO: change to global TClass so we don't have to have the whole package as a variable
 
-            self._model = AutoModelForCausalLM.from_pretrained(self.name, **self.model_kwargs)
             self._tokenizer = AutoTokenizer.from_pretrained(self.name, **self.tokenizer_kwargs)
+            self._model = AutoModelForCausalLM.from_pretrained(self.name, **self.model_kwargs)
+
         elif self.backend == "vllm":
             from vllm import LLM, SamplingParams  # noqa: F401
 
