@@ -6,6 +6,7 @@
 Just modify the variables below and run the script.
 """
 
+import gc
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -29,7 +30,9 @@ INPUT_COLUMN = "prompt"
 TARGET_COLUMN = "category"
 
 # Supervisor configuration
-SUPERVISOR_STRING = "google/shieldgemma-27b"  # Change this to the according string used in the Auto classes
+SUPERVISOR_STRING = (
+    "nvidia/llama-3.1-nemotron-safety-guard-8b-v3"  # Change this to the according string used in the Auto classes
+)
 lab, model_name = SUPERVISOR_STRING.split("/")  # for HF supervisors
 USE_AUTO_REST = False
 USE_AUTO_HF = True
@@ -122,3 +125,5 @@ evaluator.run(run_id=RUN_ID, verbose=VERBOSE, save=True)
 print(f"\nDone! Results saved to {SAVE_DIR_FULL}")
 
 # %%
+del evaluator
+gc.collect()
