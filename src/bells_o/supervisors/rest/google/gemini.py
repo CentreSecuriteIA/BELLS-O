@@ -1,5 +1,7 @@
 """Implement the Google AI Studio (Gemini) API via REST."""
 
+from typing import Any
+
 from bells_o.common import ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
 from bells_o.supervisors.rest.auth_mappers import google_api_key as auth_map
@@ -57,3 +59,10 @@ class GeminiSupervisor(RestSupervisor):
             api_key=api_key,
             api_variable=api_variable,
         )
+
+    @classmethod
+    def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
+        input_tokens = output_raw["usage"]["total_input_tokens"]
+        output_tokens = output_raw["usage"]["total_output_tokens"]
+
+        return {"input_tokens": input_tokens, "output_tokens": output_tokens}

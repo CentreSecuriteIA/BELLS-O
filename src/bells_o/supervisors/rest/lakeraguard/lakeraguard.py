@@ -1,5 +1,7 @@
 """Implement the LakeraGuard supervisor via REST API."""
 
+from typing import Any
+
 from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing
 from bells_o.result_mappers import lakeraguard as lakera_result_map
@@ -46,3 +48,7 @@ class LakeraGuardSupervisor(RestSupervisor):
             api_key=api_key,
             api_variable=api_variable,
         )
+
+    @classmethod
+    def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
+        return {"input_tokens": 0, "output_tokens": 0}

@@ -85,6 +85,7 @@ class RestSupervisor(Supervisor):
     @classmethod
     @abstractmethod
     def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
+        """Get the input and output tokens from an output dictionary."""
         input_tokens = output_raw["some_key"]
         output_tokens = output_raw["some_other_key"]
 

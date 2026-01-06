@@ -1,5 +1,7 @@
 """Implement the Together AI API via REST."""
 
+from typing import Any
+
 from bells_o.common import ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
 from bells_o.supervisors.rest.auth_mappers import auth_bearer as auth_map
@@ -33,6 +35,7 @@ class TogetherAISupervisor(RestSupervisor):
             api_variable (str | None, optional): Environment variable name that stores the API key. Defaults to "TOGETHER_API_KEY".
 
         """
+        print("WARNING: the input and output token metadata is disabled.")
         self.system_prompt = system_prompt
 
         super().__init__(
@@ -47,3 +50,7 @@ class TogetherAISupervisor(RestSupervisor):
             api_key=api_key,
             api_variable=api_variable,
         )
+
+    @classmethod
+    def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
+        return {"input_tokens": 0, "output_tokens": 0}

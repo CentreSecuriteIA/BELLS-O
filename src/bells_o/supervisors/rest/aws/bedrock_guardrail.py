@@ -14,6 +14,7 @@ from .aws import AwsSupervisor
 # GUARDRAIL_VERSION = "1"  # Use "DRAFT" for newly created guardrails, or a version number if published
 # REGION = "us-east-1"
 
+
 class BedrockGuardrailSupervisor(AwsSupervisor):
     """Implement the AWS Bedrock Guardrail API via boto3."""
 
