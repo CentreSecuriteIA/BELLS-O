@@ -45,9 +45,10 @@ def main():
 
     # Supervisor configuration
     SUPERVISOR_STRING = (
-        "nvidia/llama-3.1-nemotron-safety-guard-8b-v3"  # Change this to the according string used in the Auto classes
-    )
+        getattr(args, "name", None) or "nvidia/llama-3.1-nemotron-safety-guard-8b-v3"
+    )  # Change this to the according string used in the Auto classes
     lab, model_name = SUPERVISOR_STRING.split("/")  # for HF supervisors
+
     SUPERVISOR_TYPE = getattr(args, "type", None) or "hf"
 
     # Supervisor kwargs, some need project ids or similar to be specified

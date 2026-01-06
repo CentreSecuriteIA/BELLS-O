@@ -99,6 +99,7 @@ class HuggingFaceSupervisor(Supervisor):
             metadata["model_kwargs"] = self.model_kwargs
         if self.tokenizer_kwargs is not None:
             metadata["tokenizer_kwargs"] = self.tokenizer_kwargs
+        metadata["backend"] = self.backend
         return metadata
 
     def pre_process(self, inputs: str | list[str]) -> list[str]:

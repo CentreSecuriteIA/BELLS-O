@@ -106,7 +106,7 @@ class NemotronSafetyGuardSupervisor(HuggingFaceSupervisor):
         )
 
         if not self._tokenizer.pad_token:
-            self._tokenizer.pad_token = self._tokenizer.eos_token
+            self._tokenizer.pad_token = self._tokenizer.eos_token  # type: ignore
 
     @property
     def used_for(self) -> Literal["input", "output"]:
