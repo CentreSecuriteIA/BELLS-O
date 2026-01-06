@@ -1,4 +1,4 @@
-"""Module structure for the thinkguard model."""
+"""RakanCorle1 Huggingface supervisors."""
 
 from .thinkguard_supervisor import ThinkGuardSupervisor
 

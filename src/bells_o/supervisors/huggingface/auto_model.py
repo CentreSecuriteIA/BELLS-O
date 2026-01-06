@@ -69,7 +69,7 @@ MODEL_MAPPING = {
     "govtech/lionguard-2": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2"}),
     "govtech/lionguard-2.1": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2.1"}),
     "govtech/lionguard-2-lite": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2-lite"}),
-    "nvidia/Llama-3.1-Nemotron-Safety-Guard-8B-v3": ("nvidia", "NemotronSafetyGuardSupervisor"),
+    "nvidia/llama-3.1-nemotron-safety-guard-8b-v3": ("nvidia", "NemotronSafetyGuardSupervisor", {}),
 }
 
 

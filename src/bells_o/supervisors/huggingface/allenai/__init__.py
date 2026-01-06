@@ -1,4 +1,4 @@
-"""Module structure for the thinkguard model."""
+"""AllenAI Huggingface supervisors."""
 
 from .wildguard_supervisor import WildGuardSupervisor
 

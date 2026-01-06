@@ -1,4 +1,4 @@
-"""govtech/lionguard-2 supervisor."""
+"""GovTech Huggingface supervisors."""
 
 from .lionguard2_supervisor import LionGuard2Supervisor
 
