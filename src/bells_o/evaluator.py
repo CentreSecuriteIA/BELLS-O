@@ -12,6 +12,7 @@ from bells_o.datasets import Dataset
 from bells_o.supervisors import Supervisor
 
 
+# TODO: implement the Auto classes and make the interface nicer
 class DatasetConfig(TypedDict):
     type: Type[Dataset]
     kwargs: dict[str, Any]
@@ -63,9 +64,7 @@ class Evaluator:
         self.supervisor_config = supervisor_config
         self.metadata = metadata
         self.verbose = verbose
-        self.save_dir: Path | None = (
-            save_dir if isinstance(save_dir, Path) or save_dir is None else Path(save_dir)
-        )
+        self.save_dir: Path | None = save_dir if isinstance(save_dir, Path) or save_dir is None else Path(save_dir)
 
         # load dataset
         self.dataset = self.dataset_config["type"](**self.dataset_config["kwargs"])
@@ -114,13 +113,13 @@ class Evaluator:
             indices = list(range(len(self.dataset)))
 
         assert indices
-        
+
         # Ensure save_dir is set up if we're saving
         if save and self.save_dir:
             if not self._prepared_dirs:
                 self._prepare_dirs()
                 self._prepared_dirs = True
-        
+
         if verbose:
             from tqdm import tqdm
 
@@ -150,9 +149,7 @@ class Evaluator:
             # run inference
             result_dict = self.supervisor(prompt)[0]
 
-            assert self.dataset.target_map_fn is not None, (
-                "Need `target_map_fn` to be specified for dataset."
-            )
+            assert self.dataset.target_map_fn is not None, "Need `target_map_fn` to be specified for dataset."
             result_dict["target_result"] = self.dataset.target_map_fn(target)
 
             # check output against target
@@ -165,7 +162,7 @@ class Evaluator:
                 result_dict["metadata"]["prompt_id"] = prompt_id
                 result_dict["metadata"]["prompt"] = prompt
                 result_dict["metadata"]["target"] = target
-            
+
             run_dict[prompt_id] = result_dict
             processed_count += 1
 
@@ -184,9 +181,7 @@ class Evaluator:
                 output_dict["metadata"]["supervisor"] = self.supervisor.metadata()
                 # Re-save if we're saving iteratively to update metadata
                 if save and "prompt_id" in output_dict.get("metadata", {}):
-                    self._save_single_result(
-                        output_dict["metadata"]["prompt_id"], run_id, output_dict
-                    )
+                    self._save_single_result(output_dict["metadata"]["prompt_id"], run_id, output_dict)
         # TODO: add dataset metadata
 
     # TODO: if implementing safe runs in run(), make this cascaded, so that this calls a function that saves one prompt.
