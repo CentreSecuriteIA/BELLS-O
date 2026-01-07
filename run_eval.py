@@ -31,7 +31,7 @@ def main():
     parser = ArgumentParser()
     parser.add_argument("--name", type=str, required=False, help="name of the model in the autoclass")
     parser.add_argument("--type", type=str, required=False, help="rest or hf")
-    parser.add_argument("--save_dir", type="str", required=False, help="path to save results in")
+    parser.add_argument("--save_dir", type=str, required=False, help="path to save results in")
     parser.add_argument("--kwargs", type=str, required=False)
     args = parser.parse_args()
 
@@ -44,20 +44,19 @@ def main():
     # Dataset configuration
 
     # Supervisor configuration
-    SUPERVISOR_STRING = (
-        getattr(args, "name", None) or "nvidia/llama-3.1-nemotron-safety-guard-8b-v3"
-    )  # Change this to the according string used in the Auto classes
+    SUPERVISOR_STRING = (args.name or "nvidia/llama-3.1-nemotron-safety-guard-8b-v3")  # Change this to the according string used in the Auto classes
     lab, model_name = SUPERVISOR_STRING.split("/")  # for HF supervisors
 
-    SUPERVISOR_TYPE = getattr(args, "type", None) or "hf"
+    SUPERVISOR_TYPE = args.type or "hf"
 
     # Supervisor kwargs, some need project ids or similar to be specified
     SUPERVISOR_KWARGS = {"backend": "vllm"}
-    SUPERVISOR_KWARGS |= json.loads(args.kwargs)
+    if args.kwargs is not None:
+        SUPERVISOR_KWARGS |= json.loads(args.kwargs)
 
     # Output configuration
-    SAVE_DIR = Path("results").resolve()
-    SAVE_DIR_FULL = getattr(args, "save_dir", None) or SAVE_DIR / lab
+    SAVE_DIR = Path(args.save_dir).resolve() if args.save_dir else Path("results").resolve()
+    SAVE_DIR_FULL = SAVE_DIR / lab
     RUN_ID = model_name
     VERBOSE = True
 

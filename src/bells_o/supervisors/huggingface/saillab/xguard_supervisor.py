@@ -7,7 +7,7 @@ from bells_o.preprocessors import PreProcessing, RoleWrapper
 from bells_o.result_mappers import xguard as xguard_result_map
 
 from ..hf_supervisor import HuggingFaceSupervisor
-
+inference_format = "<USER TEXT STARTS>\n{prompt}\n<USER TEXT ENDS>"
 
 class XGuardSupervisor(HuggingFaceSupervisor):
     """Implement the pre-configured saillab/x-guard supervisor from HuggingFace."""
@@ -31,16 +31,12 @@ class XGuardSupervisor(HuggingFaceSupervisor):
 
         """
         pre_processing.append(RoleWrapper("user", opposite_prompt="\n <think>"))
-        # TODO: make distinction between vllm and transformers backend
-        base_kwargs = {"temperature": 0.0000001, "do_sample": True, "max_new_tokens": 1000}
-        for key in base_kwargs:
-            if key in generation_kwargs:
-                print(f"INFO: ignoring set generation kwarg {key}. This kwarg should not be set for this supervisor.")
+
         if backend == "transformers":
-            custom_generation_kwargs = {"temperature": 0.0000001, "do_sample": True, "max_new_tokens": 1000}
+            custom_generation_kwargs = {"temperature": 0.0000001, "do_sample": True, "max_new_tokens": 512}
             generation_kwargs |= custom_generation_kwargs
         elif backend == "vllm":
-            custom_generation_kwargs = {"temperature": 0.0000001, "max_tokens": 1000}
+            custom_generation_kwargs = {"temperature": 0.01, "max_tokens": 512}
             generation_kwargs |= custom_generation_kwargs
 
         super().__init__(
