@@ -1,5 +1,7 @@
 """Implement the OpenRouter API via REST."""
 
+from typing import Any
+
 from bells_o.common import ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
 from bells_o.supervisors.rest.auth_mappers import auth_bearer as auth_map
@@ -35,6 +37,8 @@ class OpenRouterSupervisor(RestSupervisor):
             reasoning_enabled: Whether to enable reasoning for models that support it. Defaults to False.
 
         """
+        print("WARNING: the input and output token metadata is disabled.")
+
         self.system_prompt = system_prompt
         self.reasoning_enabled = reasoning_enabled
 
@@ -50,3 +54,7 @@ class OpenRouterSupervisor(RestSupervisor):
             api_key=api_key,
             api_variable=api_variable,
         )
+
+    @classmethod
+    def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
+        return {"input_tokens": 0, "output_tokens": 0}

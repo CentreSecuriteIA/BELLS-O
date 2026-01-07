@@ -1,5 +1,7 @@
 """Implement the OpenAI API via REST."""
 
+from typing import Any
+
 from bells_o.common import ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
 
@@ -57,3 +59,10 @@ class OpenAiSupervisor(RestSupervisor):
             api_key=api_key,
             api_variable=api_variable,
         )
+
+    @classmethod
+    def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
+        input_tokens = output_raw["usage"]["input_tokens"]
+        output_tokens = output_raw["usage"]["output_tokens"]
+
+        return {"input_tokens": input_tokens, "output_tokens": output_tokens}

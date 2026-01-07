@@ -1,5 +1,6 @@
 """Implement the AWS Bedrock base supervisor via boto3."""
 
+from abc import abstractmethod
 from os import getenv
 from time import sleep, time
 from typing import Any
@@ -50,7 +51,6 @@ class AwsSupervisor(RestSupervisor):
             source (str, optional): Content source, either "INPUT" or "OUTPUT". Defaults to "INPUT".
 
         """
-        # TODO: make this an optional dependency
         if boto3 is None:
             raise ImportError("boto3 is required for AWS supervisors. Install it with: pip install boto3")
 
@@ -83,6 +83,8 @@ class AwsSupervisor(RestSupervisor):
             # 2. AWS credentials file (~/.aws/credentials)
             # 3. IAM role (if running on EC2/ECS/Lambda)
             try:
+                import boto3
+
                 self._bedrock_client = boto3.client("bedrock-runtime", region_name=self.region)
             except NoCredentialsError:
                 # Provide helpful error message
@@ -103,8 +105,8 @@ class AwsSupervisor(RestSupervisor):
                         "AWS_SECRET_ACCESS_KEY=your_secret_key\n"
                         "And load it with: from dotenv import load_dotenv; load_dotenv()"
                     )
-
-                raise NoCredentialsError(error_msg)
+                print(f"ERROT: {error_msg}")
+                raise NoCredentialsError()
         return self._bedrock_client
 
     def _judge_sample(
@@ -160,6 +162,14 @@ class AwsSupervisor(RestSupervisor):
 
         return OutputDict(output_raw=response, metadata={"latency": generation_time})
 
+    @classmethod
+    def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
+        input_tokens = output_raw["usage"]["total_input_tokens"]
+        output_tokens = output_raw["usage"]["total_output_tokens"]
+
+        return {"input_tokens": input_tokens, "output_tokens": output_tokens}
+
+    @abstractmethod
     def _call_bedrock_api(self, request_payload: dict[str, Any]) -> dict[str, Any]:
         """Call the AWS Bedrock API. To be overridden by subclasses.
 

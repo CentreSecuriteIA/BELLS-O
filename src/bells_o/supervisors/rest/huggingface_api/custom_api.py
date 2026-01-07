@@ -81,7 +81,7 @@ class HuggingFaceApiSupervisor(RestSupervisor):
             headers = self.auth_map_fn(self) | self.custom_header
             response = post(
                 self.base_url,
-                json=self.req_map_fn(self, prompt),
+                json=self.req_map_fn(self, prompt),  # type: ignore
                 headers=headers,
             )
             generation_time = time() - start_time
@@ -196,8 +196,9 @@ class HuggingFaceApiSupervisor(RestSupervisor):
                     parsed_text = str(raw)
             elif isinstance(raw, list) and len(raw) > 0:
                 # Old format: [{"generated_text": "..."}]
-                if isinstance(raw[0], dict):
-                    parsed_text = raw[0].get("generated_text", str(raw[0]))
+                data = raw[0]
+                if isinstance(data, dict):
+                    parsed_text = data.get("generated_text", str(raw[0]))
                 else:
                     parsed_text = str(raw[0])
             else:
@@ -211,3 +212,10 @@ class HuggingFaceApiSupervisor(RestSupervisor):
             )
 
         return parsed_outputs
+
+    @classmethod
+    def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
+        input_tokens = output_raw["usage"]["prompt_tokens"]
+        output_tokens = output_raw["usage"]["completion_tokens"]
+
+        return {"input_tokens": input_tokens, "output_tokens": output_tokens}

@@ -1,6 +1,6 @@
 """Generate a json payload for an API request to the XAiSupervisor."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 
 if TYPE_CHECKING:
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 def mapper(
     supervisor: "XAiSupervisor",
     prompt: str,
-) -> dict[str, str]:
+) -> dict[str, Any]:
     """Generate a json payload for an API request to the XAiSupervisor.
 
     Maps to X-AI API chat completions format with model and messages.
@@ -24,7 +24,7 @@ def mapper(
 
     """
     messages = [{"role": "user", "content": prompt}]
-    
+
     json_repr: dict[str, str | list] = {
         "model": supervisor.name,
         "messages": messages,
@@ -36,4 +36,3 @@ def mapper(
         messages.insert(0, {"role": "system", "content": supervisor.system_prompt})
 
     return json_repr
-

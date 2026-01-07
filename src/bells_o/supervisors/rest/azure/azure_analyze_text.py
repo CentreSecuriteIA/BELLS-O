@@ -1,6 +1,6 @@
 """Implement the Analyze Text supervisor from Azure via REST API."""
 
-from typing import Literal
+from typing import Any, Literal
 
 from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing
@@ -59,3 +59,7 @@ class AzureAnalyzeTextSupervisor(RestSupervisor):
             api_variable=api_variable,
             custom_header={"Content-Type": "application/json"},
         )
+
+    @classmethod
+    def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
+        return {"input_tokens": 0, "output_tokens": 0}

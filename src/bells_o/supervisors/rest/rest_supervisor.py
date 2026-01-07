@@ -1,5 +1,6 @@
 """Implement the base class for REST-accessible supersivors."""
 
+from abc import abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from os import getenv
@@ -81,6 +82,15 @@ class RestSupervisor(Supervisor):
         metadata["url"] = self.base_url
         return metadata
 
+    @classmethod
+    @abstractmethod
+    def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
+        """Get the input and output tokens from an output dictionary."""
+        input_tokens = output_raw["some_key"]
+        output_tokens = output_raw["some_other_key"]
+
+        return {"input_tokens": input_tokens, "output_tokens": output_tokens}
+
     def _judge_sample(
         self,
         prompt: str,
@@ -118,7 +128,11 @@ class RestSupervisor(Supervisor):
             tried_once = True
             no_valid_response = response.status_code == self.rate_limit_code
 
-        return OutputDict(output_raw=response.json(), metadata={"latency": generation_time})
+        output_raw = response.json()
+        metadata = self._get_token_counts(output_raw)
+        metadata["latency"] = generation_time
+
+        return OutputDict(output_raw=output_raw, metadata=metadata)
 
     def judge(self, prompts: list[str] | str) -> list[OutputDict]:
         """Evaluate a (batch of) prompt(s simultaneously).

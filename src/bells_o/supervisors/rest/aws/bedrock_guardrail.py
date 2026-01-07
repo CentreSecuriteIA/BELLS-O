@@ -14,6 +14,7 @@ from .aws import AwsSupervisor
 # GUARDRAIL_VERSION = "1"  # Use "DRAFT" for newly created guardrails, or a version number if published
 # REGION = "us-east-1"
 
+
 class BedrockGuardrailSupervisor(AwsSupervisor):
     """Implement the AWS Bedrock Guardrail API via boto3."""
 
@@ -73,3 +74,11 @@ class BedrockGuardrailSupervisor(AwsSupervisor):
             source=request_payload["source"],
         )
         return response
+
+    @classmethod
+    def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
+        """For Bedrock Guardrails AWS counts usage in text units, where each text unit may contain up to 1000 characters."""
+        input_tokens = int(output_raw["assessments"][0]["guardrailCoverage"]["textCharacters"]["total"]) // 1000 + 1
+        output_tokens = 0
+
+        return {"input_tokens": input_tokens, "output_tokens": output_tokens}
