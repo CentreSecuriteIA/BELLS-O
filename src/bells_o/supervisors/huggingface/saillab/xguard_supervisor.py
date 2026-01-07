@@ -31,11 +31,17 @@ class XGuardSupervisor(HuggingFaceSupervisor):
 
         """
         pre_processing.append(RoleWrapper("user", opposite_prompt="\n <think>"))
-
-        base_kwargs = {"temperature": 0.0000001, "do_sample": True}
+        # TODO: make distinction between vllm and transformers backend
+        base_kwargs = {"temperature": 0.0000001, "do_sample": True, "max_new_tokens": 1000}
         for key in base_kwargs:
             if key in generation_kwargs:
                 print(f"INFO: ignoring set generation kwarg {key}. This kwarg should not be set for this supervisor.")
+        if backend == "transformers":
+            custom_generation_kwargs = {"temperature": 0.0000001, "do_sample": True, "max_new_tokens": 1000}
+            generation_kwargs |= custom_generation_kwargs
+        elif backend == "vllm":
+            custom_generation_kwargs = {"temperature": 0.0000001, "max_tokens": 1000}
+            generation_kwargs |= custom_generation_kwargs
 
         super().__init__(
             name="saillab/x-guard",

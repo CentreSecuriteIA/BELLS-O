@@ -171,10 +171,12 @@ class HuggingFaceSupervisor(Supervisor):
         input_ids = encoded_batch["input_ids"]
         assert isinstance(input_ids, torch.Tensor)
         sequence_length = input_ids.size(1)  # padded sequence length
-
+        print(f"DEBUG: outputs before: {self._tokenizer.batch_decode(outputs)}")
+        print(f"DEBUG: sequence length: {sequence_length}")
         outputs = outputs[:, sequence_length:, ...]
 
         decoded_outputs: list[str] = self._tokenizer.batch_decode(outputs)
+        print(f"DEBUG: outputs after: {decoded_outputs}")
         batch_size = len(inputs)
 
         input_tokens: list[int] = (
