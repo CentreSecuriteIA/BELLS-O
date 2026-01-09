@@ -21,7 +21,7 @@ from bells_o.evaluator import DatasetConfig, SupervisorConfig
 from bells_o.supervisors import AutoHuggingFaceSupervisor, AutoRestSupervisor
 
 
-DATASET_NAME = "bellsop/BELLS-O_Dataset"
+DATASET_NAME = "bells-o-project/content-moderation-input"
 USAGE_TYPE = "content_moderation"  # or "jailbreak", "prompt_injection"
 INPUT_COLUMN = "prompt"
 TARGET_COLUMN = "category"
@@ -44,7 +44,9 @@ def main():
     # Dataset configuration
 
     # Supervisor configuration
-    SUPERVISOR_STRING = (args.name or "nvidia/llama-3.1-nemotron-safety-guard-8b-v3")  # Change this to the according string used in the Auto classes
+    SUPERVISOR_STRING = (
+        args.name or "nvidia/llama-3.1-nemotron-safety-guard-8b-v3"
+    )  # Change this to the according string used in the Auto classes
     lab, model_name = SUPERVISOR_STRING.split("/")  # for HF supervisors
 
     SUPERVISOR_TYPE = args.type or "hf"
