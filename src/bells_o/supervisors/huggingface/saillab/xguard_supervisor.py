@@ -3,11 +3,14 @@
 from typing import Any, Literal
 
 from bells_o.common import Usage
-from bells_o.preprocessors import PreProcessing, RoleWrapper
+from bells_o.preprocessors import PreProcessing, RoleWrapper, TemplateWrapper
 from bells_o.result_mappers import xguard as xguard_result_map
 
 from ..hf_supervisor import HuggingFaceSupervisor
+
+
 inference_format = "<USER TEXT STARTS>\n{prompt}\n<USER TEXT ENDS>"
+
 
 class XGuardSupervisor(HuggingFaceSupervisor):
     """Implement the pre-configured saillab/x-guard supervisor from HuggingFace."""
@@ -30,6 +33,7 @@ class XGuardSupervisor(HuggingFaceSupervisor):
             backend (Literal["transformers", "vllm"]): The inference backend to use. Defaults to "transformers".
 
         """
+        pre_processing.append(TemplateWrapper(inference_format))
         pre_processing.append(RoleWrapper("user", opposite_prompt="\n <think>"))
 
         if backend == "transformers":

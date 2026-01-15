@@ -34,4 +34,4 @@ class LakeraGuardDefaultSupervisor(LakeraGuardSupervisor):
             api_key=api_key,
             api_variable=api_variable,
         )
-        self.name: str = "LakeraGuard Default"
+        self._name: str = "LakeraGuard Default"

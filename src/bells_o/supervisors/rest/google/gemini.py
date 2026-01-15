@@ -62,7 +62,7 @@ class GeminiSupervisor(RestSupervisor):
 
     @classmethod
     def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
-        input_tokens = output_raw["usage"]["total_input_tokens"]
-        output_tokens = output_raw["usage"]["total_output_tokens"]
+        input_tokens = output_raw["usageMetadata"]["promptTokenCount"]
+        output_tokens = output_raw["usageMetadata"]["totalTokenCount"] - input_tokens
 
         return {"input_tokens": input_tokens, "output_tokens": output_tokens}

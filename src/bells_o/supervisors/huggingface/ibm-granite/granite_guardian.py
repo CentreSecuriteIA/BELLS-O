@@ -36,14 +36,14 @@ class GraniteGuardianSupervisor(HuggingFaceSupervisor):
             "violence",
             "harm_engagement",
             "evasiveness",
-            "jailbreal",
+            "jailbreak",
             "groundedness",
             "relevance",
             "answer_relevance",
             "function_call",
         ]
         | None = None,
-        think: bool = True,
+        think: bool = False,
         pre_processing: list[PreProcessing] = [],
         model_kwargs: dict[str, Any] = {},
         tokenizer_kwargs: dict[str, Any] = {},
@@ -55,7 +55,7 @@ class GraniteGuardianSupervisor(HuggingFaceSupervisor):
         Args:
             model_id (str, optional): The id of the exact model to use. This class supports different GraniteGuardian models.
                 Defaults to "ibm-granite/granite-guardian-3.3-8b".
-            criteria (Literal["harm", "social_bias", "profanity", "sexual_content", "unethical_behavior", "violence", "harm_engagement", "evasiveness", "jailbreal", "groundedness", "relevance", "answer_relevance", "function_call"], optional):
+            criteria (Literal["harm", "social_bias", "profanity", "sexual_content", "unethical_behavior", "violence", "harm_engagement", "evasiveness", "jailbreak", "groundedness", "relevance", "answer_relevance", "function_call"], optional):
                 The classification criteria to use. See https://www.ibm.com/granite/docs/models/guardian for more info. Availability might differ for different models.
             think (bool, optional): If the supervisor should utilize thinking. Only available in "ibm-granite/granite-guardian-3.3-8b". Defaults to True.
             pre_processing: List of PreProcessing steps to apply to prompts. Defaults to [].
@@ -72,6 +72,13 @@ class GraniteGuardianSupervisor(HuggingFaceSupervisor):
             self.think = False
         else:
             self.think = think
+
+        if backend == "transformers":
+            custom_kwargs = {"max_new_tokens": 2048}
+        if backend == "vllm":
+            custom_kwargs = {"max_tokens": 2048}
+
+        generation_kwargs |= custom_kwargs
 
         if criteria is None:
             criteria = "harm"

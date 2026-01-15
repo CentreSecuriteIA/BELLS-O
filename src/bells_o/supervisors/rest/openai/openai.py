@@ -62,7 +62,7 @@ class OpenAiSupervisor(RestSupervisor):
 
     @classmethod
     def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
-        input_tokens = output_raw["usage"]["input_tokens"]
-        output_tokens = output_raw["usage"]["output_tokens"]
+        input_tokens = output_raw["usage"]["prompt_tokens"]
+        output_tokens = output_raw["usage"]["completion_tokens"]
 
         return {"input_tokens": input_tokens, "output_tokens": output_tokens}

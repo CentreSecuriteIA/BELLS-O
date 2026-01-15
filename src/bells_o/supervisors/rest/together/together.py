@@ -35,7 +35,6 @@ class TogetherAISupervisor(RestSupervisor):
             api_variable (str | None, optional): Environment variable name that stores the API key. Defaults to "TOGETHER_API_KEY".
 
         """
-        print("WARNING: the input and output token metadata is disabled.")
         self.system_prompt = system_prompt
 
         super().__init__(
@@ -53,4 +52,7 @@ class TogetherAISupervisor(RestSupervisor):
 
     @classmethod
     def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
-        return {"input_tokens": 0, "output_tokens": 0}
+        input_tokens = output_raw["usage"]["prompt_tokens"]
+        output_tokens = output_raw["usage"]["completion_tokens"]
+
+        return {"input_tokens": input_tokens, "output_tokens": output_tokens}

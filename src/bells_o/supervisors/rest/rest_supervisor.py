@@ -4,7 +4,7 @@ from abc import abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from os import getenv
-from time import time
+from time import sleep, time
 from typing import Any
 
 from requests import post
@@ -36,9 +36,14 @@ class RestSupervisor(Supervisor):
         rate_limit_code: int = 429,
         custom_header: dict[str, str] = {},
     ):
+        self._api_key = api_key
+        self._api_variable = api_variable
+        self._needs_api = needs_api
+
         assert not needs_api or self.api_key, (
             "You have to specify either the environment variabe in which the API key can be found (`api_variable`), or the API key itself (`api_key`)."
         )
+
         super().__init__(name, usage, res_map_fn, pre_processing)
 
         self.base_url = base_url
@@ -46,9 +51,6 @@ class RestSupervisor(Supervisor):
         self.auth_map_fn = auth_map_fn
         self.pre_processing = pre_processing
         self._provider_name = provider_name  # private
-        self._api_key = api_key
-        self._api_variable = api_variable
-        self._needs_api = needs_api
         self.rate_limit_code = rate_limit_code
         self.custom_header = custom_header
 
@@ -107,15 +109,10 @@ class RestSupervisor(Supervisor):
             OutputDict | tuple[Response, float]: The output of the Supervisor and corresponding metadata, mapped to an OutputDict or as a Response object.
 
         """
-        tried_once = False  # to distinguish between trying and retrying information
+        waiting = False  # to distinguish between trying and retrying information
         no_valid_response = True  # to manage retries
 
         while no_valid_response:
-            if tried_once:
-                print("INFO: Retrying generation in 5s. Hit rate limit.")
-            else:
-                print("INFO: Generating judgement.")
-
             start_time = time()
             headers = self.auth_map_fn(self) | self.custom_header
             response = post(
@@ -125,7 +122,10 @@ class RestSupervisor(Supervisor):
             )
             generation_time = time() - start_time
 
-            tried_once = True
+            sleep(2)
+            if not waiting:
+                print("INFO: Hit rate limit. Starting retry cycling.")
+            waiting = True
             no_valid_response = response.status_code == self.rate_limit_code
 
         output_raw = response.json()

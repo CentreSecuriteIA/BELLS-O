@@ -52,7 +52,11 @@ class XAiSupervisor(RestSupervisor):
 
     @classmethod
     def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
-        input_tokens = output_raw["usage"]["prompt_tokens"]
-        output_tokens = output_raw["usage"]["completion_tokens"]
+        try:
+            input_tokens = output_raw["usage"]["prompt_tokens"]
+            output_tokens = output_raw["usage"]["completion_tokens"]
+        except KeyError:
+            input_tokens = 0
+            output_tokens = 0
 
         return {"input_tokens": input_tokens, "output_tokens": output_tokens}

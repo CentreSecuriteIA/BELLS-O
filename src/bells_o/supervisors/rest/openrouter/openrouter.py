@@ -37,8 +37,6 @@ class OpenRouterSupervisor(RestSupervisor):
             reasoning_enabled: Whether to enable reasoning for models that support it. Defaults to False.
 
         """
-        print("WARNING: the input and output token metadata is disabled.")
-
         self.system_prompt = system_prompt
         self.reasoning_enabled = reasoning_enabled
 
@@ -57,4 +55,7 @@ class OpenRouterSupervisor(RestSupervisor):
 
     @classmethod
     def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
-        return {"input_tokens": 0, "output_tokens": 0}
+        input_tokens = output_raw["usage"]["prompt_tokens"]
+        output_tokens = output_raw["usage"]["completion_tokens"]
+
+        return {"input_tokens": input_tokens, "output_tokens": output_tokens}

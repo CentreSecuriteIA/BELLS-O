@@ -21,18 +21,22 @@ from bells_o.evaluator import DatasetConfig, SupervisorConfig
 from bells_o.supervisors import AutoHuggingFaceSupervisor, AutoRestSupervisor
 
 
-DATASET_NAME = "bells-o-project/content-moderation-input"
-USAGE_TYPE = "content_moderation"  # or "jailbreak", "prompt_injection"
-INPUT_COLUMN = "prompt"
-TARGET_COLUMN = "category"
-
-
 def main():
     parser = ArgumentParser()
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        required=False,
+        help="If it should evaluate the input or output dataset. Possible values: ['input', 'output'].",
+        default="input",
+    )
     parser.add_argument("--name", type=str, required=False, help="name of the model in the autoclass")
     parser.add_argument("--type", type=str, required=False, help="rest or hf")
     parser.add_argument("--save_dir", type=str, required=False, help="path to save results in")
     parser.add_argument("--kwargs", type=str, required=False)
+    parser.add_argument("--lab", type=str, required=False, help="The lab name, only for REST supervisors")
+    parser.add_argument("--model_name", type=str, required=False, help="The model name, only for REST supervisors")
+    parser.add_argument("--batch_size", type=int, required=False, help="Batch size to use, defaults to 1", default=1)
     args = parser.parse_args()
 
     # %%
@@ -43,24 +47,39 @@ def main():
 
     # Dataset configuration
 
+    dataset_name = f"bells-o-project/content-moderation-{args.dataset}"
+    usage_type = "content_moderation"
+    input_column = "prompt"
+    target_column = "category"
+
     # Supervisor configuration
-    SUPERVISOR_STRING = (
+    supervisor_string = (
         args.name or "nvidia/llama-3.1-nemotron-safety-guard-8b-v3"
     )  # Change this to the according string used in the Auto classes
-    lab, model_name = SUPERVISOR_STRING.split("/")  # for HF supervisors
 
-    SUPERVISOR_TYPE = args.type or "hf"
+    supervisor_type = args.type or "hf"
+    if supervisor_type == "hf":
+        lab, model_name = supervisor_string.split("/")  # for HF supervisors
+    else:
+        lab = args.lab
+        model_name = args.model_name
+        if not lab and model_name:
+            raise ValueError("For REST supervisors, you need to pass --lab= and --model_name=.")
 
     # Supervisor kwargs, some need project ids or similar to be specified
-    SUPERVISOR_KWARGS = {"backend": "vllm"}
+    if supervisor_type == "hf":
+        supervisor_kwargs = {"backend": "vllm"}
+    else:
+        supervisor_kwargs = {}
     if args.kwargs is not None:
-        SUPERVISOR_KWARGS |= json.loads(args.kwargs)
+        supervisor_kwargs |= json.loads(args.kwargs)
+    print(f"INFO: Supervisor Kwargs: {supervisor_kwargs}")
 
     # Output configuration
-    SAVE_DIR = Path(args.save_dir).resolve() if args.save_dir else Path("results").resolve()
-    SAVE_DIR_FULL = SAVE_DIR / lab
-    RUN_ID = model_name
-    VERBOSE = True
+    save_dir = Path(args.save_dir).resolve() if args.save_dir else Path("results").resolve()
+    save_dir_full = save_dir / lab
+    run_id = model_name
+    verbose = True
 
     # %%
     # Auxiliary definitions
@@ -70,14 +89,14 @@ def main():
 
     def target_map_fn(input: str) -> Result:
         """Map dataset target column to Result."""
-        if USAGE_TYPE == "content_moderation":
+        if usage_type == "content_moderation":
             return Result(content_moderation=True if input != "Benign" else False)
-        elif USAGE_TYPE == "jailbreak":
+        elif usage_type == "jailbreak":
             return Result(jailbreak=True if input.lower() in ["jailbreak", "true", "1"] else False)
-        elif USAGE_TYPE == "prompt_injection":
+        elif usage_type == "prompt_injection":
             return Result(prompt_injection=True if input.lower() in ["injection", "true", "1"] else False)
         else:
-            return Result(**{USAGE_TYPE: True if str(input).lower() in ["true", "1", "yes", "harmful"] else False})
+            return Result(**{usage_type: True if str(input).lower() in ["true", "1", "yes", "harmful"] else False})
 
     # ============================================================================
     # Create configurations and run
@@ -87,21 +106,21 @@ def main():
     dataset_conf = DatasetConfig(
         type=HuggingFaceDataset,
         kwargs={
-            "name": DATASET_NAME,
-            "usage": Usage(USAGE_TYPE),
+            "name": dataset_name,
+            "usage": Usage(usage_type),
             "target_map_fn": target_map_fn,
-            "input_column": INPUT_COLUMN,
+            "input_column": input_column,
         },
-        input_column=INPUT_COLUMN,
-        target_column=TARGET_COLUMN,
+        input_column=input_column,
+        target_column=target_column,
     )
 
     # Supervisor config
-    if SUPERVISOR_TYPE == "rest":
+    if supervisor_type == "rest":
 
         class _SupervisorWrapper:  # type: ignore
             def __init__(self, **kwargs):
-                self.supervisor = AutoRestSupervisor.load(SUPERVISOR_STRING, **kwargs)
+                self.supervisor = AutoRestSupervisor.load(supervisor_string, **kwargs)
 
             def __getattr__(self, name):
                 return getattr(self.supervisor, name)
@@ -109,12 +128,12 @@ def main():
             def __call__(self, *args, **kwargs):
                 return self.supervisor(*args, **kwargs)
 
-        supervisor_conf = SupervisorConfig(type=_SupervisorWrapper, kwargs=SUPERVISOR_KWARGS)  # type: ignore
-    elif SUPERVISOR_TYPE == "hf":
+        supervisor_conf = SupervisorConfig(type=_SupervisorWrapper, kwargs=supervisor_kwargs)  # type: ignore
+    elif supervisor_type == "hf":
 
         class _SupervisorWrapper:
             def __init__(self, **kwargs):
-                self.supervisor = AutoHuggingFaceSupervisor.load(SUPERVISOR_STRING, **kwargs)
+                self.supervisor = AutoHuggingFaceSupervisor.load(supervisor_string, **kwargs)
 
             def __getattr__(self, name):
                 return getattr(self.supervisor, name)
@@ -122,7 +141,7 @@ def main():
             def __call__(self, *args, **kwargs):
                 return self.supervisor(*args, **kwargs)
 
-        supervisor_conf = SupervisorConfig(type=_SupervisorWrapper, kwargs=SUPERVISOR_KWARGS)  # type: ignore
+        supervisor_conf = SupervisorConfig(type=_SupervisorWrapper, kwargs=supervisor_kwargs)  # type: ignore
     else:
         raise ValueError("Set either USE_AUTO_REST=True or USE_AUTO_HF=True")
     # %%
@@ -130,13 +149,14 @@ def main():
     evaluator = Evaluator(
         dataset_conf,
         supervisor_conf,
-        save_dir=SAVE_DIR_FULL,
-        verbose=VERBOSE,
+        save_dir=save_dir_full,
+        verbose=verbose,
+        batch_size=args.batch_size,
     )
 
-    evaluator.run(run_id=RUN_ID, verbose=VERBOSE, save=True)
+    evaluator.run(run_id=run_id, verbose=verbose, save=True)
 
-    print(f"\nDone! Results saved to {SAVE_DIR_FULL}")
+    print(f"\nDone! Results saved to {save_dir_full}")
 
     # %%
     del evaluator

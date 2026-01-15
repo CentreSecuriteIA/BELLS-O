@@ -105,7 +105,7 @@ class AwsSupervisor(RestSupervisor):
                         "AWS_SECRET_ACCESS_KEY=your_secret_key\n"
                         "And load it with: from dotenv import load_dotenv; load_dotenv()"
                     )
-                print(f"ERROT: {error_msg}")
+                print(f"ERROR: {error_msg}")
                 raise NoCredentialsError()
         return self._bedrock_client
 
@@ -127,10 +127,8 @@ class AwsSupervisor(RestSupervisor):
 
         while no_valid_response:
             if tried_once:
-                print("INFO: Retrying generation in 5s. Hit rate limit.")
-                sleep(5)
-            else:
-                print("INFO: Generating judgement.")
+                print("INFO: Retrying generation in 2s. Hit rate limit.")
+                sleep(2)
 
             start_time = time()
 
@@ -160,7 +158,10 @@ class AwsSupervisor(RestSupervisor):
                     # Re-raise other errors
                     raise
 
-        return OutputDict(output_raw=response, metadata={"latency": generation_time})
+            metadata = self._get_token_counts(response)
+            metadata["latency"] = generation_time
+
+        return OutputDict(output_raw=response, metadata=metadata)
 
     @classmethod
     def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:

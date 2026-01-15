@@ -3,6 +3,8 @@
 from importlib import import_module
 
 
+# TODO: remove the _classification classes and incorporate them as defaults in the normal supervisors
+# TODO: make naming better
 MODEL_MAPPING = {
     "lakeraguard": ("lakeraguard", "LakeraGuardSupervisor"),
     "lakeraguard-default": ("lakeraguard", "LakeraGuardDefaultSupervisor"),

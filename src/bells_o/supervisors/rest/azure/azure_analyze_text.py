@@ -11,6 +11,7 @@ from bells_o.supervisors.rest.request_mappers import azure_analyze_text as azure
 from ..rest_supervisor import RestSupervisor
 
 
+# TODO: handle error return, fails script rn because the reponse body is different
 class AzureAnalyzeTextSupervisor(RestSupervisor):
     """Implement the Analyze Text supervisor from Azure via REST API with `api-version=2024-09-01`."""
 
@@ -50,7 +51,7 @@ class AzureAnalyzeTextSupervisor(RestSupervisor):
             name="Analyze text",
             usage=Usage("content_moderation"),
             res_map_fn=azure_result_map,
-            base_url="{endpoint}/contentsafety/text:analyze?api-version=2024-09-01",
+            base_url=f"{endpoint}/contentsafety/text:analyze?api-version=2024-09-01",
             req_map_fn=azure_request_map,
             auth_map_fn=auth_map,
             pre_processing=pre_processing,
