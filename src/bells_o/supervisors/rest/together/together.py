@@ -52,7 +52,12 @@ class TogetherAISupervisor(RestSupervisor):
 
     @classmethod
     def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
-        input_tokens = output_raw["usage"]["prompt_tokens"]
-        output_tokens = output_raw["usage"]["completion_tokens"]
+        try:
+            input_tokens = output_raw["usage"]["prompt_tokens"]
+            output_tokens = output_raw["usage"]["completion_tokens"]
+        except KeyError as e:
+            print("DEBUGGING: output_raw dict:")
+            print(output_raw)
+            raise KeyError from e
 
         return {"input_tokens": input_tokens, "output_tokens": output_tokens}
