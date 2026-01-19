@@ -8,6 +8,7 @@ from time import sleep, time
 from typing import Any
 
 from requests import post
+from requests.exceptions import JSONDecodeError
 
 from bells_o.common import AuthMapper, OutputDict, RequestMapper, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
@@ -109,10 +110,18 @@ class RestSupervisor(Supervisor):
             OutputDict | tuple[Response, float]: The output of the Supervisor and corresponding metadata, mapped to an OutputDict or as a Response object.
 
         """
-        waiting = False  # to distinguish between trying and retrying information
+        printed_info = False
+        rate_limit = False  # to distinguish between trying and retrying information
         no_valid_response = True  # to manage retries
+        output_raw = None
 
         while no_valid_response:
+            if rate_limit:
+                if not printed_info:
+                    print("INFO: Hit rate limit. Starting retry cycling (2 sec).")
+                    printed_info = True
+                sleep(2)
+
             start_time = time()
             headers = self.auth_map_fn(self) | self.custom_header
             response = post(
@@ -120,17 +129,21 @@ class RestSupervisor(Supervisor):
                 json=self.req_map_fn(self, prompt),
                 headers=headers,
             )
-            generation_time = time() - start_time
+            latency = time() - start_time
 
-            sleep(2)
-            if not waiting:
-                print("INFO: Hit rate limit. Starting retry cycling.")
-            waiting = True
-            no_valid_response = response.status_code == self.rate_limit_code
+            if response.status_code == self.rate_limit_code:
+                rate_limit = True
+                continue
 
-        output_raw = response.json()
+            try:
+                output_raw = response.json()
+                no_valid_response = False
+            except JSONDecodeError:
+                continue
+
+        assert isinstance(output_raw, dict)
         metadata = self._get_token_counts(output_raw)
-        metadata["latency"] = generation_time
+        metadata["latency"] = latency
 
         return OutputDict(output_raw=output_raw, metadata=metadata)
 

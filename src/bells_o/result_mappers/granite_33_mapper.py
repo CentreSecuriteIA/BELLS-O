@@ -10,7 +10,7 @@ from .yes_mapper import mapper as yes_map
 def mapper(output: str, usage: Usage = Usage()) -> Result:
     """Map the output format of ibm-granite/granite-guardian-3.3-{variant} to `Result`.
 
-    Only maps to `content_moderation`. Checks for content between <label> flags.
+    Only maps to `content_moderation`. Checks for content between <score> flags.
 
     Args:
         output (str): A string or list of strings that should be mapped.

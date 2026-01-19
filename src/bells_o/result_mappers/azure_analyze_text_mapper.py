@@ -16,6 +16,12 @@ def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
         usage (Usage): Conformity with ResultMapper type. Argument is ignored as usage type is static.
 
     """
-    flagged = any(category["severity"] >= 6 for category in output["categoriesAnalysis"])
+    try:
+        flagged = any(category["severity"] >= 6 for category in output["categoriesAnalysis"])
+    except KeyError as e:
+        print("DEBUGGING: output dict:")
+        print(output)
+        raise KeyError from e
+        
     result = Result(content_moderation=flagged)
     return result
