@@ -24,39 +24,39 @@ def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
     # Structure: output["content"][0]["text"]
     text = ""
     content = output.get("content", [])
+    if output.get("stop_reason") == "refusal" and isinstance(content, list) and len(content) == 0:
+        # Refusal to answer; treat as non-harmful (benign)
+        return Result(content_moderation=True)
+
+    # Otherwise, extract text from content as usual
+    text = ""
     if content and len(content) > 0:
         text_item = content[0]
         if isinstance(text_item, dict):
             text = text_item.get("text", "")
 
-    # Parse the text to find "1" or "0"
-    # Look for standalone "1" or "0", or at the start of the text
-    # Handle cases like "1", "0", "1\n", "0\n", "The answer is 1", etc.
     text_clean = text.strip()
 
-    # Try to find "1" or "0" as standalone or at the start
-    # First, try to find a standalone digit
+    # Try to find explicit "1" or "0" as standalone or at start
     match = re.search(r"\b([01])\b", text_clean)
     if match:
         digit = match.group(1)
         is_harmful = digit == "1"
     else:
-        # Fallback: look for "1" or "0" anywhere in the first few characters
-        # This handles cases where model outputs just "1" or "0"
+        # Fallback: look for "1" or "0" at the start
         first_char = text_clean[0] if text_clean else ""
         if first_char == "1":
             is_harmful = True
         elif first_char == "0":
             is_harmful = False
         else:
-            # If we can't find a clear "1" or "0", check for keywords
+            # Check for keywords and fallback
             text_lower = text_clean.lower()
             if "harmful" in text_lower or "1" in text_clean:
                 is_harmful = True
             elif "benign" in text_lower or "safe" in text_lower or "0" in text_clean:
                 is_harmful = False
             else:
-                # Default to False (benign) if we can't determine
                 is_harmful = False
 
     return Result(content_moderation=is_harmful)
