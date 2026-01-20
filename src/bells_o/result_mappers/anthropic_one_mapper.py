@@ -3,7 +3,8 @@
 from typing import Any
 
 from bells_o.common import Result, Usage
-from bells_o.result_mappers import one_map
+
+from .one_mapper import mapper as one_map
 
 
 def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:

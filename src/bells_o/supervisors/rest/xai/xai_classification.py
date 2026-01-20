@@ -6,7 +6,7 @@ from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing
 from bells_o.result_mappers import openai_compatible_one as res_map
 
-from .. import default_prompts
+from ... import default_prompts
 from .xai import XAiSupervisor
 
 

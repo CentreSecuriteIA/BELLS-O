@@ -5,8 +5,10 @@ from importlib import import_module
 
 MODEL_MAPPING = {
     "saillab/xguard": ("saillab", "XGuardSupervisor", {}),
-    "openai/gptossafeguard-20b": ("openai", "GptOssSafeguardSupervisor", {"variant": "20b"}),
-    "openai/gptossafeguard-120b": ("openai", "GptOssSafeguardSupervisor", {"variant": "120b"}),
+    "openai/gpt-oss-20b": ("openai", "GptOssSupervisor", {"variant": "20b"}),
+    "openai/gpt-oss-120b": ("openai", "GptOssSupervisor", {"variant": "120b"}),
+    "openai/gpt-oss-safeguard-20b": ("openai", "GptOssSafeguardSupervisor", {"variant": "20b"}),
+    "openai/gpt-oss-safeguard-120b": ("openai", "GptOssSafeguardSupervisor", {"variant": "120b"}),
     "google/shieldgemma-2b": ("google", "ShieldGemmaSupervisor", {"variant": "2b"}),
     "google/shieldgemma-9b": ("google", "ShieldGemmaSupervisor", {"variant": "9b"}),
     "google/shieldgemma-27b": ("google", "ShieldGemmaSupervisor", {"variant": "27b"}),

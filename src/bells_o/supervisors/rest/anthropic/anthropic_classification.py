@@ -6,7 +6,7 @@ from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing
 from bells_o.result_mappers import anthropic_one as anthropic_classification_result_map
 
-from .. import default_prompts
+from ... import default_prompts
 from .anthropic import AnthropicSupervisor
 
 

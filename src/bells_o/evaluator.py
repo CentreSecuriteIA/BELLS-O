@@ -257,6 +257,7 @@ class Evaluator:
             run_dir.mkdir(exist_ok=True)
             for prompt_id, output_dict in run_dict.items():
                 file_path = (run_dir / prompt_id).with_suffix(".json")
+                output_dict["output_result"] = dict(output_dict["output_result"])
                 with open(file_path, "w") as f:  # TODO : fix this
                     f.write(json.dumps(output_dict, indent=2))
 
