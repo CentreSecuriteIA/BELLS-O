@@ -15,7 +15,7 @@ class GptOssSafeguardSupervisor(HuggingFaceSupervisor):
 
     def __init__(
         self,
-        usage: Usage,
+        usage: Usage | None = None,
         policy: str | None = None,
         result_mapper: ResultMapper = one_map,
         variant: Literal["20b", "120b"] = "20b",
@@ -24,6 +24,7 @@ class GptOssSafeguardSupervisor(HuggingFaceSupervisor):
         tokenizer_kwargs: dict[str, Any] = {},
         generation_kwargs: dict[str, Any] = {},
         used_for: Literal["input", "output"] = "input",
+        backend: Literal["transformers", "vllm"] = "transformers",
     ):
         """Initialize the supervisor.
 
@@ -37,13 +38,17 @@ class GptOssSafeguardSupervisor(HuggingFaceSupervisor):
             tokenizer_kwargs (dict[str, Any], optional):  Keyword arguments to configure the tokenizer. Defaults to {}.
             generation_kwargs (dict[str, Any], optional): Keyword arguments to configure generation. Defaults to {}.
             used_for (Literal["input", "output"]): If `policy` is not set, use this value to determine the default prompt to use. Defaults to "input".
+            backend (Literal["transformers", "vllm"]): The inference backend to use. Defaults to "transformers".
 
         """
+        # TODO: deal with usage properly
         if policy is None:
             if used_for == "input":
                 policy = default_prompts.DEFAULT_INPUT
+                usage = Usage("content_moderation")
             if used_for == "output":
                 policy = default_prompts.DEFAULT_OUTPUT
+                usage = Usage("content_moderation")
             if not result_mapper == one_map:
                 print(
                     "WARNING: Overriding set `result_mapper` because `policy` was not set and is falling back to the default prompts."
@@ -53,6 +58,13 @@ class GptOssSafeguardSupervisor(HuggingFaceSupervisor):
                 print(
                     "WARNING: `result_mapper` was not set. Using default `bells_o.result_mappers.one_map` which could be inappropriate for the custom policy."
                 )
+
+        if backend == "transformers":
+            custom_generation_kwargs = {"max_new_tokens": 2048}
+            generation_kwargs |= custom_generation_kwargs
+        elif backend == "vllm":
+            custom_generation_kwargs = {"max_tokens": 2048}
+            generation_kwargs |= custom_generation_kwargs
 
         pre_processing.append(RoleWrapper("user", system_prompt=policy))
 
@@ -64,4 +76,5 @@ class GptOssSafeguardSupervisor(HuggingFaceSupervisor):
             model_kwargs=model_kwargs,
             tokenizer_kwargs=tokenizer_kwargs,
             generation_kwargs=generation_kwargs,
+            backend=backend,
         )

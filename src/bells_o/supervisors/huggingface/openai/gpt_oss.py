@@ -24,6 +24,7 @@ class GptOssSupervisor(HuggingFaceSupervisor):
         tokenizer_kwargs: dict[str, Any] = {},
         generation_kwargs: dict[str, Any] = {},
         used_for: Literal["input", "output"] = "input",
+        backend: Literal["transformers", "vllm"] = "transformers",
     ):
         """Initialize the supervisor.
 
@@ -37,6 +38,7 @@ class GptOssSupervisor(HuggingFaceSupervisor):
             tokenizer_kwargs (dict[str, Any], optional):  Keyword arguments to configure the tokenizer. Defaults to {}.
             generation_kwargs (dict[str, Any], optional): Keyword arguments to configure generation. Defaults to {}.
             used_for (Literal["input", "output"]): If `system_prompt` is not set, use this value to determine the default prompt to use. Defaults to "input".
+            backend (Literal["transformers", "vllm"]): The inference backend to use. Defaults to "transformers".
 
         """
         if system_prompt is None:
@@ -64,4 +66,5 @@ class GptOssSupervisor(HuggingFaceSupervisor):
             model_kwargs=model_kwargs,
             tokenizer_kwargs=tokenizer_kwargs,
             generation_kwargs=generation_kwargs,
+            backend=backend,
         )
