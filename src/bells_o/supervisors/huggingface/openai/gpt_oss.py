@@ -15,35 +15,41 @@ class GptOssSupervisor(HuggingFaceSupervisor):
 
     def __init__(
         self,
-        usage: Usage,
+        usage: Usage | None = None,
         system_prompt: str | None = None,
         result_mapper: ResultMapper = one_map,
         variant: Literal["20b", "120b"] = "20b",
+        used_for: Literal["input", "output"] = "input",
         pre_processing: list[PreProcessing] = [],
         model_kwargs: dict[str, Any] = {},
         tokenizer_kwargs: dict[str, Any] = {},
         generation_kwargs: dict[str, Any] = {},
-        used_for: Literal["input", "output"] = "input",
+        backend: Literal["transformers", "vllm"] = "transformers",
+
     ):
         """Initialize the supervisor.
 
         Args:
-            usage (Usage): The usage type of the model, which is defined by the system prompt.
+            usage (Usage): The usage type of the model, which is defined by the system prompt. Defaults to the appropriate usage type for `used_for` if applicable.
             system_prompt (str, optional): A string that describes how to classify text.
             result_mapper (ResultMapper, optional): A ResultMapper that can map the output format specified in the policy to a `Result` object. Defaults to `bells_o.result_mappers.one_map`
             variant (Literal["20b", "120b"], optional): _description_. Defaults to "20b".
+            used_for (Literal["input", "output"]): If `system_prompt` is not set, use this value to determine the default prompt to use. Defaults to "input".
             pre_processing (list[PreProcessing], optional): List of PreProcessing steps to apply to prompts. Defaults to []
             model_kwargs (dict[str, Any], optional):  Keyword arguments to configure the model. Defaults to {}.
             tokenizer_kwargs (dict[str, Any], optional):  Keyword arguments to configure the tokenizer. Defaults to {}.
             generation_kwargs (dict[str, Any], optional): Keyword arguments to configure generation. Defaults to {}.
-            used_for (Literal["input", "output"]): If `system_prompt` is not set, use this value to determine the default prompt to use. Defaults to "input".
+            backend (Literal["transformers", "vllm"]): The inference backend to use. Defaults to "transformers".
 
         """
+        # TODO: deal with usage properly
         if system_prompt is None:
             if used_for == "input":
-                system_prompt = default_prompts.DEFAULT_INPUT
+                policy = default_prompts.DEFAULT_INPUT
+                usage = Usage("content_moderation")
             if used_for == "output":
-                system_prompt = default_prompts.DEFAULT_OUTPUT
+                policy = default_prompts.DEFAULT_OUTPUT
+                usage = Usage("content_moderation")
             if not result_mapper == one_map:
                 print(
                     "WARNING: Overriding set `result_mapper` because `system_prompt` was not set and is falling back to the default prompts."
@@ -64,4 +70,6 @@ class GptOssSupervisor(HuggingFaceSupervisor):
             model_kwargs=model_kwargs,
             tokenizer_kwargs=tokenizer_kwargs,
             generation_kwargs=generation_kwargs,
+            provider_name="OpenAI",
+            backend=backend,
         )
