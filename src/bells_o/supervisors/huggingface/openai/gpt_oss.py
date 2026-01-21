@@ -24,8 +24,8 @@ class GptOssSupervisor(HuggingFaceSupervisor):
         model_kwargs: dict[str, Any] = {},
         tokenizer_kwargs: dict[str, Any] = {},
         generation_kwargs: dict[str, Any] = {},
+        used_for: Literal["input", "output"] = "input",
         backend: Literal["transformers", "vllm"] = "transformers",
-
     ):
         """Initialize the supervisor.
 
@@ -39,17 +39,20 @@ class GptOssSupervisor(HuggingFaceSupervisor):
             model_kwargs (dict[str, Any], optional):  Keyword arguments to configure the model. Defaults to {}.
             tokenizer_kwargs (dict[str, Any], optional):  Keyword arguments to configure the tokenizer. Defaults to {}.
             generation_kwargs (dict[str, Any], optional): Keyword arguments to configure generation. Defaults to {}.
+            used_for (Literal["input", "output"]): If `system_prompt` is not set, use this value to determine the default prompt to use. Defaults to "input".
             backend (Literal["transformers", "vllm"]): The inference backend to use. Defaults to "transformers".
 
         """
         # TODO: deal with usage properly
         if system_prompt is None:
             if used_for == "input":
-                policy = default_prompts.DEFAULT_INPUT
                 usage = Usage("content_moderation")
+                system_prompt = default_prompts.DEFAULT_INPUT
+                system_prompt += "\nReasoning: low\n"
             if used_for == "output":
-                policy = default_prompts.DEFAULT_OUTPUT
                 usage = Usage("content_moderation")
+                system_prompt = default_prompts.DEFAULT_OUTPUT
+                system_prompt += "\nReasoning: low\n"
             if not result_mapper == one_map:
                 print(
                     "WARNING: Overriding set `result_mapper` because `system_prompt` was not set and is falling back to the default prompts."

@@ -24,8 +24,8 @@ class GptOssSafeguardSupervisor(HuggingFaceSupervisor):
         model_kwargs: dict[str, Any] = {},
         tokenizer_kwargs: dict[str, Any] = {},
         generation_kwargs: dict[str, Any] = {},
+        used_for: Literal["input", "output"] = "input",
         backend: Literal["transformers", "vllm"] = "transformers",
-
     ):
         """Initialize the supervisor.
 
@@ -39,6 +39,7 @@ class GptOssSafeguardSupervisor(HuggingFaceSupervisor):
             model_kwargs (dict[str, Any], optional):  Keyword arguments to configure the model. Defaults to {}.
             tokenizer_kwargs (dict[str, Any], optional):  Keyword arguments to configure the tokenizer. Defaults to {}.
             generation_kwargs (dict[str, Any], optional): Keyword arguments to configure generation. Defaults to {}.
+            used_for (Literal["input", "output"]): If `policy` is not set, use this value to determine the default prompt to use. Defaults to "input".
             backend (Literal["transformers", "vllm"]): The inference backend to use. Defaults to "transformers".
 
         """
@@ -61,6 +62,13 @@ class GptOssSafeguardSupervisor(HuggingFaceSupervisor):
                 print(
                     "WARNING: `result_mapper` was not set. Using default `bells_o.result_mappers.one_map` which could be inappropriate for the custom policy."
                 )
+
+        if backend == "transformers":
+            custom_generation_kwargs = {"max_new_tokens": 2048}
+            generation_kwargs |= custom_generation_kwargs
+        elif backend == "vllm":
+            custom_generation_kwargs = {"max_tokens": 2048}
+            generation_kwargs |= custom_generation_kwargs
 
         pre_processing.append(RoleWrapper("user", system_prompt=policy))
 

@@ -162,7 +162,7 @@ class Evaluator:
 
                 for item, result_dict in zip(batch, result_dicts):
                     assert self.dataset.target_map_fn is not None, "Need `target_map_fn` to be specified for dataset."
-                    result_dict["target_result"] = self.dataset.target_map_fn(item["target"])
+                    result_dict["target_result"] = dict(self.dataset.target_map_fn(item["target"]))
 
                     # check output against target
                     assert "output_result" in result_dict
@@ -257,6 +257,7 @@ class Evaluator:
             run_dir.mkdir(exist_ok=True)
             for prompt_id, output_dict in run_dict.items():
                 file_path = (run_dir / prompt_id).with_suffix(".json")
+                output_dict["target_result"] = dict(output_dict["target_result"])
                 output_dict["output_result"] = dict(output_dict["output_result"])
                 with open(file_path, "w") as f:  # TODO : fix this
                     f.write(json.dumps(output_dict, indent=2))
@@ -300,6 +301,8 @@ class Evaluator:
         if file_path is None:
             return
         file_path.parent.mkdir(parents=True, exist_ok=True)
+        result_dict["target_result"] = dict(result_dict["target_result"])
+        result_dict["output_result"] = dict(result_dict["output_result"])
         with open(file_path, "w") as f:
             f.write(json.dumps(result_dict, indent=2))
 
