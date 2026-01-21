@@ -45,9 +45,11 @@ class GptOssSafeguardSupervisor(HuggingFaceSupervisor):
         if policy is None:
             if used_for == "input":
                 policy = default_prompts.DEFAULT_INPUT
+                policy += "\nReasoning: low\n"
                 usage = Usage("content_moderation")
             if used_for == "output":
                 policy = default_prompts.DEFAULT_OUTPUT
+                policy += "\nReasoning: low\n"
                 usage = Usage("content_moderation")
             if not result_mapper == one_map:
                 print(
