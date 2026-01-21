@@ -44,8 +44,10 @@ class GptOssSupervisor(HuggingFaceSupervisor):
         if system_prompt is None:
             if used_for == "input":
                 system_prompt = default_prompts.DEFAULT_INPUT
+                system_prompt += "\nReasoning: low\n"
             if used_for == "output":
                 system_prompt = default_prompts.DEFAULT_OUTPUT
+                system_prompt += "\nReasoning: low\n"
             if not result_mapper == one_map:
                 print(
                     "WARNING: Overriding set `result_mapper` because `system_prompt` was not set and is falling back to the default prompts."
