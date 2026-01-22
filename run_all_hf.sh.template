@@ -2,10 +2,10 @@ SAVE_DIR="leaderboard/results"
 USED_FOR="input"
 source .venv/bin/activate
 
-# all HF supervisors for the benchmark
+# all HF supervisors for the benchmark with parameters to find on an H100 (80GB, 94GB for oss-safeguard-120b)
 python run_eval.py --name="google/shieldgemma-2b" --type="hf" --save_dir=$SAVE_DIR --dataset=$USED_FOR
 python run_eval.py --name="google/shieldgemma-27b" --type="hf" --save_dir=$SAVE_DIR --dataset=$USED_FOR
-python run_eval.py --name="openai/gpt-oss-safeguard-120b" --type="hf" --save_dir=$SAVE_DIR --dataset=$USED_FOR
+python run_eval.py --name="openai/gpt-oss-safeguard-120b" --kwargs="{\"used_for\":\"$USED_FOR\", \"model_kwargs\":{\"max_model_len\":5000, \"gpu_memory_utilization\":0.95}}" --type="hf" --save_dir=$SAVE_DIR --dataset=$USED_FOR
 python run_eval.py --name="saillab/xguard" --type="hf" --save_dir=$SAVE_DIR --dataset=$USED_FOR
 python run_eval.py --name="qwen/qwen3guard-gen-8b" --type="hf" --save_dir=$SAVE_DIR --dataset=$USED_FOR
 python run_eval.py --name="qwen/qwen3guard-gen-0.6b" --type="hf" --save_dir=$SAVE_DIR --dataset=$USED_FOR

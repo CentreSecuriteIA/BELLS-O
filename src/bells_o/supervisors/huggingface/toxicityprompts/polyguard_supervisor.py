@@ -83,6 +83,14 @@ class PolyGuardSupervisor(HuggingFaceSupervisor):
         assert prompt_template, (
             f'Wrong value for `used_for`. Got `{self.used_for}` but expected one of ["input", "output"].'
         )
+
+        if backend == "transformers":
+            custom_generation_kwargs = {"max_new_tokens": 256}
+            generation_kwargs |= custom_generation_kwargs
+        elif backend == "vllm":
+            custom_generation_kwargs = {"max_tokens": 256}
+            generation_kwargs |= custom_generation_kwargs
+
         pre_processing.append(TemplateWrapper(prompt_template))
         pre_processing.append(RoleWrapper(role="user", system_prompt=system_prompt))
 
