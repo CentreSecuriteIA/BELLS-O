@@ -24,7 +24,6 @@ class GptOssSafeguardSupervisor(HuggingFaceSupervisor):
         model_kwargs: dict[str, Any] = {},
         tokenizer_kwargs: dict[str, Any] = {},
         generation_kwargs: dict[str, Any] = {},
-        used_for: Literal["input", "output"] = "input",
         backend: Literal["transformers", "vllm"] = "transformers",
     ):
         """Initialize the supervisor.

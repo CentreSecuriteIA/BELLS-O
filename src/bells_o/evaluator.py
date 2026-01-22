@@ -162,7 +162,7 @@ class Evaluator:
 
                 for item, result_dict in zip(batch, result_dicts):
                     assert self.dataset.target_map_fn is not None, "Need `target_map_fn` to be specified for dataset."
-                    result_dict["target_result"] = dict(self.dataset.target_map_fn(item["target"]))
+                    result_dict["target_result"] = self.dataset.target_map_fn(item["target"])
 
                     # check output against target
                     assert "output_result" in result_dict
