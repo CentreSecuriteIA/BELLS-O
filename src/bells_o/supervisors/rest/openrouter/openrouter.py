@@ -1,5 +1,7 @@
 """Implement the OpenRouter API via REST."""
 
+from typing import Any
+
 from bells_o.common import ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
 from bells_o.supervisors.rest.auth_mappers import auth_bearer as auth_map
@@ -50,3 +52,15 @@ class OpenRouterSupervisor(RestSupervisor):
             api_key=api_key,
             api_variable=api_variable,
         )
+
+    @classmethod
+    def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
+        try:
+            input_tokens = output_raw["usage"]["prompt_tokens"]
+            output_tokens = output_raw["usage"]["completion_tokens"]
+        except KeyError as e:
+            print("DEBUGGING: output_raw dict:")
+            print(output_raw)
+            raise KeyError from e
+            
+        return {"input_tokens": input_tokens, "output_tokens": output_tokens}

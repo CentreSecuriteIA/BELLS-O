@@ -5,12 +5,14 @@ from importlib import import_module
 
 MODEL_MAPPING = {
     "saillab/xguard": ("saillab", "XGuardSupervisor", {}),
-    "openai/gptossafeguard-20b": ("openai", "GptOssSafeguardSupervisor", {"variant": "20b"}),
-    "openai/gptossafeguard-120b": ("openai", "GptOssSafeguardSupervisor", {"variant": "120b"}),
+    "openai/gpt-oss-20b": ("openai", "GptOssSupervisor", {"variant": "20b"}),
+    "openai/gpt-oss-120b": ("openai", "GptOssSupervisor", {"variant": "120b"}),
+    "openai/gpt-oss-safeguard-20b": ("openai", "GptOssSafeguardSupervisor", {"variant": "20b"}),
+    "openai/gpt-oss-safeguard-120b": ("openai", "GptOssSafeguardSupervisor", {"variant": "120b"}),
     "google/shieldgemma-2b": ("google", "ShieldGemmaSupervisor", {"variant": "2b"}),
     "google/shieldgemma-9b": ("google", "ShieldGemmaSupervisor", {"variant": "9b"}),
     "google/shieldgemma-27b": ("google", "ShieldGemmaSupervisor", {"variant": "27b"}),
-    "nvidia/Aegis-AI-Content-Safety-LlamaGuard-Defensive-1.0": ("nvidia", "AegisSupervisor", {}),
+    "nvidia/aegis-ai-content-safety-llamaguard-defensive-1.0": ("nvidia", "AegisSupervisor", {}),
     "qwen/qwen3guard-gen-8b": ("qwen", "Qwen3GuardSupervisor", {"variant": "8B"}),
     "qwen/qwen3guard-gen-4b": ("qwen", "Qwen3GuardSupervisor", {"variant": "4B"}),
     "qwen/qwen3guard-gen-0.6b": ("qwen", "Qwen3GuardSupervisor", {"variant": "0.6B"}),
@@ -30,11 +32,6 @@ MODEL_MAPPING = {
         "toxicityprompts",
         "PolyGuardSupervisor",
         {"model_id": "toxicityprompts/polyguard-qwen-smol"},
-    ),
-    "ibm-granite/granite-guardian-3.3-8b": (
-        "ibm-granite",
-        "GraniteGuardianSupervisor",
-        {"model_id": "ibm-granite/granite-guardian-3.3-8b"},
     ),
     "ibm-granite/granite-guardian-3.0-2b": (
         "ibm-granite",
@@ -66,9 +63,15 @@ MODEL_MAPPING = {
         "GraniteGuardianSupervisor",
         {"model_id": "ibm-granite/granite-guardian-3.2-3b-a800m"},
     ),
+    "ibm-granite/granite-guardian-3.3-8b": (
+        "ibm-granite",
+        "GraniteGuardianSupervisor",
+        {"model_id": "ibm-granite/granite-guardian-3.3-8b"},
+    ),
     "govtech/lionguard-2": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2"}),
     "govtech/lionguard-2.1": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2.1"}),
     "govtech/lionguard-2-lite": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2-lite"}),
+    "nvidia/llama-3.1-nemotron-safety-guard-8b-v3": ("nvidia", "NemotronSafetyGuardSupervisor", {}),
 }
 
 

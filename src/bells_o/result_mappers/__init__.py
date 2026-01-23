@@ -18,6 +18,7 @@ from .qwen3guard_mapper import mapper as qwen3guard
 from .unsafe_mapper import mapper as unsafe_map
 from .xguard_mapper import mapper as xguard
 from .yes_mapper import mapper as yes_map
+from .nemotron_mapper import mapper as nemotron
 
 
 __all__ = [
@@ -38,4 +39,5 @@ __all__ = [
     "granite_33",
     "harmful_request",
     "lionguard",
+    "nemotron",
 ]

@@ -1,11 +1,27 @@
 """Implement the X-AI (Grok) API via REST."""
 
-from bells_o.common import ResultMapper, Usage
+from functools import partial
+from typing import Any
+
+from bells_o.common import Result, ResultMapper, Usage
 from bells_o.preprocessors import PreProcessing
 from bells_o.supervisors.rest.auth_mappers import auth_bearer as auth_map
 from bells_o.supervisors.rest.request_mappers import xai as xai_request_map
 
 from ..rest_supervisor import RestSupervisor
+
+
+def xai_map(output: dict[str, Any], usage: Usage = Usage(), original_mapper: ResultMapper | None = None) -> Result:
+    """Handle XAI specific failure mode. Otherwise identical to OpenAI compatible One mapper."""
+    print("DEBUGGING: in xai_map")
+    try:
+        return original_mapper(output, usage)  # type: ignore
+    except KeyError:  # XAI API has safety measures that change the response body
+        flag = "Content violates usage guidelines" in output["error"]
+        result = Result()
+        for usage_type in usage:
+            result[usage_type] = flag
+        return result
 
 
 class XAiSupervisor(RestSupervisor):
@@ -38,7 +54,7 @@ class XAiSupervisor(RestSupervisor):
         super().__init__(
             name=model,
             usage=usage,
-            res_map_fn=result_mapper,
+            res_map_fn=partial(xai_map, original_mapper=result_mapper),
             base_url="https://api.x.ai/v1/chat/completions",
             req_map_fn=xai_request_map,
             auth_map_fn=auth_map,
@@ -47,3 +63,14 @@ class XAiSupervisor(RestSupervisor):
             api_key=api_key,
             api_variable=api_variable,
         )
+
+    @classmethod
+    def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
+        try:
+            input_tokens = output_raw["usage"]["prompt_tokens"]
+            output_tokens = output_raw["usage"]["completion_tokens"]
+        except KeyError:
+            input_tokens = 0
+            output_tokens = 0
+
+        return {"input_tokens": input_tokens, "output_tokens": output_tokens}

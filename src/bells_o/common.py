@@ -79,7 +79,10 @@ class Result(dict):
         super().__init__(**kwargs)
 
     def __eq__(self, other: Self):
-        assert isinstance(other, type(self))
+        if not isinstance(other, type(self)):
+            raise NotImplementedError(
+                "Currently, comparison is only implemented for two `Result` objects. If you are comparing to a dict, try wrapping it as follows: `Result(**dict_var)`."
+            )
         # for proper comparison, one has to be a subset of the other
         keys_self = list(self.keys())
         keys_other = list(other.keys())
@@ -94,10 +97,11 @@ class Result(dict):
         return any(self.values())
 
 
+# TODO: maybe add a .json() method to deal with indentation issues (dict(output_result))
 class OutputDict(TypedDict):
     """Structured dictionary for type hinting `judge` outputs."""
 
-    output_raw: str | dict[str, str]
+    output_raw: str | dict[str, Any]
     metadata: dict[str, Any]
     output_result: NotRequired[Result]
     target_result: NotRequired[Result]

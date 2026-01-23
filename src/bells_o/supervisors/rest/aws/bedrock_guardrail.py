@@ -1,6 +1,6 @@
 """Implement the AWS Bedrock Guardrail supervisor via boto3."""
 
-from typing import Any
+from typing import Any, Literal
 
 from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing
@@ -14,19 +14,20 @@ from .aws import AwsSupervisor
 # GUARDRAIL_VERSION = "1"  # Use "DRAFT" for newly created guardrails, or a version number if published
 # REGION = "us-east-1"
 
+
 class BedrockGuardrailSupervisor(AwsSupervisor):
     """Implement the AWS Bedrock Guardrail API via boto3."""
 
     def __init__(
         self,
-        usage: Usage = Usage("content_moderation"),
-        guardrail_identifier: str = "h2nlgerrlgip",
+        guardrail_identifier: str,
         guardrail_version: str = "1",
+        usage: Usage = Usage("content_moderation"),
         region: str = "us-east-1",
         pre_processing: list[PreProcessing] = [],
         api_key: str | None = None,
         api_variable: str = "AWS_ACCESS_KEY_ID",
-        source: str = "INPUT",
+        source: Literal["INPUT", "OUTPUT"] = "INPUT",
     ):
         """Initialize the BedrockGuardrailSupervisor.
 
@@ -50,7 +51,7 @@ class BedrockGuardrailSupervisor(AwsSupervisor):
             pre_processing=pre_processing,
             api_key=api_key,
             api_variable=api_variable,
-            source=source,
+            source=source.upper(),
         )
 
         self.guardrail_identifier = guardrail_identifier
@@ -73,3 +74,11 @@ class BedrockGuardrailSupervisor(AwsSupervisor):
             source=request_payload["source"],
         )
         return response
+
+    @classmethod
+    def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
+        """For Bedrock Guardrails AWS counts usage in text units, where each text unit may contain up to 1000 characters."""
+        input_tokens = int(output_raw["guardrailCoverage"]["textCharacters"]["total"]) // 1000 + 1
+        output_tokens = 0
+
+        return {"input_tokens": input_tokens, "output_tokens": output_tokens}

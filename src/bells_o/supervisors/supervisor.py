@@ -1,7 +1,6 @@
 """Implements the abstract Supervisor Class."""
 
 from abc import ABC, abstractmethod
-from functools import partial
 from typing import Any
 
 from bells_o.common import OutputDict, ResultMapper, Usage
@@ -67,11 +66,7 @@ class Supervisor(ABC):
 
         outputs: list[OutputDict] = self.judge(inputs)
         for output in outputs:
-            # Check if res_map_fn is a partial function (usage already bound)
-            if isinstance(self._res_map_fn, partial):
-                output["output_result"] = self._res_map_fn(output["output_raw"])  # pyright: ignore[reportArgumentType]
-            else:
-                output["output_result"] = self._res_map_fn(output["output_raw"], self.usage)  # pyright: ignore[reportArgumentType]
+            output["output_result"] = self._res_map_fn(output["output_raw"], self.usage)  # pyright: ignore[reportArgumentType]
         return outputs
 
     def metadata(self) -> dict[str, Any]:

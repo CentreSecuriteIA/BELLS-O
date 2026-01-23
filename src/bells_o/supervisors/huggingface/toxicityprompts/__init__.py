@@ -1,4 +1,4 @@
-"""Module structure for the thinkguard model."""
+"""ToxicityPrompts Huggingface supervisors."""
 
 from .polyguard_supervisor import PolyGuardSupervisor
 

@@ -1,6 +1,6 @@
 """Implement the Analyze Text supervisor from Azure via REST API."""
 
-from typing import Literal
+from typing import Any, Literal
 
 from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing
@@ -11,6 +11,7 @@ from bells_o.supervisors.rest.request_mappers import azure_analyze_text as azure
 from ..rest_supervisor import RestSupervisor
 
 
+# TODO: handle error return, fails script rn because the reponse body is different
 class AzureAnalyzeTextSupervisor(RestSupervisor):
     """Implement the Analyze Text supervisor from Azure via REST API with `api-version=2024-09-01`."""
 
@@ -50,7 +51,7 @@ class AzureAnalyzeTextSupervisor(RestSupervisor):
             name="Analyze text",
             usage=Usage("content_moderation"),
             res_map_fn=azure_result_map,
-            base_url="{endpoint}/contentsafety/text:analyze?api-version=2024-09-01",
+            base_url=f"{endpoint}/contentsafety/text:analyze?api-version=2024-09-01",
             req_map_fn=azure_request_map,
             auth_map_fn=auth_map,
             pre_processing=pre_processing,
@@ -59,3 +60,7 @@ class AzureAnalyzeTextSupervisor(RestSupervisor):
             api_variable=api_variable,
             custom_header={"Content-Type": "application/json"},
         )
+
+    @classmethod
+    def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
+        return {"input_tokens": 0, "output_tokens": 0}

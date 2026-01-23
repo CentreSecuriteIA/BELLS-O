@@ -12,6 +12,7 @@ from bells_o.datasets import Dataset
 from bells_o.supervisors import Supervisor
 
 
+# TODO: implement the Auto classes and make the interface nicer
 class DatasetConfig(TypedDict):
     type: Type[Dataset]
     kwargs: dict[str, Any]
@@ -40,6 +41,7 @@ def _uuid():
 class Evaluator:
     """Class that implements structured evaluation of a supervisor on a dataset."""
 
+    # TODO: preemptive checking if there are unrun samples. if not, do not load the supervisor.
     def __init__(
         self,
         dataset_config: DatasetConfig,
@@ -47,6 +49,7 @@ class Evaluator:
         metadata: bool = True,  # TODO: customize metadata, e.g. only model data, prompt, date, etc.
         save_dir: str | Path | None = None,
         verbose: bool = False,
+        batch_size: int = 1,
     ):
         """Load Evaluator.
 
@@ -59,13 +62,12 @@ class Evaluator:
 
         """
         # set attributes
+        self._batch_size = batch_size
         self.dataset_config = dataset_config
         self.supervisor_config = supervisor_config
         self.metadata = metadata
         self.verbose = verbose
-        self.save_dir: Path | None = (
-            save_dir if isinstance(save_dir, Path) or save_dir is None else Path(save_dir)
-        )
+        self.save_dir: Path | None = save_dir if isinstance(save_dir, Path) or save_dir is None else Path(save_dir)
 
         # load dataset
         self.dataset = self.dataset_config["type"](**self.dataset_config["kwargs"])
@@ -114,13 +116,13 @@ class Evaluator:
             indices = list(range(len(self.dataset)))
 
         assert indices
-        
+
         # Ensure save_dir is set up if we're saving
         if save and self.save_dir:
             if not self._prepared_dirs:
                 self._prepare_dirs()
                 self._prepared_dirs = True
-        
+
         if verbose:
             from tqdm import tqdm
 
@@ -131,6 +133,9 @@ class Evaluator:
         started_at = _now()
         processed_count = 0
         skipped_count = 0
+
+        # Process in batches
+        batch = []
 
         for index in iterator:
             sample: dict[str, str] = self.dataset[index]
@@ -147,33 +152,71 @@ class Evaluator:
                     iterator.set_postfix({"skipped": skipped_count, "processed": processed_count})
                 continue
 
-            # run inference
-            result_dict = self.supervisor(prompt)[0]
+            # Add to batch
+            batch.append({"prompt": prompt, "prompt_id": prompt_id, "target": target})
 
-            assert self.dataset.target_map_fn is not None, (
-                "Need `target_map_fn` to be specified for dataset."
-            )
-            result_dict["target_result"] = self.dataset.target_map_fn(target)
+            # Process batch when full
+            if len(batch) >= self._batch_size:
+                prompts = [item["prompt"] for item in batch]
+                result_dicts = self.supervisor(prompts)
 
-            # check output against target
-            assert "output_result" in result_dict
-            result_dict["is_correct"] = result_dict["output_result"] == result_dict["target_result"]
+                for item, result_dict in zip(batch, result_dicts):
+                    assert self.dataset.target_map_fn is not None, "Need `target_map_fn` to be specified for dataset."
+                    result_dict["target_result"] = self.dataset.target_map_fn(item["target"])
 
-            # add metadata if requested
-            if self.metadata:
-                result_dict["metadata"]["date"] = _now()
-                result_dict["metadata"]["prompt_id"] = prompt_id
-                result_dict["metadata"]["prompt"] = prompt
-                result_dict["metadata"]["target"] = target
-            
-            run_dict[prompt_id] = result_dict
-            processed_count += 1
+                    # check output against target
+                    assert "output_result" in result_dict
+                    result_dict["is_correct"] = result_dict["output_result"] == result_dict["target_result"]
 
-            # Save result immediately if save is enabled
-            if save:
-                self._save_single_result(prompt_id, run_id, result_dict)
+                    # add metadata if requested
+                    if self.metadata:
+                        result_dict["metadata"]["date"] = _now()
+                        result_dict["metadata"]["prompt_id"] = item["prompt_id"]
+                        result_dict["metadata"]["prompt"] = item["prompt"]
+                        result_dict["metadata"]["target"] = item["target"]
+
+                    run_dict[item["prompt_id"]] = result_dict
+                    processed_count += 1
+
+                    # Save result immediately if save is enabled
+                    if save:
+                        self._save_single_result(item["prompt_id"], run_id, result_dict)
+
                 if verbose:
                     iterator.set_postfix({"skipped": skipped_count, "processed": processed_count})
+
+                # Clear batch
+                batch = []
+
+        # Process remaining items in final batch
+        if batch:
+            prompts = [item["prompt"] for item in batch]
+            result_dicts = self.supervisor(prompts)
+
+            for item, result_dict in zip(batch, result_dicts):
+                assert self.dataset.target_map_fn is not None, "Need `target_map_fn` to be specified for dataset."
+                result_dict["target_result"] = self.dataset.target_map_fn(item["target"])
+
+                # check output against target
+                assert "output_result" in result_dict
+                result_dict["is_correct"] = result_dict["output_result"] == result_dict["target_result"]
+
+                # add metadata if requested
+                if self.metadata:
+                    result_dict["metadata"]["date"] = _now()
+                    result_dict["metadata"]["prompt_id"] = item["prompt_id"]
+                    result_dict["metadata"]["prompt"] = item["prompt"]
+                    result_dict["metadata"]["target"] = item["target"]
+
+                run_dict[item["prompt_id"]] = result_dict
+                processed_count += 1
+
+                # Save result immediately if save is enabled
+                if save:
+                    self._save_single_result(item["prompt_id"], run_id, result_dict)
+
+            if verbose:
+                iterator.set_postfix({"skipped": skipped_count, "processed": processed_count})
 
         # Update metadata for all results in the run
         if self.metadata:
@@ -184,10 +227,7 @@ class Evaluator:
                 output_dict["metadata"]["supervisor"] = self.supervisor.metadata()
                 # Re-save if we're saving iteratively to update metadata
                 if save and "prompt_id" in output_dict.get("metadata", {}):
-                    self._save_single_result(
-                        output_dict["metadata"]["prompt_id"], run_id, output_dict
-                    )
-        # TODO: add dataset metadata
+                    self._save_single_result(output_dict["metadata"]["prompt_id"], run_id, output_dict)
 
     # TODO: if implementing safe runs in run(), make this cascaded, so that this calls a function that saves one prompt.
     def save_runs(self, save_dir: str | Path | None = None):
@@ -217,6 +257,8 @@ class Evaluator:
             run_dir.mkdir(exist_ok=True)
             for prompt_id, output_dict in run_dict.items():
                 file_path = (run_dir / prompt_id).with_suffix(".json")
+                output_dict["target_result"] = dict(output_dict["target_result"])
+                output_dict["output_result"] = dict(output_dict["output_result"])
                 with open(file_path, "w") as f:  # TODO : fix this
                     f.write(json.dumps(output_dict, indent=2))
 
@@ -259,6 +301,8 @@ class Evaluator:
         if file_path is None:
             return
         file_path.parent.mkdir(parents=True, exist_ok=True)
+        result_dict["target_result"] = dict(result_dict["target_result"])
+        result_dict["output_result"] = dict(result_dict["output_result"])
         with open(file_path, "w") as f:
             f.write(json.dumps(result_dict, indent=2))
 

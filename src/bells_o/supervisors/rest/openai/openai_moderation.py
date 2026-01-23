@@ -1,5 +1,7 @@
 """Implement the OpenAI Moderation API via REST."""
 
+from typing import Any
+
 from bells_o.common import Usage
 from bells_o.preprocessors import PreProcessing
 from bells_o.result_mappers import openai_moderation as openai_moderation_result_map
@@ -34,3 +36,7 @@ class OpenAiModerationSupervisor(OpenAiSupervisor):
             api_key=api_key,
             api_variable=api_variable,
         )
+
+    @classmethod
+    def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
+        return {"input_tokens": 0, "output_tokens": 0}

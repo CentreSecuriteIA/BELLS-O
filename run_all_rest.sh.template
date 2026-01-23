@@ -1,0 +1,27 @@
+SAVE_DIR="leaderboard/results"
+USED_FOR="input"
+BATCH_SIZE=40
+
+AWS_GUARDRAIL_ID=
+AZURE_ENDPOINT=
+LAKERA_PROJECT_ID=
+source .venv/bin/activate
+
+# all rest supervisors for the benchmark
+python run_eval.py --name="anthropic-classification" --type="rest" --kwargs="{\"used_for\":\"$USED_FOR\"}" --save_dir=$SAVE_DIR --lab="anthropic" --model_name="claude-sonnet-4-5" --dataset=$USED_FOR --batch_size=$BATCH_SIZE
+python run_eval.py --name="anthropic-classification" --type="rest" --kwargs="{\"model\":\"claude-haiku-4-5\", \"used_for\":\"$USED_FOR\"}" --save_dir=$SAVE_DIR --lab="anthropic" --model_name="claude-haiku-4-5" --dataset=$USED_FOR --batch_size=$BATCH_SIZE
+python run_eval.py --name="bedrock-guardrail" --type="rest" --kwargs="{\"source\":\"$USED_FOR\", \"guardrail_identifier\":\"$AWS_GUARDRAIL_ID\"}" --save_dir=$SAVE_DIR --lab="aws" --model_name="bedrock-guardrail" --dataset=$USED_FOR --batch_size=$BATCH_SIZE
+python run_eval.py --name="azure-analyze-text" --type="rest" --kwargs="{\"endpoint\":\"$AZURE_ENDPOINT\"}" --save_dir=$SAVE_DIR --lab="azure" --model_name="analyze-text" --dataset=$USED_FOR --batch_size=$BATCH_SIZE
+python run_eval.py --name="google-classification" --type="rest" --kwargs="{\"used_for\":\"$USED_FOR\"}" --save_dir=$SAVE_DIR --lab="google" --model_name="gemini-2.5-flash" --dataset=$USED_FOR --batch_size=$BATCH_SIZE
+python run_eval.py --name="lakeraguard-default" --type="rest" --kwargs="{\"project_id\":\"$LAKERA_PROJECT_ID\"}" --save_dir=$SAVE_DIR --lab="lakera" --model_name="lakera-guard_default" --dataset=$USED_FOR --batch_size=$BATCH_SIZE
+python run_eval.py --name="mistral-classification" --type="rest" --kwargs="{\"used_for\":\"$USED_FOR\"}" --save_dir=$SAVE_DIR --lab="mistral" --model_name="ministral-3b-2512" --dataset=$USED_FOR --batch_size=$BATCH_SIZE
+python run_eval.py --name="mistral-classification" --type="rest" --kwargs="{\"model\":\"mistral-large-2512\", \"used_for\":\"$USED_FOR\"}" --save_dir=$SAVE_DIR --lab="mistral" --model_name="mistral-large-3" --dataset=$USED_FOR --batch_size=$BATCH_SIZE
+python run_eval.py --name="openai-classification" --type="rest" --kwargs="{\"used_for\":\"$USED_FOR\"}" --save_dir=$SAVE_DIR --lab="openai" --model_name="gpt-5-nano" --dataset=$USED_FOR --batch_size=$BATCH_SIZE
+python run_eval.py --name="openai-classification" --type="rest" --kwargs="{\"model\":\"gpt-5.2-2025-12-11\", \"used_for\":\"$USED_FOR\"}" --save_dir=$SAVE_DIR --lab="openai" --model_name="gpt-5.2" --dataset=$USED_FOR --batch_size=$BATCH_SIZE
+python run_eval.py --name="openai-moderation" --type="rest" --save_dir=$SAVE_DIR --lab="openai" --model_name="omni-moderation" --dataset=$USED_FOR --batch_size=$BATCH_SIZE
+python run_eval.py --name="openrouter-gpt-oss-safeguard" --kwargs="{\"used_for\":\"$USED_FOR\"}" --type="rest" --save_dir=$SAVE_DIR --lab="openai" --model_name="gpt-oss-safeguard-20b" --dataset=$USED_FOR --batch_size=$BATCH_SIZE
+python run_eval.py --name="together-virtueguard-text-lite" --type="rest" --save_dir=$SAVE_DIR --lab="virtue-ai" --model_name="virtueguard-text-lite" --dataset=$USED_FOR --batch_size=$BATCH_SIZE
+python run_eval.py --name="together-llama-guard-4b" --type="rest" --save_dir=$SAVE_DIR --lab="meta" --model_name="llama-guard-4-12b" --dataset=$USED_FOR --batch_size=$BATCH_SIZE
+python run_eval.py --name="together-gpt-oss" --kwargs="{\"used_for\":\"$USED_FOR\"}" --type="rest" --save_dir=$SAVE_DIR --lab="openai" --model_name="gpt-oss-20b" --dataset=$USED_FOR --batch_size=$BATCH_SIZE
+python run_eval.py --name="together-gpt-oss" --kwargs="{\"model\":\"openai/gpt-oss-120b\", \"used_for\":\"$USED_FOR\"}" --type="rest" --save_dir=$SAVE_DIR --lab="openai" --model_name="gpt-oss-120b" --dataset=$USED_FOR --batch_size=$BATCH_SIZE
+python run_eval.py --name="xai-classification" --type="rest" --kwargs="{\"model\":\"grok-4-1-fast-non-reasoning\",\"used_for\":\"$USED_FOR\"}" --save_dir=$SAVE_DIR --lab="x-ai" --model_name="grok-4-1-fast-non-reasoning" --dataset=$USED_FOR --batch_size=$BATCH_SIZE

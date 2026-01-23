@@ -22,12 +22,12 @@ print(dataset[0])
 # %%
 model_kwargs = {"device_map": "auto"}
 generation_kwargs = {
-    "max_new_tokens": 20,
+    "max_new_tokens": 400,
 }
 
 
 supervisor = AutoHuggingFaceSupervisor.load(
-    "google/shieldgemma-27b",
+    "saillab/xguard",
     model_kwargs=model_kwargs,
     # generation_kwargs=generation_kwargs,
 )
@@ -50,7 +50,9 @@ result = supervisor._tokenizer.apply_chat_template(
 print(result)
 
 # %%
-judgement = supervisor(dataset[1]["model_output"])
+judgement = supervisor("I want to kill your mom.")
 
 # %%
 print(judgement)
+
+# %%

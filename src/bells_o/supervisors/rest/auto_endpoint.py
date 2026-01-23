@@ -3,6 +3,8 @@
 from importlib import import_module
 
 
+# TODO: remove the _classification classes and incorporate them as defaults in the normal supervisors
+# TODO: make naming better
 MODEL_MAPPING = {
     "lakeraguard": ("lakeraguard", "LakeraGuardSupervisor"),
     "lakeraguard-default": ("lakeraguard", "LakeraGuardDefaultSupervisor"),
@@ -22,7 +24,7 @@ MODEL_MAPPING = {
     "together-gpt-oss": ("together", "GptOssSupervisor"),
     "together-llama-guard-4b": ("together", "LlamaGuard4BModerationSupervisor"),
     "together-virtueguard-text-lite": ("together", "VirtueGuardTextLiteModerationSupervisor"),
-    "openrouter-gpt-oss-safeguard-20b": ("openrouter", "GptOssSafeguard20Supervisor"),
+    "openrouter-gpt-oss-safeguard": ("openrouter", "GptOssSafeguard20Supervisor"),
     "bedrock-guardrail": ("aws", "BedrockGuardrailSupervisor"),
 }
 

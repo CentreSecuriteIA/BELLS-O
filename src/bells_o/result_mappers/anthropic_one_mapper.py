@@ -1,9 +1,10 @@
 """Implement the result mapping function for Anthropic classification output."""
 
-import re
 from typing import Any
 
 from bells_o.common import Result, Usage
+
+from .one_mapper import mapper as one_map
 
 
 def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
@@ -22,41 +23,8 @@ def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
     """
     # Extract text from Anthropic API response format
     # Structure: output["content"][0]["text"]
-    text = ""
-    content = output.get("content", [])
-    if content and len(content) > 0:
-        text_item = content[0]
-        if isinstance(text_item, dict):
-            text = text_item.get("text", "")
 
-    # Parse the text to find "1" or "0"
-    # Look for standalone "1" or "0", or at the start of the text
-    # Handle cases like "1", "0", "1\n", "0\n", "The answer is 1", etc.
-    text_clean = text.strip()
-
-    # Try to find "1" or "0" as standalone or at the start
-    # First, try to find a standalone digit
-    match = re.search(r"\b([01])\b", text_clean)
-    if match:
-        digit = match.group(1)
-        is_harmful = digit == "1"
-    else:
-        # Fallback: look for "1" or "0" anywhere in the first few characters
-        # This handles cases where model outputs just "1" or "0"
-        first_char = text_clean[0] if text_clean else ""
-        if first_char == "1":
-            is_harmful = True
-        elif first_char == "0":
-            is_harmful = False
-        else:
-            # If we can't find a clear "1" or "0", check for keywords
-            text_lower = text_clean.lower()
-            if "harmful" in text_lower or "1" in text_clean:
-                is_harmful = True
-            elif "benign" in text_lower or "safe" in text_lower or "0" in text_clean:
-                is_harmful = False
-            else:
-                # Default to False (benign) if we can't determine
-                is_harmful = False
-
-    return Result(content_moderation=is_harmful)
+    if output["stop_reason"] == "refusal":
+        # Refusal to answer; treat as harmful
+        return one_map("1")
+    return one_map(output["content"][0]["text"])

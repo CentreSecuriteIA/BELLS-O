@@ -3,10 +3,13 @@
 from typing import Any, Literal
 
 from bells_o.common import Usage
-from bells_o.preprocessors import PreProcessing, RoleWrapper
+from bells_o.preprocessors import PreProcessing, RoleWrapper, TemplateWrapper
 from bells_o.result_mappers import xguard as xguard_result_map
 
 from ..hf_supervisor import HuggingFaceSupervisor
+
+
+inference_format = "<USER TEXT STARTS>\n{prompt}\n<USER TEXT ENDS>"
 
 
 class XGuardSupervisor(HuggingFaceSupervisor):
@@ -30,12 +33,15 @@ class XGuardSupervisor(HuggingFaceSupervisor):
             backend (Literal["transformers", "vllm"]): The inference backend to use. Defaults to "transformers".
 
         """
+        pre_processing.append(TemplateWrapper(inference_format))
         pre_processing.append(RoleWrapper("user", opposite_prompt="\n <think>"))
 
-        base_kwargs = {"temperature": 0.0000001, "do_sample": True}
-        for key in base_kwargs:
-            if key in generation_kwargs:
-                print(f"INFO: ignoring set generation kwarg {key}. This kwarg should not be set for this supervisor.")
+        if backend == "transformers":
+            custom_generation_kwargs = {"temperature": 0.0000001, "do_sample": True, "max_new_tokens": 512}
+            generation_kwargs |= custom_generation_kwargs
+        elif backend == "vllm":
+            custom_generation_kwargs = {"temperature": 0.01, "max_tokens": 512}
+            generation_kwargs |= custom_generation_kwargs
 
         super().__init__(
             name="saillab/x-guard",
