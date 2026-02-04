@@ -12,6 +12,7 @@ MODEL_MAPPING = {
     "openai-moderation": ("openai", "OpenAiModerationSupervisor"),
     "openai-classification": ("openai", "OpenAIClassificationSupervisor"),
     "azure-analyze-text": ("azure", "AzureAnalyzeTextSupervisor"),
+    "azure-prompt-shield": ("azure", "AzurePromptShieldSupervisor"),
     "google": ("google", "GeminiSupervisor"),
     "google-moderation": ("google", "GeminiModerationSupervisor"),
     "google-classification": ("google", "GeminiClassificationSupervisor"),
