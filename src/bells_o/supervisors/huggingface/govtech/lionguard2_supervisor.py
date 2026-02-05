@@ -107,11 +107,6 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
 
     def _get_tokenizer(self):
         if self.name == "govtech/lionguard-2":  # TODO: handle case when no api key is set
-            #   -d '{
-            #     "input": "The food was delicious and the waiter...",
-            #     "model": "text-embedding-ada-002",
-            #     "encoding_format": "float"
-            #   }'
             from requests import post
 
             from bells_o.supervisors import RestSupervisor
@@ -162,13 +157,12 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
 
             return gemini_embedder
         elif self.name == "govtech/lionguard-2-lite":
-            from sentence_transformers import SentenceTransformer
-
-            global TSentenceTransformer
-            TSentenceTransformer = SentenceTransformer
-
-            global TTensor
-            TTensor = Tensor
+            try:
+                from sentence_transformers import SentenceTransformer
+            except ModuleNotFoundError:
+                raise ModuleNotFoundError(
+                    "Make sure to install at least the `stf` optional dependency with `pip install bells_o[stf]`."
+                )
 
             return SentenceTransformer("google/embeddinggemma-300m")
 
@@ -176,39 +170,17 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
         if not self.name == "govtech/lionguard-2-lite":
             embeddings, input_tokens = cast(TTokenizer, self._tokenizer)(inputs)
         else:
-            global TSentenceTransformer
-            global TTensor
+            from sentence_transformers import SentenceTransformer
 
-            assert isinstance(self._tokenizer, TSentenceTransformer)
+            assert isinstance(self._tokenizer, SentenceTransformer)
 
             attention_mask = self._tokenizer.tokenize(inputs)["attention_mask"]
-            assert isinstance(attention_mask, TTensor)
+            assert isinstance(attention_mask, Tensor)
 
             input_tokens = attention_mask.sum(dim=1).tolist()
             embeddings = Tensor(self._tokenizer.encode(inputs))
 
         batch_size = len(inputs)
-        # outputs = []
-        # generation_times = []
-
-        # for i in range(embeddings.size(0)):
-        #     embedding = embeddings[i, ...].unsqueeze(0).to(device=self._model.device)  # preserve first dimension
-        #     start = time()
-        #     outputs.append(self._model.predict(embedding))
-        #     generation_times.append(time() - start)
-
-        # return [
-        #     OutputDict(
-        #         output_raw=output,
-        #         metadata={
-        #             "latency": generation_time,
-        #             "batch_size": batch_size,
-        #             "input_tokens": input_t,
-        #             "output_tokens": 1,  # only one forward pass
-        #         },
-        #     )
-        #     for output, input_t, generation_time in zip(outputs, input_tokens, generation_times)
-        # ]
 
         start = time()
         outputs = self._model.predict(embeddings.to(device=self._model.device))

@@ -19,7 +19,11 @@ if TYPE_CHECKING:
 
 
 ### Usage Type definitions for type hinting, based on USAGE_TYPES defined above
-UsageType = Literal["jailbreak", "prompt_injection", "content_moderation"]
+UsageType = Literal[
+    "jailbreak",
+    # "prompt_injection",
+    "content_moderation",
+]
 
 UsageTypes = TypedDict(
     "UsageTypes",

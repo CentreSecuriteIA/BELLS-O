@@ -269,7 +269,12 @@ class AegisSupervisor(HuggingFaceSupervisor):
             )
 
         if self.backend == "transformers":
-            from peft import PeftModel
+            try:
+                from peft import PeftModel
+            except ModuleNotFoundError:
+                raise ModuleNotFoundError(
+                    "This setup requires additional dependencies. The following required module is missing: ['peft']. Please install it with `pip install bells_o[peft]`."
+                )
             from transformers import (
                 AutoModelForCausalLM,
                 AutoTokenizer,
@@ -285,14 +290,20 @@ class AegisSupervisor(HuggingFaceSupervisor):
             self._model = PeftModel.from_pretrained(base_model, self.name)
 
         if self.backend == "vllm":
+            missing_modules = []
             try:
                 from peft import PeftConfig
-                from vllm import LLM, SamplingParams  # noqa: F401, need SamplingParams later
-                from vllm.lora.request import LoRARequest
-
             except ModuleNotFoundError:
+                missing_modules.append("peft")
+            try:
+                from vllm import LLM, SamplingParams  # noqa: F401, caching import
+                from vllm.lora.request import LoRARequest
+            except ModuleNotFoundError:
+                missing_modules.append("vllm")
+
+            if missing_modules:
                 raise ModuleNotFoundError(
-                    "This model requires the `peft` and `vllm` modules. Please install them with `pip install bells_o[peft, vllm]`."
+                    f"This setup requires additional dependencies. The following required module(s) are missing: {missing_modules}. Please install them with `pip install bells_o{missing_modules}`."
                 )
 
             config = PeftConfig.from_pretrained(self.name)
@@ -308,7 +319,7 @@ class AegisSupervisor(HuggingFaceSupervisor):
 
     def _judge_vllm(self, inputs: list[str]):
         """Identical to super()._judge_vllm() but passes lora_request parameter in self._model.generate()."""
-        from vllm import LLM, SamplingParams
+        from vllm import LLM, SamplingParams  # at this point vllm will have been cached already
 
         assert self.backend == "vllm", f'Backend should be "vllm" at this point, but got "{self.backend}".'
         assert isinstance(self._model, LLM)
