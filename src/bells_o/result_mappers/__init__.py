@@ -17,6 +17,7 @@ from .one_mapper import mapper as one_map
 from .openai_compatible_one_mapper import mapper as openai_compatible_one
 from .openai_compatible_unsafe_mapper import mapper as openai_compatible_unsafe
 from .openai_moderation_mapper import mapper as openai_moderation
+from .pi_guard import mapper as pi_guard
 from .qwen3guard_mapper import mapper as qwen3guard
 from .unsafe_mapper import mapper as unsafe_map
 from .xguard_mapper import mapper as xguard
@@ -45,4 +46,5 @@ __all__ = [
     "nemotron",
     "gpt_oss_local_one",
     "azure_prompt_shield",
+    "pi_guard",
 ]
