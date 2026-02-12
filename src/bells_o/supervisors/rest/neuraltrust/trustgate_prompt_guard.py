@@ -1,4 +1,4 @@
-"""Implement the OpenAI Classification Supervisor for content moderation."""
+"""Implementation of NeuralTrustTrustGateSupervisor."""
 
 from typing import Any, Literal
 
@@ -10,11 +10,7 @@ from ..rest_supervisor import RestSupervisor
 
 
 class NeuralTrustTrustGateSupervisor(RestSupervisor):
-    """OpenAI supervisor configured for classification with a system prompt.
-
-    Uses OpenAI with a classification system prompt to determine if content is harmful.
-    The model outputs "1" for harmful or "0" for benign, which is parsed by the result mapper.
-    """
+    """Implementation of NeuralTrustTrustGateSupervisor."""
 
     def __init__(
         self,
@@ -28,17 +24,12 @@ class NeuralTrustTrustGateSupervisor(RestSupervisor):
         """Initialize the OpenAIClassificationSupervisor.
 
         Args:
-            model: OpenAI model id. Defaults to "gpt-5-nano-2025-08-07".
-            max_tokens: Maximum completion tokens (includes reasoning + output for GPT-5).
-                Defaults to 200 to account for reasoning tokens in GPT-5 models.
-            reasoning_effort: Reasoning effort level for GPT-5 models ("low", "medium", "high").
-                Defaults to "low" to minimize reasoning tokens and ensure output tokens are available.
-            text_verbosity: Text verbosity level for GPT-5 models ("low", "medium", "high").
-                Defaults to "low" to keep responses concise.
+            policy_id: The id of the created policy, which should be used for classification.
             pre_processing: List of PreProcessing steps to apply to prompts. Defaults to [].
-            api_key: OpenAI API key (if given, overrides env). Defaults to None.
-            api_variable: Env var name for the API key. Defaults to "OPENAI_API_KEY".
-            used_for (Literal["input", "output"]): The type of strings that are checked. Defaults to "input".
+            api_key: NeuralTrust API key (if given, overrides env). Defaults to None.
+            api_variable: Env var name for the API key. Defaults to "NEURALTRUST_API_KEY".
+            base_url: The base url of the REST endpoint to target. Can differ for self-hosted applications. Defaults to "https://actions.neuraltrust.ai/v1/actions".
+            used_for (Literal["jailbreak"]): The type of strings that are checked. Defaults to "jailbreak".
 
         """
         usage = None
