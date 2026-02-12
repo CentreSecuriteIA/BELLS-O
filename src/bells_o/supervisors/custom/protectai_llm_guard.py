@@ -2,7 +2,7 @@ from time import time
 
 from bells_o.common import OutputDict, Usage
 from bells_o.preprocessors import PreProcessing
-from bells_o.result_mappers import protectai_mapper
+from bells_o.result_mappers import protectai
 
 from .custom_supervisor import CustomSupervisor
 
@@ -22,7 +22,7 @@ class ProtectAiLlmGuard(CustomSupervisor):
         super().__init__(
             name="ProtectAI LLM Guard",
             usage=Usage("jailbreak"),
-            res_map_fn=protectai_mapper,
+            res_map_fn=protectai,
             pre_processing=pre_processing,
             provider_name="Protect AI",
             **custom_kwargs,

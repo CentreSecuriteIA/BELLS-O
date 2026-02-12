@@ -14,11 +14,12 @@ from .lakeraguard_mapper import mapper as lakeraguard
 from .lionguard_mapper import mapper as lionguard
 from .logit_compare_mapper import mapper as logit_compare
 from .nemotron_mapper import mapper as nemotron
+from .neuraltrust_trustgate_mapper import mapper as neuraltrust
 from .one_mapper import mapper as one_map
 from .openai_compatible_one_mapper import mapper as openai_compatible_one
 from .openai_compatible_unsafe_mapper import mapper as openai_compatible_unsafe
 from .openai_moderation_mapper import mapper as openai_moderation
-from .protectai_llm_guard_mapper import mapper as protectai_mapper
+from .protectai_llm_guard_mapper import mapper as protectai
 from .qwen3guard_mapper import mapper as qwen3guard
 from .unsafe_mapper import mapper as unsafe_map
 from .xguard_mapper import mapper as xguard
@@ -48,5 +49,6 @@ __all__ = [
     "gpt_oss_local_one",
     "azure_prompt_shield",
     "logit_compare",
-    "protectai_mapper",
+    "protectai",
+    "neuraltrust",
 ]

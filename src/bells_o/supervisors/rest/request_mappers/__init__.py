@@ -8,6 +8,7 @@ from .google_mapper import mapper as google
 from .huggingface_mapper import mapper as huggingface
 from .lakeraguard_mapper import mapper as lakeraguard
 from .mistral_mapper import mapper as mistral
+from .neuraltrust_trustgate_mapper import mapper as neuraltrust
 from .openai_mapper import mapper as openai
 from .openrouter_mapper import mapper as openrouter
 from .together_mapper import mapper as together
@@ -27,4 +28,5 @@ __all__ = [
     "openrouter",
     "aws",
     "azure_prompt_shield",
+    "neuraltrust",
 ]
