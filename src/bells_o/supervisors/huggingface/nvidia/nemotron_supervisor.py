@@ -53,11 +53,7 @@ filler = ""
 
 
 class NemotronSafetyGuardSupervisor(HuggingFaceSupervisor):
-    """Implement the pre-configured nvidia/Aegis-AI-Content-Safety-LlamaGuard-Defensive-1.0 supervisor from HuggingFace.
-
-    Aegis is a parameter-efficient instruction-tuned version of Llama Guard based on Llama2-7B.
-    It requires loading the base Llama Guard model and then applying PEFT adapter weights.
-    """
+    """Implement the pre-configured nvidia/Llama-3.1-Nemotron-Safety-Guard-8B-v3 supervisor from HuggingFace"""
 
     def __init__(
         self,

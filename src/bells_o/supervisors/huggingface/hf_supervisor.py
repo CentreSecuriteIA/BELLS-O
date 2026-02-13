@@ -68,8 +68,12 @@ class HuggingFaceSupervisor(Supervisor):
             self._model = AutoModelForCausalLM.from_pretrained(self.name, **self.model_kwargs)
 
         elif self.backend == "vllm":
-            from vllm import LLM, SamplingParams  # noqa: F401
-
+            try:
+                from vllm import LLM, SamplingParams  # noqa: F401
+            except ModuleNotFoundError:
+                raise ModuleNotFoundError(
+                    "This setup requires additional dependencies. The following required module is missing: ['vllm']. Please install it with `pip install bells_o[vllm]`."
+                )
             self._model = LLM(self.name, **self.model_kwargs, tensor_parallel_size=torch.cuda.device_count())
             self._tokenizer = self._model.get_tokenizer()
 

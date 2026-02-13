@@ -72,6 +72,7 @@ MODEL_MAPPING = {
     "govtech/lionguard-2.1": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2.1"}),
     "govtech/lionguard-2-lite": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2-lite"}),
     "nvidia/llama-3.1-nemotron-safety-guard-8b-v3": ("nvidia", "NemotronSafetyGuardSupervisor", {}),
+    "leolee99/piguard": ("leolee99", "PiGuardSupervisor", {}),
 }
 
 
@@ -94,7 +95,7 @@ class AutoHuggingFaceSupervisor:
             model_class = getattr(model_module, class_attribute)
         else:
             raise NotImplementedError(
-                f"Did not find attribute `{class_attribute}` in module `bells_o.supervisors.huggingface.{module_name}`."
+                f"Did not find model `{class_attribute}` in module `bells_o.supervisors.huggingface.{module_name}`."
             )
 
         # merge kwargs, special kwargs take priority because they are determined by the model_id
