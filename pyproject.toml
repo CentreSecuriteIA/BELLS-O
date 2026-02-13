@@ -10,7 +10,7 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "accelerate>=1.10.1",
-    "datasets>=4.1.1",
+    "datasets>=2.21.0",
     "torch>=2.8.0",
     "tqdm>=4.67.1",
     "transformers>=4.57.3",
@@ -18,10 +18,19 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["ipykernel", "jupyter", "dotenv"]
+all = [
+    "vllm>=0.11.0",
+    "peft>=0.18.0", "hf-transfer>=0.1.9",
+    "sentence-transformers",
+    "boto3", "botocore",
+    "llm-guard[onnxruntime-gpu]"
+    ]
+
 vllm = ["vllm>=0.11.0"]
 peft = ["peft>=0.18.0", "hf-transfer>=0.1.9"]
-lion = ["sentence_transformers"]
+sentence-transformers = ["sentence-transformers"]
 aws = ["boto3", "botocore"]
+llm-guard = ["llm-guard[onnxruntime-gpu]"]
 
 [build-system]
 requires = ["setuptools>=61", "wheel"]
