@@ -19,7 +19,15 @@ SUPPORTED_BACKENDS = ["transformers", "vllm"]
 
 
 class HuggingFaceSupervisor(Supervisor):
-    """A concrete class that enables loading any HuggingFace model as a supervisor."""
+    """A concrete class that enables loading any HuggingFace model as a supervisor.
+
+    Args:
+        Supervisor (_type_): _description_
+
+    Returns:
+        _type_: _description_
+
+    """
 
     # TODO: doc strings
     def __init__(
@@ -60,12 +68,8 @@ class HuggingFaceSupervisor(Supervisor):
             self._model = AutoModelForCausalLM.from_pretrained(self.name, **self.model_kwargs)
 
         elif self.backend == "vllm":
-            try:
-                from vllm import LLM, SamplingParams  # noqa: F401
-            except ModuleNotFoundError:
-                raise ModuleNotFoundError(
-                    "This setup requires additional dependencies. The following required module is missing: ['vllm']. Please install it with `pip install bells_o[vllm]`."
-                )
+            from vllm import LLM, SamplingParams  # noqa: F401
+
             self._model = LLM(self.name, **self.model_kwargs, tensor_parallel_size=torch.cuda.device_count())
             self._tokenizer = self._model.get_tokenizer()
 
@@ -99,8 +103,16 @@ class HuggingFaceSupervisor(Supervisor):
         return metadata
 
     def pre_process(self, inputs: str | list[str]) -> list[str]:
-        """Apply all preprocessing steps except tokenization."""  # TODO: improve this docstring
-        inputs = super().pre_process(inputs)
+        """Apply all preprocessing steps.
+
+        Concrete classes will likely need a tokenization equivalent implemented.
+        """  # TODO: improve this docstring
+        if isinstance(inputs, str):
+            inputs = [inputs]
+
+        if self.pre_processing:
+            for pre_processor in self.pre_processing:
+                inputs = [pre_processor(input) for input in inputs]
 
         inputs = self._apply_chat_template(inputs)
         return inputs

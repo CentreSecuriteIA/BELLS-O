@@ -64,10 +64,6 @@ class GptOssSupervisor(HuggingFaceSupervisor):
 
         pre_processing.append(RoleWrapper("user", system_prompt=system_prompt))
 
-        assert isinstance(usage, Usage), (
-            f"Expected `usage` to be of type `Usage` at this point. Got type `{type(usage)}` instead."
-        )
-
         super().__init__(
             name=f"openai/gpt-oss-{variant}",
             usage=usage,

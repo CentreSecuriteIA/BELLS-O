@@ -28,7 +28,7 @@ class LakeraGuardDefaultSupervisor(LakeraGuardSupervisor):
 
         """
         super().__init__(
-            usage=Usage("content_moderation", "jailbreak"),
+            usage=Usage("content_moderation", "prompt_injection"),
             project_id=project_id,
             pre_processing=pre_processing,
             api_key=api_key,

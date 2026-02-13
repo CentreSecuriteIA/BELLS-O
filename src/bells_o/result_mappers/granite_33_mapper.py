@@ -22,6 +22,6 @@ def mapper(output: str, usage: Usage = Usage()) -> Result:
     """
     labels = findall(r"<score>(.*)</score>", output)
     if len(labels) == 0:
-        return yes_map("1", usage)  # if output format breaks, assume harmful
+        return yes_map("", usage)
 
     return yes_map(labels[0], usage)

@@ -17,9 +17,7 @@ dataset = HuggingFaceDataset("lmsys/toxic-chat", usage, version_name="toxicchat0
 print(dataset[0]["model_output"])
 
 # %%
-supervisor = AutoRestSupervisor.load(
-    "azure-prompt-shield", kwargs={"endpoint": "https://content-safety-gratis.cognitiveservices.azure.com/"}
-)
+supervisor = AutoRestSupervisor.load("xai-classification")
 
 # %%
 pre_processed = supervisor.pre_process(dataset[1]["model_output"])

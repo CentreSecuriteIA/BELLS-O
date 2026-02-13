@@ -71,10 +71,6 @@ class GptOssSafeguardSupervisor(HuggingFaceSupervisor):
 
         pre_processing.append(RoleWrapper("user", system_prompt=policy))
 
-        assert isinstance(usage, Usage), (
-            f"Expected `usage` to be of type `Usage` at this point. Got type `{type(usage)}` instead."
-        )
-
         super().__init__(
             name=f"openai/gpt-oss-safeguard-{variant}",
             usage=usage,

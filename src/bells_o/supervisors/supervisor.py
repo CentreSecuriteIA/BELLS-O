@@ -12,10 +12,8 @@ class Supervisor(ABC):
 
     Attributes:
         name (str): Name of the supervisor.
-        usage (Usage): The usage type of the supervisor.
-        res_map_fn (ResultMapper): Function to map the output to a `Result` dict.
-        pre_processing (list[PreProcessing]): List of PreProcessing techniques that should be applied.
-        provider_name (str): The name of the provider of this model.
+        res_map_fn (Callable): Function to map the output to a `Result` dict.
+        pre_processing (Optional[List[PreProcessing]]): List of PreProcessing techniques that should be applied.
 
     """
 
@@ -50,10 +48,6 @@ class Supervisor(ABC):
     @property
     def usage(self) -> Usage:  # noqa: D102
         return self._usage
-
-    @property
-    def res_map_fn(self) -> ResultMapper:  # noqa: D102
-        return self._res_map_fn
 
     @property
     def provider_name(self) -> str:  # noqa: D102
@@ -100,14 +94,11 @@ class Supervisor(ABC):
         """
         pass
 
-    def pre_process(self, inputs: list[str] | str):
+    def pre_process(self, inputs):
         """Apply all preprocessing steps.
 
         Concrete classes will likely need a tokenization equivalent implemented.
         """
-        if not isinstance(inputs, list):
-            inputs = [inputs]
-
         if self.pre_processing:
             for pre_processor in self.pre_processing:
                 inputs = [pre_processor(input) for input in inputs]

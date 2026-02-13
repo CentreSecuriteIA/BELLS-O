@@ -12,7 +12,6 @@ MODEL_MAPPING = {
     "openai-moderation": ("openai", "OpenAiModerationSupervisor"),
     "openai-classification": ("openai", "OpenAIClassificationSupervisor"),
     "azure-analyze-text": ("azure", "AzureAnalyzeTextSupervisor"),
-    "azure-prompt-shield": ("azure", "AzurePromptShieldSupervisor"),
     "google": ("google", "GeminiSupervisor"),
     "google-moderation": ("google", "GeminiModerationSupervisor"),
     "google-classification": ("google", "GeminiClassificationSupervisor"),
@@ -27,7 +26,6 @@ MODEL_MAPPING = {
     "together-virtueguard-text-lite": ("together", "VirtueGuardTextLiteModerationSupervisor"),
     "openrouter-gpt-oss-safeguard": ("openrouter", "GptOssSafeguard20Supervisor"),
     "bedrock-guardrail": ("aws", "BedrockGuardrailSupervisor"),
-    "neuraltrust-trustgate": ("neuraltrust", "NeuralTrustTrustGateSupervisor"),
 }
 
 

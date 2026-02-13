@@ -4,7 +4,7 @@ from . import auth_mappers, request_mappers
 from .anthropic import AnthropicClassificationSupervisor, AnthropicSupervisor
 from .auto_endpoint import AutoRestSupervisor
 from .aws import AwsSupervisor, BedrockGuardrailSupervisor
-from .azure import AzureAnalyzeTextSupervisor, AzurePromptShieldSupervisor
+from .azure import AzureAnalyzeTextSupervisor
 from .google import (
     GeminiClassificationSupervisor,
     GeminiModerationSupervisor,
@@ -56,5 +56,4 @@ __all__ = [
     "HuggingFaceApiSupervisor",
     "AwsSupervisor",
     "BedrockGuardrailSupervisor",
-    "AzurePromptShieldSupervisor",
 ]
