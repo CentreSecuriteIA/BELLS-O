@@ -27,6 +27,7 @@ MODEL_MAPPING = {
     "together-virtueguard-text-lite": ("together", "VirtueGuardTextLiteModerationSupervisor"),
     "openrouter-gpt-oss-safeguard": ("openrouter", "GptOssSafeguard20Supervisor"),
     "bedrock-guardrail": ("aws", "BedrockGuardrailSupervisor"),
+    "neuraltrust-trustgate": ("neuraltrust", "NeuralTrustTrustGateSupervisor"),
 }
 
 

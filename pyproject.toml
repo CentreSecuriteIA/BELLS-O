@@ -23,15 +23,13 @@ all = [
     "peft>=0.18.0", "hf-transfer>=0.1.9",
     "sentence-transformers",
     "boto3", "botocore",
-    "langkit[all]",
-    "llm-guard",
+    "llm-guard[onnxruntime-gpu]"
     ]
 
 vllm = ["vllm>=0.11.0"]
 peft = ["peft>=0.18.0", "hf-transfer>=0.1.9"]
 sentence-transformers = ["sentence-transformers"]
 aws = ["boto3", "botocore"]
-langkit = ["langkit[all]"]
 llm-guard = ["llm-guard[onnxruntime-gpu]"]
 
 [build-system]
