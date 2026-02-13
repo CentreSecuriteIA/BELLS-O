@@ -73,6 +73,8 @@ MODEL_MAPPING = {
     "govtech/lionguard-2-lite": ("govtech", "LionGuard2Supervisor", {"model_id": "govtech/lionguard-2-lite"}),
     "nvidia/llama-3.1-nemotron-safety-guard-8b-v3": ("nvidia", "NemotronSafetyGuardSupervisor", {}),
     "leolee99/piguard": ("leolee99", "PiGuardSupervisor", {}),
+    "meta-llama/llama-prompt-guard-2-86m": ("meta-llama", "LLamaPromptGuardV2Supervisor", {"variant": "86m"}),
+    "meta-llama/llama-prompt-guard-2-22m": ("meta-llama", "LLamaPromptGuardV2Supervisor", {"variant": "22m"}),
 }
 
 

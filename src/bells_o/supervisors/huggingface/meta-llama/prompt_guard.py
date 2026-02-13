@@ -1,4 +1,4 @@
-"""Implement the configuration for leolee99/PIGuard supervisor from HuggingFace."""
+"""Implement the configuration for meta-llama/Llama-Prompt-Guard-2-86M supervisor from HuggingFace."""
 
 from time import time
 from typing import Any, Literal, cast
@@ -12,14 +12,15 @@ from bells_o.result_mappers import logit_compare as result_map
 from ..hf_supervisor import HuggingFaceSupervisor
 
 
-class PiGuardSupervisor(HuggingFaceSupervisor):
-    """Implement the pre-configured leolee99/PIGuard supervisor from HuggingFace.
+class LLamaPromptGuardV2Supervisor(HuggingFaceSupervisor):
+    """Implement the pre-configured meta-llama/Llama-Prompt-Guard-2-86M supervisor from HuggingFace.
 
     PiGuard is a jailbreak detection model.
     """
 
     def __init__(
         self,
+        variant: Literal["22m", "86m"] = "86m",
         pre_processing: list[PreProcessing] = [],
         model_kwargs: dict[str, Any] = {},
         tokenizer_kwargs: dict[str, Any] = {},
@@ -29,7 +30,8 @@ class PiGuardSupervisor(HuggingFaceSupervisor):
         """Initialize the supervisor.
 
         Args:
-            pre_processing (list[PreProcessing], optional): List of PreProcessing steps to apply to prompts. Defaults to []
+            variant (Literal["22m", "86m"]): The model size to be used. Can be 86M or 22M parameters. Defaults to "86m".
+            pre_processing (list[PreProcessing], optional): List of PreProcessing steps to apply to prompts. Defaults to [].
             model_kwargs (dict[str, Any], optional):  Keyword arguments to configure the model. Defaults to {}.
             tokenizer_kwargs (dict[str, Any], optional):  Keyword arguments to configure the tokenizer. Defaults to {}.
             generation_kwargs (dict[str, Any], optional): Keyword arguments to configure generation. Defaults to {}.
@@ -39,14 +41,14 @@ class PiGuardSupervisor(HuggingFaceSupervisor):
         self._supported_backends = ["transformers"]
 
         super().__init__(
-            name="leolee99/PIGuard",
+            name=f"meta-llama/Llama-Prompt-Guard-2-{variant}",
             usage=Usage("jailbreak"),
             res_map_fn=result_map,  # pyright: ignore[reportArgumentType]
             pre_processing=pre_processing,
             model_kwargs=model_kwargs,
             tokenizer_kwargs=tokenizer_kwargs,
             generation_kwargs=generation_kwargs,
-            provider_name="LeoLee99",
+            provider_name="Meta",
             backend=backend,
         )
 
