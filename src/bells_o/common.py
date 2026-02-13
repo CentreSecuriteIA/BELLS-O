@@ -116,4 +116,4 @@ T = TypeVar("T", bound="RestSupervisor")
 
 RequestMapper = Callable[[T, str], dict[str, str]]  # for json output
 type AuthMapper = Callable[["RestSupervisor"], dict[str, str]]  # for json output
-type ResultMapper = Callable[[str, Usage], Result] | Callable[[dict[str, Any], Usage], Result]
+type ResultMapper = Callable[[Any, Usage], Result]

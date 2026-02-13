@@ -19,15 +19,7 @@ SUPPORTED_BACKENDS = ["transformers", "vllm"]
 
 
 class HuggingFaceSupervisor(Supervisor):
-    """A concrete class that enables loading any HuggingFace model as a supervisor.
-
-    Args:
-        Supervisor (_type_): _description_
-
-    Returns:
-        _type_: _description_
-
-    """
+    """A concrete class that enables loading any HuggingFace model as a supervisor."""
 
     # TODO: doc strings
     def __init__(
@@ -107,16 +99,8 @@ class HuggingFaceSupervisor(Supervisor):
         return metadata
 
     def pre_process(self, inputs: str | list[str]) -> list[str]:
-        """Apply all preprocessing steps.
-
-        Concrete classes will likely need a tokenization equivalent implemented.
-        """  # TODO: improve this docstring
-        if isinstance(inputs, str):
-            inputs = [inputs]
-
-        if self.pre_processing:
-            for pre_processor in self.pre_processing:
-                inputs = [pre_processor(input) for input in inputs]
+        """Apply all preprocessing steps except tokenization."""  # TODO: improve this docstring
+        inputs = super().pre_process(inputs)
 
         inputs = self._apply_chat_template(inputs)
         return inputs
