@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from bells_o import Evaluator, HuggingFaceDataset, Result, Usage
-from bells_o.evaluator import DatasetConfig, SupervisorConfig
+from bells_o.evaluator import DatasetConfig
 from bells_o.supervisors import AutoHuggingFaceSupervisor, AutoRestSupervisor
 
 
@@ -115,40 +115,19 @@ def main():
         target_column=target_column,
     )
 
-    # Supervisor config
+    # Load supervisor
     if supervisor_type == "rest":
-
-        class _SupervisorWrapper:  # type: ignore
-            def __init__(self, **kwargs):
-                self.supervisor = AutoRestSupervisor.load(supervisor_string, **kwargs)
-
-            def __getattr__(self, name):
-                return getattr(self.supervisor, name)
-
-            def __call__(self, *args, **kwargs):
-                return self.supervisor(*args, **kwargs)
-
-        supervisor_conf = SupervisorConfig(type=_SupervisorWrapper, kwargs=supervisor_kwargs)  # type: ignore
+        supervisor = AutoRestSupervisor.load(supervisor_string, **supervisor_kwargs)
     elif supervisor_type == "hf":
-
-        class _SupervisorWrapper:
-            def __init__(self, **kwargs):
-                self.supervisor = AutoHuggingFaceSupervisor.load(supervisor_string, **kwargs)
-
-            def __getattr__(self, name):
-                return getattr(self.supervisor, name)
-
-            def __call__(self, *args, **kwargs):
-                return self.supervisor(*args, **kwargs)
-
-        supervisor_conf = SupervisorConfig(type=_SupervisorWrapper, kwargs=supervisor_kwargs)  # type: ignore
+        supervisor = AutoHuggingFaceSupervisor.load(supervisor_string, **supervisor_kwargs)
     else:
-        raise ValueError("Set either USE_AUTO_REST=True or USE_AUTO_HF=True")
+        raise ValueError(f"Unknown supervisor type '{supervisor_type}'. Expected 'rest' or 'hf'.")
+
     # %%
     # Create evaluator and run
     evaluator = Evaluator(
         dataset_conf,
-        supervisor_conf,
+        supervisor,
         save_dir=save_dir_full,
         verbose=verbose,
         batch_size=args.batch_size,
