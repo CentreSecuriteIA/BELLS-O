@@ -81,14 +81,18 @@ def _build_dataset_config(entry: dict) -> DatasetConfig:
     target_column = entry.get("target_column", "category")
     target_map_fn = _make_target_map_fn(usage_type, entry.get("truthy_values"))
 
+    kwargs = {
+        "name": entry["dataset_id"],
+        "usage": Usage(usage_type),
+        "target_map_fn": target_map_fn,
+        "input_column": input_column,
+    }
+    if "version_name" in entry:
+        kwargs["version_name"] = entry["version_name"]
+
     return DatasetConfig(
         type=HuggingFaceDataset,
-        kwargs={
-            "name": entry["dataset_id"],
-            "usage": Usage(usage_type),
-            "target_map_fn": target_map_fn,
-            "input_column": input_column,
-        },
+        kwargs=kwargs,
         input_column=input_column,
         target_column=target_column,
     )

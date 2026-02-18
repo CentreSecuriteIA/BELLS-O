@@ -1,6 +1,7 @@
 [
   {
     "dataset_id": "TrustAIRLab/in-the-wild-jailbreak-prompts",
+    "version_name": "jailbreak_2023_12_25",
     "usage": "jailbreak",
     "input_column": "prompt",
     "target_column": "jailbreak",
