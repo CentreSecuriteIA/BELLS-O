@@ -7,7 +7,6 @@ Just modify the variables below and run the script.
 """
 
 import gc
-import json
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -21,6 +20,29 @@ from bells_o.evaluator import DatasetConfig
 from bells_o.supervisors import AutoHuggingFaceSupervisor, AutoRestSupervisor
 
 
+def _coerce_value(value: str) -> str | int | float | bool:
+    """Coerce a string value to its most specific scalar type."""
+    if value.lower() in ("true", "false"):
+        return value.lower() == "true"
+    for cast in (int, float):
+        try:
+            return cast(value)
+        except ValueError:
+            continue
+    return value
+
+
+def _parse_kwargs(items: list[str]) -> dict:
+    """Parse a list of 'key=value' strings into a dict with auto-coerced values."""
+    result = {}
+    for item in items:
+        if "=" not in item:
+            raise ValueError(f"Invalid kwarg format: '{item}'. Expected KEY=VALUE.")
+        key, value = item.split("=", 1)
+        result[key] = _coerce_value(value)
+    return result
+
+
 def main():
     parser = ArgumentParser()
     parser.add_argument(
@@ -30,10 +52,10 @@ def main():
         help="If it should evaluate the input or output dataset. Possible values: ['input', 'output'].",
         default="input",
     )
-    parser.add_argument("--name", type=str, required=False, help="name of the model in the autoclass")
+    parser.add_argument("--model-id", type=str, required=False, help="Model identifier for the autoclass (e.g. 'nvidia/llama-3.1-nemotron-safety-guard-8b-v3')")
     parser.add_argument("--type", type=str, required=False, help="rest or hf")
     parser.add_argument("--save_dir", type=str, required=False, help="path to save results in")
-    parser.add_argument("--kwargs", type=str, required=False)
+    parser.add_argument("--model-kwarg", action="append", metavar="KEY=VALUE", help="Supervisor keyword argument (repeatable, e.g. --model-kwarg backend=vllm)")
     parser.add_argument("--lab", type=str, required=False, help="The lab name, only for REST supervisors")
     parser.add_argument("--model_name", type=str, required=False, help="The model name, only for REST supervisors")
     parser.add_argument("--batch_size", type=int, required=False, help="Batch size to use, defaults to 1", default=1)
@@ -53,9 +75,7 @@ def main():
     target_column = "category"
 
     # Supervisor configuration
-    supervisor_string = (
-        args.name or "nvidia/llama-3.1-nemotron-safety-guard-8b-v3"
-    )  # Change this to the according string used in the Auto classes
+    supervisor_string = args.model_id or "nvidia/llama-3.1-nemotron-safety-guard-8b-v3"
 
     supervisor_type = args.type or "hf"
     if supervisor_type == "hf":
@@ -64,15 +84,11 @@ def main():
         lab = args.lab
         model_name = args.model_name
         if not lab and model_name:
-            raise ValueError("For REST supervisors, you need to pass --lab= and --model_name=.")
+            raise ValueError("For REST supervisors, you need to pass --lab and --model_name.")
 
-    # Supervisor kwargs, some need project ids or similar to be specified
-    if supervisor_type == "hf":
-        supervisor_kwargs = {"backend": "vllm"}
-    else:
-        supervisor_kwargs = {}
-    if args.kwargs is not None:
-        supervisor_kwargs |= json.loads(args.kwargs)
+    # Parse supervisor kwargs from repeatable --model-kwarg key=value args
+    supervisor_kwargs = {"backend": "vllm"} if supervisor_type == "hf" else {}
+    supervisor_kwargs |= _parse_kwargs(args.model_kwarg or [])
     print(f"INFO: Supervisor Kwargs: {supervisor_kwargs}")
 
     # Output configuration
