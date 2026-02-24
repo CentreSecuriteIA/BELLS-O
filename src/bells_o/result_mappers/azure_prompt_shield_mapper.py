@@ -18,9 +18,16 @@ def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
     """
     try:
         flagged = output["userPromptAnalysis"]["attackDetected"]
-    except KeyError as e:
-        print(f"DEBUGGING: output: {output}")
-        raise KeyError from e
+    except KeyError:
+        try:
+            error_code = output["error"]["code"]
+            if error_code == "InvalidRequestBody":  # handles prompts that are too long
+                flagged = False  # result is unflagged
+            else:
+                print(f"DEBUG: value error: {output}")
+        except KeyError as e:
+            print(f"DEBUGGING: output: {output}")
+            raise KeyError from e
 
     result = Result(jailbreak=flagged)
     return result

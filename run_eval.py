@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# %%
 # Imports
 """Simple script to run any supervisor on any HuggingFace dataset.
 
@@ -19,7 +18,7 @@ load_dotenv()
 
 from bells_o import Evaluator, HuggingFaceDataset, Result, Usage
 from bells_o.evaluator import DatasetConfig
-from bells_o.supervisors import AutoHuggingFaceSupervisor, AutoRestSupervisor
+from bells_o.supervisors import AutoCustomSupervisor, AutoHuggingFaceSupervisor, AutoRestSupervisor
 
 
 TRUTHY_DEFAULTS: dict[str, list[str]] = {
@@ -103,17 +102,53 @@ def main():
 
     # Dataset configuration (mutually exclusive: --config or inline flags)
     dataset_group = parser.add_argument_group("dataset configuration")
-    dataset_group.add_argument("--config", type=str, required=False, help="Path to a JSON config file defining one or more datasets")
-    dataset_group.add_argument("--dataset-id", type=str, required=False, help="HuggingFace dataset identifier (e.g. 'bells-o-project/content-moderation-input')")
-    dataset_group.add_argument("--usage", type=str, required=False, help="Usage type (e.g. 'content_moderation', 'jailbreak')")
-    dataset_group.add_argument("--input-column", type=str, required=False, default="prompt", help="Name of the input column in the dataset (default: 'prompt')")
-    dataset_group.add_argument("--target-column", type=str, required=False, default="category", help="Name of the target column in the dataset (default: 'category')")
-    dataset_group.add_argument("--truthy-value", action="append", metavar="VALUE", help="Values in the target column that map to True (repeatable, prefix with '!' to negate, e.g. --truthy-value '!Benign')")
+    dataset_group.add_argument(
+        "--config", type=str, required=False, help="Path to a JSON config file defining one or more datasets"
+    )
+    dataset_group.add_argument(
+        "--dataset-id",
+        type=str,
+        required=False,
+        help="HuggingFace dataset identifier (e.g. 'bells-o-project/content-moderation-input')",
+    )
+    dataset_group.add_argument(
+        "--usage", type=str, required=False, help="Usage type (e.g. 'content_moderation', 'jailbreak')"
+    )
+    dataset_group.add_argument(
+        "--input-column",
+        type=str,
+        required=False,
+        default="prompt",
+        help="Name of the input column in the dataset (default: 'prompt')",
+    )
+    dataset_group.add_argument(
+        "--target-column",
+        type=str,
+        required=False,
+        default="category",
+        help="Name of the target column in the dataset (default: 'category')",
+    )
+    dataset_group.add_argument(
+        "--truthy-value",
+        action="append",
+        metavar="VALUE",
+        help="Values in the target column that map to True (repeatable, prefix with '!' to negate, e.g. --truthy-value '!Benign')",
+    )
 
     # Supervisor configuration
-    parser.add_argument("--model-id", type=str, required=False, help="Model identifier for the autoclass (e.g. 'nvidia/llama-3.1-nemotron-safety-guard-8b-v3')")
+    parser.add_argument(
+        "--model-id",
+        type=str,
+        required=False,
+        help="Model identifier for the autoclass (e.g. 'nvidia/llama-3.1-nemotron-safety-guard-8b-v3')",
+    )
     parser.add_argument("--type", type=str, required=False, help="rest or hf")
-    parser.add_argument("--model-kwarg", action="append", metavar="KEY=VALUE", help="Supervisor keyword argument (repeatable, e.g. --model-kwarg backend=vllm)")
+    parser.add_argument(
+        "--model-kwarg",
+        action="append",
+        metavar="KEY=VALUE",
+        help="Supervisor keyword argument (repeatable, e.g. --model-kwarg backend=vllm)",
+    )
     parser.add_argument("--lab", type=str, required=False, help="The lab name, only for REST supervisors")
     parser.add_argument("--model_name", type=str, required=False, help="The model name, only for REST supervisors")
 
@@ -122,11 +157,7 @@ def main():
     parser.add_argument("--batch_size", type=int, required=False, help="Batch size to use, defaults to 1", default=1)
     args = parser.parse_args()
 
-    # %%
-    # ============================================================================
     # Dataset configuration
-    # ============================================================================
-
     if args.config:
         with open(args.config) as f:
             config_data = json.load(f)
@@ -146,25 +177,32 @@ def main():
     else:
         parser.error("Provide either --config or both --dataset-id and --usage.")
 
-    # ============================================================================
     # Supervisor configuration
-    # ============================================================================
-
-    supervisor_string = args.model_id or "nvidia/llama-3.1-nemotron-safety-guard-8b-v3"
-
     supervisor_type = args.type or "hf"
-    if supervisor_type == "hf":
-        lab, model_name = supervisor_string.split("/")  # for HF supervisors
-    else:
-        lab = args.lab
-        model_name = args.model_name
-        if not lab and model_name:
-            raise ValueError("For REST supervisors, you need to pass --lab and --model_name.")
 
     # Parse supervisor kwargs from repeatable --model-kwarg key=value args
     supervisor_kwargs = {"backend": "vllm"} if supervisor_type == "hf" else {}
     supervisor_kwargs |= _parse_kwargs(args.model_kwarg or [])
-    print(f"INFO: Supervisor Kwargs: {supervisor_kwargs}")
+
+    supervisor_string = args.model_id or "nvidia/llama-3.1-nemotron-safety-guard-8b-v3"
+
+    print(f"INFO: Model ID: {supervisor_string}, Supervisor Kwargs: {supervisor_kwargs}")
+
+    # Load supervisor
+    if supervisor_type == "hf":
+        lab, model_name = supervisor_string.split("/")  # for HF supervisors
+        supervisor = AutoHuggingFaceSupervisor.load(supervisor_string, **supervisor_kwargs)
+    elif supervisor_type == "rest":
+        lab = args.lab
+        model_name = args.model_name
+        if not lab and model_name:
+            raise ValueError("For REST supervisors, you need to pass --lab and --model_name.")
+        supervisor = AutoRestSupervisor.load(supervisor_string, **supervisor_kwargs)
+    elif supervisor_type == "custom":
+        lab, model_name = supervisor_string.split("/")  # for HF supervisors
+        supervisor = AutoCustomSupervisor.load(supervisor_string, **supervisor_kwargs)
+    else:
+        raise ValueError(f"Unknown supervisor type '{supervisor_type}'. Expected 'hf', 'rest', or 'custom'.")
 
     # Output configuration
     save_dir = Path(args.save_dir).resolve() if args.save_dir else Path("results").resolve()
@@ -172,18 +210,6 @@ def main():
     run_id = model_name
     verbose = True
 
-    # ============================================================================
-    # Load supervisor
-    # ============================================================================
-
-    if supervisor_type == "rest":
-        supervisor = AutoRestSupervisor.load(supervisor_string, **supervisor_kwargs)
-    elif supervisor_type == "hf":
-        supervisor = AutoHuggingFaceSupervisor.load(supervisor_string, **supervisor_kwargs)
-    else:
-        raise ValueError(f"Unknown supervisor type '{supervisor_type}'. Expected 'rest' or 'hf'.")
-
-    # %%
     # Create evaluator and run
     evaluator = Evaluator(
         dataset_configs,
@@ -197,7 +223,6 @@ def main():
 
     print(f"\nDone! Results saved to {save_dir_full}")
 
-    # %%
     del evaluator
     gc.collect()
 

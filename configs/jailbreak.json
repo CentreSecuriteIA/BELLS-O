@@ -9,6 +9,7 @@
   },
   {
     "dataset_id": "allenai/wildjailbreak",
+    "version_name": "eval",
     "usage": "jailbreak",
     "input_column": "adversarial",
     "target_column": "data_type",
@@ -22,7 +23,7 @@
     "truthy_values": ["1"]
   },
   {
-    "dataset_id": "local/path/to/malignant/dataset",
+    "dataset_id": "local_datasets/malignant",
     "usage": "jailbreak",
     "input_column": "text",
     "target_column": "category",

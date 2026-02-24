@@ -66,24 +66,42 @@ class LLamaPromptGuardV2Supervisor(HuggingFaceSupervisor):
                 PreTrainedTokenizerBase,  # pre-caching
             )
 
-            self._tokenizer = AutoTokenizer.from_pretrained(self.name, **self._tokenizer_kwargs)
-            self._model = AutoModelForSequenceClassification.from_pretrained(self.name, trust_remote_code=True)
+            self._tokenizer = AutoTokenizer.from_pretrained(self.name, **self.tokenizer_kwargs)
+            self._model = AutoModelForSequenceClassification.from_pretrained(
+                self.name, trust_remote_code=True, **self.model_kwargs
+            )
+
+    def _judge_sample(self, inputs: list[str]) -> tuple[float, Any, Any]:
+        """Run tokenization and forward pass.
+
+        Outsourced for clarity.
+        """
+        import torch
+        from transformers import PreTrainedTokenizerBase
+
+        with torch.no_grad():
+            assert isinstance(self._tokenizer, PreTrainedTokenizerBase), f"Got {type(self._tokenizer)}"
+            encoded_batch = self._tokenizer(inputs, return_tensors="pt", truncation=True, padding=True).to(
+                device=getattr(self._model, "device")
+            )
+
+            start_time = time()
+            outputs = self._model(**encoded_batch, **self.generation_kwargs)
+            generation_time = time() - start_time
+        return generation_time, outputs, encoded_batch
 
     def _judge_transformers(self, inputs: list[str]) -> list[OutputDict]:
         """Reimplementation of `super._judge_transformers` with minor changes to accomodate `AutoModelForSequenceClassification`."""
         assert self.backend == "transformers", (
             f'Backend should be "transformers" at this point, but got "{self.backend}".'
         )
-        from transformers import PreTrainedTokenizerBase
+        import torch
 
-        assert isinstance(self._tokenizer, PreTrainedTokenizerBase), f"Got {type(self._tokenizer)}"
-        encoded_batch = self._tokenizer(inputs, return_tensors="pt", truncation=True, padding=True).to(
-            device=getattr(self._model, "device")
-        )
-
-        start_time = time()
-        outputs = self._model(**encoded_batch, **self.generation_kwargs)
-        generation_time = time() - start_time
+        try:
+            generation_time, outputs, encoded_batch = self._judge_sample(inputs)
+        except torch.cuda.OutOfMemoryError:
+            torch.cuda.empty_cache()
+            generation_time, outputs, encoded_batch = self._judge_sample(inputs)
 
         scores = cast(Tensor, outputs["logits"]).tolist()
         batch_size = len(inputs)

@@ -212,7 +212,6 @@ class Evaluator:
                 output_dict["metadata"]["started_at"] = started_at
                 output_dict["metadata"]["ended_at"] = _now()
                 output_dict["metadata"]["num_prompts"] = len(indices)
-                output_dict["metadata"]["supervisor"] = self.supervisor.metadata()
                 # Re-save if we're saving iteratively to update metadata
                 if save and "prompt_id" in output_dict.get("metadata", {}):
                     self._save_single_result(dataset_name, output_dict["metadata"]["prompt_id"], run_id, output_dict)
@@ -248,6 +247,7 @@ class Evaluator:
                 result_dict["metadata"]["prompt_id"] = item["prompt_id"]
                 result_dict["metadata"]["prompt"] = item["prompt"]
                 result_dict["metadata"]["target"] = item["target"]
+                result_dict["metadata"]["supervisor"] = self.supervisor.metadata()
 
             run_dict[item["prompt_id"]] = result_dict
             processed += 1
@@ -330,8 +330,13 @@ class Evaluator:
         file_path.parent.mkdir(parents=True, exist_ok=True)
         result_dict["target_result"] = dict(result_dict["target_result"])
         result_dict["output_result"] = dict(result_dict["output_result"])
-        with open(file_path, "w") as f:
-            f.write(json.dumps(result_dict, indent=2))
+        try:
+            with open(file_path, "w") as f:
+                f.write(json.dumps(result_dict, indent=2))
+        except Exception:
+            print(f"DEBUG: result_dict: {result_dict}")
+            print(f"DEBUG: types: {[(k, type(v)) for k, v in result_dict.items()]}")
+            raise
 
 
 def _clean_string(string: str):

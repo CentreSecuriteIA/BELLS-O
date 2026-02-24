@@ -138,7 +138,7 @@ class RestSupervisor(Supervisor):
             try:
                 output_raw = response.json()
                 no_valid_response = False
-            except JSONDecodeError:
+            except JSONDecodeError: # Usually a faulty output, so rerun. Note that it can lead to infinite while loop
                 continue
 
         assert isinstance(output_raw, dict)

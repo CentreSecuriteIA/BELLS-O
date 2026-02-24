@@ -13,7 +13,6 @@ from ..rest_supervisor import RestSupervisor
 
 def xai_map(output: dict[str, Any], usage: Usage = Usage(), original_mapper: ResultMapper | None = None) -> Result:
     """Handle XAI specific failure mode. Otherwise identical to OpenAI compatible One mapper."""
-    print("DEBUGGING: in xai_map")
     try:
         return original_mapper(output, usage)  # type: ignore
     except KeyError:  # XAI API has safety measures that change the response body
