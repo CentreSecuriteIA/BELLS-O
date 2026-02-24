@@ -1,3 +1,6 @@
 [submodule "leaderboard"]
-	path = leaderboard
-	url = https://huggingface.co/spaces/bells-o-project/content-moderation
+	path = content-moderation-leaderboard
+	url = https://huggingface.co/spaces/bells-o-project/content-moderation-leaderboard
+[submodule "jailbreak-leaderboard"]
+	path = jailbreak-leaderboard
+	url = https://huggingface.co/spaces/bells-o-project/jailbreak-leaderboard

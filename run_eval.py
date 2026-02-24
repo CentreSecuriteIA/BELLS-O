@@ -10,6 +10,7 @@ import gc
 import json
 from argparse import ArgumentParser
 from pathlib import Path
+from typing import Any
 
 from dotenv import load_dotenv
 
@@ -144,10 +145,10 @@ def main():
     )
     parser.add_argument("--type", type=str, required=False, help="rest or hf")
     parser.add_argument(
-        "--model-kwarg",
+        "--supervisor-kwarg",
         action="append",
         metavar="KEY=VALUE",
-        help="Supervisor keyword argument (repeatable, e.g. --model-kwarg backend=vllm)",
+        help="Supervisor keyword argument (repeatable, e.g. --supervisor-kwarg backend=vllm)",
     )
     parser.add_argument("--lab", type=str, required=False, help="The lab name, only for REST supervisors")
     parser.add_argument("--model_name", type=str, required=False, help="The model name, only for REST supervisors")
@@ -181,8 +182,11 @@ def main():
     supervisor_type = args.type or "hf"
 
     # Parse supervisor kwargs from repeatable --model-kwarg key=value args
-    supervisor_kwargs = {"backend": "vllm"} if supervisor_type == "hf" else {}
-    supervisor_kwargs |= _parse_kwargs(args.model_kwarg or [])
+    supervisor_kwargs: dict[str, Any] = {"backend": "vllm"} if supervisor_type == "hf" else {}
+    supervisor_kwargs |= _parse_kwargs(args.supervisor_kwarg or [])
+
+    if supervisor_kwargs["backend"] == "transformers":
+        supervisor_kwargs["model_kwargs"] = {"device_map": "auto"}
 
     supervisor_string = args.model_id or "nvidia/llama-3.1-nemotron-safety-guard-8b-v3"
 
@@ -192,6 +196,7 @@ def main():
     if supervisor_type == "hf":
         lab, model_name = supervisor_string.split("/")  # for HF supervisors
         supervisor = AutoHuggingFaceSupervisor.load(supervisor_string, **supervisor_kwargs)
+        print(f"DEBUG: Supervisor device: {supervisor._model.device}")
     elif supervisor_type == "rest":
         lab = args.lab
         model_name = args.model_name
