@@ -185,8 +185,9 @@ def main():
     supervisor_kwargs: dict[str, Any] = {"backend": "vllm"} if supervisor_type == "hf" else {}
     supervisor_kwargs |= _parse_kwargs(args.supervisor_kwarg or [])
 
-    if supervisor_kwargs["backend"] == "transformers":
-        supervisor_kwargs["model_kwargs"] = {"device_map": "auto"}
+    if supervisor_type == "hf":
+        if supervisor_kwargs["backend"] == "transformers":
+            supervisor_kwargs["model_kwargs"] = {"device_map": "auto"}
 
     supervisor_string = args.model_id or "nvidia/llama-3.1-nemotron-safety-guard-8b-v3"
 
