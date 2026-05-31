@@ -27,6 +27,6 @@
     "usage": "jailbreak",
     "input_column": "text",
     "target_column": "category",
-    "truthy_values": ["!conversation"]
+    "truthy_values": ["jailbreak"]
   }
 ]
