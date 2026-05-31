@@ -10,6 +10,7 @@ from .lakeraguard_mapper import mapper as lakeraguard
 from .mistral_mapper import mapper as mistral
 from .neuraltrust_trustgate_mapper import mapper as neuraltrust
 from .openai_mapper import mapper as openai
+from .opencc_mapper import mapper as opencc
 from .openrouter_mapper import mapper as openrouter
 from .together_mapper import mapper as together
 from .xai_mapper import mapper as xai
@@ -29,4 +30,5 @@ __all__ = [
     "aws",
     "azure_prompt_shield",
     "neuraltrust",
+    "opencc",
 ]

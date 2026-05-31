@@ -14,6 +14,7 @@ from .huggingface_api import HuggingFaceApiSupervisor
 from .lakeraguard import LakeraGuardDefaultSupervisor, LakeraGuardSupervisor
 from .mistral import MistralClassificationSupervisor, MistralSupervisor
 from .openai import OpenAiModerationSupervisor, OpenAiSupervisor
+from .opencc import OpenCCSupervisor
 from .openrouter import (
     GptOssSafeguard20Supervisor,
     OpenRouterSupervisor,
@@ -57,4 +58,5 @@ __all__ = [
     "AwsSupervisor",
     "BedrockGuardrailSupervisor",
     "AzurePromptShieldSupervisor",
+    "OpenCCSupervisor",
 ]

@@ -28,6 +28,7 @@ MODEL_MAPPING = {
     "openrouter-gpt-oss-safeguard": ("openrouter", "GptOssSafeguard20Supervisor"),
     "bedrock-guardrail": ("aws", "BedrockGuardrailSupervisor"),
     "neuraltrust-trustgate": ("neuraltrust", "NeuralTrustTrustGateSupervisor"),
+    "opencc": ("opencc", "OpenCCSupervisor"),
 }
 
 
