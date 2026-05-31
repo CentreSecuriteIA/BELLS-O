@@ -1,0 +1,10 @@
+SAVE_DIR="leaderboard/results"
+
+CONFIG="configs/jailbreak.json"
+
+source .venv/bin/activate
+
+python run_eval.py --model-id="meta-llama/llama-prompt-guard-2-86m" --type="hf" --save_dir=$SAVE_DIR --config=$CONFIG
+python run_eval.py --model-id="meta-llama/llama-prompt-guard-2-22m" --type="hf" --save_dir=$SAVE_DIR --config=$CONFIG
+python run_eval.py --model-id="leolee99/piguard" --type="hf" --save_dir=$SAVE_DIR --config=$CONFIG
+python run_eval.py --model-id="protectai/llm-guard" --type="custom" --save_dir=$SAVE_DIR --config=$CONFIG

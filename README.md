@@ -1,5 +1,5 @@
 # BELLS Operational (BELLS-O)
-This library aims to bridge benchmarking and AI supervision systems for content-moderation, jailbreaking, and prompt injection. We provide a comprehensive framework to evaluate supervision systems across cost, latency and accuracy.
+This library aims to bridge benchmarking and AI supervision systems for content-moderation and jailbreaking (which subsumes prompt injection). We provide a comprehensive framework to evaluate supervision systems across cost, latency and accuracy.
 
 ## Installation
 We recommend using uv:
@@ -23,8 +23,7 @@ pip install -e BELLS-O
 ### The Idea
 The framework classifies supervision systems to be a member of one or more of the following categories:
 - Content Moderation
-- Jailbreak safe guards
-- Prompt Injection safe guards
+- Jailbreak safe guards (including prompt injection)
 
 Different supervision systems are wrapped by a `Supervisor` class to enable a unified interface for easy benchmarking, configuration, comparison, etc.
 

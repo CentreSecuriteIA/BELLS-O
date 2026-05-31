@@ -1,0 +1,28 @@
+SAVE_DIR="leaderboard/results"
+
+BATCH_SIZE=40
+CONFIG="configs/jailbreak.json"
+
+LAKERA_PROJECT_ID=
+NEURALTRUST_POLICY_ID=
+AZURE_ENDPOINT=
+source .venv/bin/activate
+
+#specialized supervisors
+python run_eval.py --model-id="lakeraguard-default" --type="rest" --model-kwarg project_id=$LAKERA_PROJECT_ID --save_dir=$SAVE_DIR --lab="Lakera" --model_name="lakera-guard_default" --config=$CONFIG --batch_size=$BATCH_SIZE
+python run_eval.py --model-id="neuraltrust-trustgate" --type="rest" --model-kwarg policy_id=$NEURALTRUST_POLICY_ID --save_dir=$SAVE_DIR --lab="NeuralTrust" --model_name="TrustGate PromptGuard" --config=$CONFIG --batch_size=$BATCH_SIZE
+python run_eval.py --model-id="azure-prompt-shield" --type="rest" --model-kwarg endpoint=$AZURE_ENDPOINT--save_dir=$SAVE_DIR --lab="Azure" --model_name="PromptShield" --config=$CONFIG --batch_size=$BATCH_SIZE
+
+#generalist supervisors
+python run_eval.py --model-id="anthropic-classification" --type="rest" --model-kwarg used_for="input" --save_dir=$SAVE_DIR --lab="anthropic" --model_name="claude-sonnet-4-5" --config=$CONFIG
+python run_eval.py --model-id="anthropic-classification" --type="rest" --model-kwarg model=claude-haiku-4-5 --model-kwarg used_for="input" --save_dir=$SAVE_DIR --lab="anthropic" --model_name="claude-haiku-4-5" --config=$CONFIG
+python run_eval.py --model-id="bedrock-guardrail" --type="rest" --model-kwarg source="input" --model-kwarg guardrail_identifier=$AWS_GUARDRAIL_ID --save_dir=$SAVE_DIR --lab="aws" --model_name="bedrock-guardrail" --config=$CONFIG
+python run_eval.py --model-id="google-classification" --type="rest" --model-kwarg used_for="input" --save_dir=$SAVE_DIR --lab="google" --model_name="gemini-2.5-flash" --config=$CONFIG
+python run_eval.py --model-id="mistral-classification" --type="rest" --model-kwarg used_for="input" --save_dir=$SAVE_DIR --lab="mistral" --model_name="ministral-3b-2512" --config=$CONFIG
+python run_eval.py --model-id="mistral-classification" --type="rest" --model-kwarg model=mistral-large-2512 --model-kwarg used_for="input" --save_dir=$SAVE_DIR --lab="mistral" --model_name="mistral-large-3" --config=$CONFIG
+python run_eval.py --model-id="openai-classification" --type="rest" --model-kwarg used_for="input" --save_dir=$SAVE_DIR --lab="openai" --model_name="gpt-5-nano" --config=$CONFIG
+python run_eval.py --model-id="openai-classification" --type="rest" --model-kwarg model=gpt-5.2-2025-12-11 --model-kwarg used_for="input" --save_dir=$SAVE_DIR --lab="openai" --model_name="gpt-5.2" --config=$CONFIG
+python run_eval.py --model-id="openrouter-gpt-oss-safeguard" --type="rest" --model-kwarg used_for="input" --save_dir=$SAVE_DIR --lab="openai" --model_name="gpt-oss-safeguard-20b" --config=$CONFIG
+python run_eval.py --model-id="together-gpt-oss" --type="rest" --model-kwarg used_for="input" --save_dir=$SAVE_DIR --lab="openai" --model_name="gpt-oss-20b" --config=$CONFIG
+python run_eval.py --model-id="together-gpt-oss" --type="rest" --model-kwarg model=openai/gpt-oss-120b --model-kwarg used_for="input" --save_dir=$SAVE_DIR --lab="openai" --model_name="gpt-oss-120b" --config=$CONFIG
+python run_eval.py --model-id="xai-classification" --type="rest" --model-kwarg model=grok-4-1-fast-non-reasoning --model-kwarg used_for="input" --save_dir=$SAVE_DIR --lab="x-ai" --model_name="grok-4-1-fast-non-reasoning" --config=$CONFIG

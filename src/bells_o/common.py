@@ -19,13 +19,15 @@ if TYPE_CHECKING:
 
 
 ### Usage Type definitions for type hinting, based on USAGE_TYPES defined above
-UsageType = Literal["jailbreak", "prompt_injection", "content_moderation"]
+UsageType = Literal[
+    "jailbreak",
+    "content_moderation",
+]
 
 UsageTypes = TypedDict(
     "UsageTypes",
     {
         "jailbreak": NotRequired[bool],
-        "prompt_injection": NotRequired[bool],
         "content_moderation": NotRequired[bool],
     },
 )
@@ -41,7 +43,7 @@ class Usage(dict):
 
         All usage types that were listed during initialization will be set to true, the rest to False. All `<usage_type>` values can
         be accessed via `Usage()[<usage_type>]`.
-        To be instantiated as: usage_type = Usage('Jailbreak', 'content_mOdEration', 'prompt_injection')
+        To be instantiated as: usage_type = Usage('Jailbreak', 'content_mOdEration')
 
         Args:
             *args (str): Usage types that are supported
@@ -112,4 +114,4 @@ T = TypeVar("T", bound="RestSupervisor")
 
 RequestMapper = Callable[[T, str], dict[str, str]]  # for json output
 type AuthMapper = Callable[["RestSupervisor"], dict[str, str]]  # for json output
-type ResultMapper = Callable[[str, Usage], Result] | Callable[[dict[str, Any], Usage], Result]
+type ResultMapper = Callable[[Any, Usage], Result]

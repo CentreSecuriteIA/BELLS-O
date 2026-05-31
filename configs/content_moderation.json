@@ -1,0 +1,16 @@
+[
+  {
+    "dataset_id": "bells-o-project/content-moderation-input",
+    "usage": "content_moderation",
+    "input_column": "prompt",
+    "target_column": "category",
+    "truthy_values": ["!Benign"]
+  },
+  {
+    "dataset_id": "bells-o-project/content-moderation-output",
+    "usage": "content_moderation",
+    "input_column": "prompt",
+    "target_column": "category",
+    "truthy_values": ["!Benign"]
+  }
+]

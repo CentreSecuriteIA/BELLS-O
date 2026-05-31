@@ -42,7 +42,7 @@ class RestSupervisor(Supervisor):
         self._needs_api = needs_api
 
         assert not needs_api or self.api_key, (
-            "You have to specify either the environment variabe in which the API key can be found (`api_variable`), or the API key itself (`api_key`)."
+            f"You have provide the API key in the default environment variable `{self.api_variable}`, set a custom environment variabe in which the API key can be found (by passing `api_variable`), or the API key itself (by passing `api_key`)."
         )
 
         super().__init__(name, usage, res_map_fn, pre_processing)
@@ -138,7 +138,7 @@ class RestSupervisor(Supervisor):
             try:
                 output_raw = response.json()
                 no_valid_response = False
-            except JSONDecodeError:
+            except JSONDecodeError:  # Usually a faulty output, so rerun. Note that it can lead to infinite while loop
                 continue
 
         assert isinstance(output_raw, dict)
