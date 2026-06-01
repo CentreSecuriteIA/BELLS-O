@@ -24,8 +24,7 @@ from bells_o.supervisors import AutoCustomSupervisor, AutoHuggingFaceSupervisor,
 
 TRUTHY_DEFAULTS: dict[str, list[str]] = {
     "content_moderation": ["!Benign"],
-    "jailbreak": ["jailbreak", "true", "1"],
-    "prompt_injection": ["injection", "true", "1"],
+    "jailbreak": ["jailbreak", "injection", "true", "1"],
 }
 
 
