@@ -10,7 +10,7 @@ from .one_mapper import mapper as one_map
 def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
     """Map the output format of OpenAI-compatible models with "1" as a harmful flag to `Result`.
 
-    The response structure is: output["choices"][0]["message"]["content"]
+    The response structure is: `output["choices"][0]["message"]["content"]`
 
     Args:
         output: A dict that is the raw response of a supervisor (OpenAI-compatible format).

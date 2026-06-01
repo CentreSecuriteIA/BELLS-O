@@ -10,7 +10,7 @@ from .one_mapper import mapper as one_map
 def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
     """Map the output format of Gemini classification to `Result`.
 
-    Parses Gemini's output["candidates"][0]["content"]["parts"][0]["text"] looking for "1" (harmful) or "0" (benign).
+    Parses Gemini's `output["candidates"][0]["content"]["parts"][0]["text"]` looking for "1" (harmful) or "0" (benign).
     The model is instructed to output 1 if harmful, 0 if benign.
     Additionally, handles scenario where output contains a blockReason (treat as "1"/harmful).
 

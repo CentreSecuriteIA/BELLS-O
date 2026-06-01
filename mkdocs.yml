@@ -1,0 +1,70 @@
+site_name: BELLS-O
+site_description: Bridging benchmarking and AI supervision systems for content-moderation and jailbreak detection.
+site_url: https://centresecuriteia.github.io/BELLS-O/
+repo_url: https://github.com/CentreSecuriteIA/BELLS-O
+repo_name: CentreSecuriteIA/BELLS-O
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - content.code.copy
+    - search.suggest
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_root_heading: true
+            show_source: true
+            show_signature_annotations: true
+            separate_signature: true
+            members_order: source
+            docstring_section_style: table
+            filters: ["!^_"]
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+
+nav:
+  - Home: index.md
+  - Contributing: contributing.md
+  - API Reference:
+      - Overview: api/index.md
+      - Evaluator: api/evaluator.md
+      - Supervisors: api/supervisors.md
+      - Datasets: api/datasets.md
+      - Preprocessors: api/preprocessors.md
+      - Result Mappers: api/result_mappers.md
+      - Common: api/common.md

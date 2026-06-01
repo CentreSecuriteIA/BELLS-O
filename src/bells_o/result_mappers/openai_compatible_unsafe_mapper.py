@@ -11,7 +11,7 @@ def mapper(output: dict[str, Any], usage: Usage = Usage()) -> Result:
     """Map the output format of OpenAI-compatible models with "unsafe" as a harmful flag to `Result`.
 
     Maps output "safe" or "unsafe" in the OpenAI-compatible chat completion format.
-    The response structure is: output["choices"][0]["message"]["content"]
+    The response structure is: `output["choices"][0]["message"]["content"]`
 
     Args:
         output: A dict that is the raw response of a supervisor (OpenAI-compatible format).
