@@ -34,7 +34,7 @@ class RestSupervisor(Supervisor):
         api_key: str | None = None,
         api_variable: str | None = None,
         needs_api: bool = True,
-        rate_limit_code: int = 429,
+        rate_limit_codes: list[int] = [429],
         custom_header: dict[str, str] = {},
     ):
         self._api_key = api_key
@@ -42,7 +42,7 @@ class RestSupervisor(Supervisor):
         self._needs_api = needs_api
 
         assert not needs_api or self.api_key, (
-            "You have to specify either the environment variabe in which the API key can be found (`api_variable`), or the API key itself (`api_key`)."
+            f"You have provide the API key in the default environment variable `{self.api_variable}`, set a custom environment variabe in which the API key can be found (by passing `api_variable`), or the API key itself (by passing `api_key`)."
         )
 
         super().__init__(name, usage, res_map_fn, pre_processing)
@@ -52,7 +52,7 @@ class RestSupervisor(Supervisor):
         self.auth_map_fn = auth_map_fn
         self.pre_processing = pre_processing
         self._provider_name = provider_name  # private
-        self.rate_limit_code = rate_limit_code
+        self.rate_limit_codes = rate_limit_codes
         self.custom_header = custom_header
 
     @property
@@ -131,14 +131,14 @@ class RestSupervisor(Supervisor):
             )
             latency = time() - start_time
 
-            if response.status_code == self.rate_limit_code:
+            if response.status_code in self.rate_limit_codes:
                 rate_limit = True
                 continue
 
             try:
                 output_raw = response.json()
                 no_valid_response = False
-            except JSONDecodeError:
+            except JSONDecodeError:  # Usually a faulty output, so rerun. Note that it can lead to infinite while loop
                 continue
 
         assert isinstance(output_raw, dict)

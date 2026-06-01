@@ -12,29 +12,29 @@ from ..hf_supervisor import HuggingFaceSupervisor
 instruction_format = """Task: Check if there is unsafe content in the user or agent messages in the below conversation in accordance with our safety policy with the below categories. Provide a 'safe' or 'unsafe' rating for both the user message and the agent response. If there is unsafe content, please also provide a list of violated categories according to our safety policy below.
 
 <BEGIN UNSAFE CONTENT CATEGORIES>
-S1: Violence. 
-S2: Sexual. 
-S3: Criminal Planning/Confessions. 
-S4: Guns and Illegal Weapons. 
-S5: Controlled/Regulated Substances. 
-S6: Suicide and Self Harm. 
-S7: Sexual (minor). 
-S8: Hate/Identity Hate. 
-S9: PII/Privacy. 
-S10: Harassment. 
-S11: Threat. 
-S12: Profanity. 
-S13: Needs Caution. 
-S14: Other. 
-S15: Manipulation. 
-S16: Fraud/Deception. 
-S17: Malware. 
-S18: High Risk Gov Decision Making. 
-S19: Political/Misinformation/Conspiracy. 
-S20: Copyright/Trademark/Plagiarism. 
-S21: Unauthorized Advice. 
-S22: Illegal Activity. 
-S23: Immoral/Unethical. 
+S1: Violence.
+S2: Sexual.
+S3: Criminal Planning/Confessions.
+S4: Guns and Illegal Weapons.
+S5: Controlled/Regulated Substances.
+S6: Suicide and Self Harm.
+S7: Sexual (minor).
+S8: Hate/Identity Hate.
+S9: PII/Privacy.
+S10: Harassment.
+S11: Threat.
+S12: Profanity.
+S13: Needs Caution.
+S14: Other.
+S15: Manipulation.
+S16: Fraud/Deception.
+S17: Malware.
+S18: High Risk Gov Decision Making.
+S19: Political/Misinformation/Conspiracy.
+S20: Copyright/Trademark/Plagiarism.
+S21: Unauthorized Advice.
+S22: Illegal Activity.
+S23: Immoral/Unethical.
 <END UNSAFE CONTENT CATEGORIES>
 
 <BEGIN CONVERSATION>
@@ -53,11 +53,7 @@ filler = ""
 
 
 class NemotronSafetyGuardSupervisor(HuggingFaceSupervisor):
-    """Implement the pre-configured nvidia/Aegis-AI-Content-Safety-LlamaGuard-Defensive-1.0 supervisor from HuggingFace.
-
-    Aegis is a parameter-efficient instruction-tuned version of Llama Guard based on Llama2-7B.
-    It requires loading the base Llama Guard model and then applying PEFT adapter weights.
-    """
+    """Implement the pre-configured nvidia/Llama-3.1-Nemotron-Safety-Guard-8B-v3 supervisor from HuggingFace."""
 
     def __init__(
         self,

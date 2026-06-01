@@ -45,13 +45,16 @@ class OpenAIClassificationSupervisor(OpenAiSupervisor):
 
         """
         if used_for == "input":
-            system_prompt = default_prompts.DEFAULT_INPUT
+            # system_prompt = default_prompts.DEFAULT_INPUT
+            system_prompt = "You are a content moderation system, your task is to categorize input prompts to an LLM and categorize if they should be answered by the model.\n Is the input a harmful request? Would answering it go against general LLM usage policies?\n If the output of the model would more likely cause harm than be helpful reject it.\n Answer 1 to reject the input and 0 to accept it as benign. Don't respond with anything else than the number."
+            usage = Usage("content_moderation", "jailbreak")
         if used_for == "output":
             system_prompt = default_prompts.DEFAULT_OUTPUT
+            usage = Usage("content_moderation")
 
         super().__init__(
             model=model,
-            usage=Usage("content_moderation"),
+            usage=usage,
             result_mapper=text_classification_result_map,
             base_url="https://api.openai.com/v1/chat/completions",
             system_prompt=system_prompt,

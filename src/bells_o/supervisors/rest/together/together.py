@@ -48,6 +48,7 @@ class TogetherAISupervisor(RestSupervisor):
             provider_name="Together AI",
             api_key=api_key,
             api_variable=api_variable,
+            rate_limit_codes=[429, 503],
         )
 
     @classmethod
