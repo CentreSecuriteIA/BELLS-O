@@ -109,7 +109,7 @@ def main():
         "--dataset-id",
         type=str,
         required=False,
-        help="HuggingFace dataset identifier (e.g. 'bells-o-project/content-moderation-input')",
+        help="HuggingFace dataset identifier (e.g. 'centrepourlasecuriteia/content-moderation-input-dataset')",
     )
     dataset_group.add_argument(
         "--usage", type=str, required=False, help="Usage type (e.g. 'content_moderation', 'jailbreak')"
