@@ -19,6 +19,7 @@ from .one_mapper import mapper as one_map
 from .openai_compatible_one_mapper import mapper as openai_compatible_one
 from .openai_compatible_unsafe_mapper import mapper as openai_compatible_unsafe
 from .openai_moderation_mapper import mapper as openai_moderation
+from .opencc_mapper import mapper as opencc
 from .protectai_llm_guard_mapper import mapper as protectai
 from .qwen3guard_mapper import mapper as qwen3guard
 from .unsafe_mapper import mapper as unsafe_map
@@ -51,4 +52,5 @@ __all__ = [
     "logit_compare",
     "protectai",
     "neuraltrust",
+    "opencc",
 ]
