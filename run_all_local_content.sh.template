@@ -1,4 +1,6 @@
-SAVE_DIR="leaderboard/results"
+#!/usr/bin/env bash
+
+SAVE_DIR="content-moderation-leaderboard/results"
 CONFIG="configs/content_moderation.json"
 source .venv/bin/activate
 
@@ -10,15 +12,15 @@ python run_eval.py --model-id="saillab/xguard" --type="hf" --save_dir=$SAVE_DIR 
 python run_eval.py --model-id="qwen/qwen3guard-gen-8b" --type="hf" --save_dir=$SAVE_DIR --config=$CONFIG
 python run_eval.py --model-id="qwen/qwen3guard-gen-0.6b" --type="hf" --save_dir=$SAVE_DIR --config=$CONFIG
 python run_eval.py --model-id="ibm-granite/granite-guardian-3.3-8b" --type="hf" --save_dir=$SAVE_DIR --config=$CONFIG
-python run_eval.py --model-id="govtech/lionguard-2" --type="hf" --model-kwarg backend=transformers --save_dir=$SAVE_DIR --config=$CONFIG
+python run_eval.py --model-id="govtech/lionguard-2" --type="hf" --supervisor-kwarg backend=transformers --save_dir=$SAVE_DIR --config=$CONFIG
 
 # Supervisors that require used_for (run per-dataset)
 for USED_FOR in input, output; do
     # NOTE: gpt-oss-safeguard-120b needs an H200 to run. Comment it out if you are using GPUs with less than 90GB VRAM.
-    python run_eval.py --model-id="openai/gpt-oss-safeguard-120b" --model-kwarg used_for=$USED_FOR --model-kwarg --type="hf" --save_dir=$SAVE_DIR --dataset-id="bells-o-project/content-moderation-$USED_FOR" --usage="content_moderation" --truthy-value="!Benign"
-    python run_eval.py --model-id="rakancorle1/thinkguard" --type="hf" --model-kwarg used_for=$USED_FOR --save_dir=$SAVE_DIR --dataset-id="bells-o-project/content-moderation-$USED_FOR" --usage="content_moderation" --truthy-value="!Benign"
-    python run_eval.py --model-id="allenai/wildguard" --type="hf" --model-kwarg used_for=$USED_FOR --save_dir=$SAVE_DIR --dataset-id="bells-o-project/content-moderation-$USED_FOR" --usage="content_moderation" --truthy-value="!Benign"
-    python run_eval.py --model-id="toxicityprompts/polyguard-ministral" --type="hf" --model-kwarg used_for=$USED_FOR --save_dir=$SAVE_DIR --dataset-id="bells-o-project/content-moderation-$USED_FOR" --usage="content_moderation" --truthy-value="!Benign"
-    python run_eval.py --model-id="toxicityprompts/polyguard-qwen" --type="hf" --model-kwarg used_for=$USED_FOR --save_dir=$SAVE_DIR --dataset-id="bells-o-project/content-moderation-$USED_FOR" --usage="content_moderation" --truthy-value="!Benign"
-    python run_eval.py --model-id="nvidia/llama-3.1-nemotron-safety-guard-8b-v3" --type="hf" --model-kwarg used_for=$USED_FOR --save_dir=$SAVE_DIR --dataset-id="bells-o-project/content-moderation-$USED_FOR" --usage="content_moderation" --truthy-value="!Benign"
+    python run_eval.py --model-id="openai/gpt-oss-safeguard-120b" --supervisor-kwarg used_for=$USED_FOR --type="hf" --save_dir=$SAVE_DIR --dataset-id="bells-o-project/content-moderation-$USED_FOR" --usage="content_moderation" --truthy-value="!Benign"
+    python run_eval.py --model-id="rakancorle1/thinkguard" --type="hf" --supervisor-kwarg used_for=$USED_FOR --save_dir=$SAVE_DIR --dataset-id="bells-o-project/content-moderation-$USED_FOR" --usage="content_moderation" --truthy-value="!Benign"
+    python run_eval.py --model-id="allenai/wildguard" --type="hf" --supervisor-kwarg used_for=$USED_FOR --save_dir=$SAVE_DIR --dataset-id="bells-o-project/content-moderation-$USED_FOR" --usage="content_moderation" --truthy-value="!Benign"
+    python run_eval.py --model-id="toxicityprompts/polyguard-ministral" --type="hf" --supervisor-kwarg used_for=$USED_FOR --save_dir=$SAVE_DIR --dataset-id="bells-o-project/content-moderation-$USED_FOR" --usage="content_moderation" --truthy-value="!Benign"
+    python run_eval.py --model-id="toxicityprompts/polyguard-qwen" --type="hf" --supervisor-kwarg used_for=$USED_FOR --save_dir=$SAVE_DIR --dataset-id="bells-o-project/content-moderation-$USED_FOR" --usage="content_moderation" --truthy-value="!Benign"
+    python run_eval.py --model-id="nvidia/llama-3.1-nemotron-safety-guard-8b-v3" --type="hf" --supervisor-kwarg used_for=$USED_FOR --save_dir=$SAVE_DIR --dataset-id="bells-o-project/content-moderation-$USED_FOR" --usage="content_moderation" --truthy-value="!Benign"
 done

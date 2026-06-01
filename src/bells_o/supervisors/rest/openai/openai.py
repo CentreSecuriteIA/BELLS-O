@@ -55,11 +55,16 @@ class OpenAiSupervisor(RestSupervisor):
             provider_name="OpenAI",
             api_key=api_key,
             api_variable=api_variable,
+            rate_limit_codes=[429, 400],
         )
 
     @classmethod
     def _get_token_counts(cls, output_raw: dict[str, Any]) -> dict[str, Any]:
-        input_tokens = output_raw["usage"]["prompt_tokens"]
-        output_tokens = output_raw["usage"]["completion_tokens"]
+        try:
+            input_tokens = output_raw["usage"]["prompt_tokens"]
+            output_tokens = output_raw["usage"]["completion_tokens"]
+        except KeyError:
+            print(f"DEBUG: output_raw: {output_raw}")
+            raise
 
         return {"input_tokens": input_tokens, "output_tokens": output_tokens}

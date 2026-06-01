@@ -155,6 +155,7 @@ def main():
 
     # Run configuration
     parser.add_argument("--save_dir", type=str, required=False, help="path to save results in")
+    parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--batch_size", type=int, required=False, help="Batch size to use, defaults to 1", default=1)
     args = parser.parse_args()
 
@@ -181,7 +182,7 @@ def main():
     # Supervisor configuration
     supervisor_type = args.type or "hf"
 
-    # Parse supervisor kwargs from repeatable --model-kwarg key=value args
+    # Parse supervisor kwargs from repeatable --supervisor-kwarg key=value args
     supervisor_kwargs: dict[str, Any] = {"backend": "vllm"} if supervisor_type == "hf" else {}
     supervisor_kwargs |= _parse_kwargs(args.supervisor_kwarg or [])
 
@@ -214,7 +215,7 @@ def main():
     save_dir = Path(args.save_dir).resolve() if args.save_dir else Path("results").resolve()
     save_dir_full = save_dir / lab
     run_id = model_name
-    verbose = True
+    verbose = args.verbose
 
     # Create evaluator and run
     evaluator = Evaluator(

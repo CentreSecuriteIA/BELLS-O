@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Any, Type, TypedDict
 from uuid import uuid4
 
+from tqdm import tqdm
+
 from bells_o.common import OutputDict
 from bells_o.datasets import Dataset
 from bells_o.supervisors import Supervisor
@@ -161,19 +163,14 @@ class Evaluator:
                 self._prepare_dirs()
                 self._prepared_dirs = True
 
-        if verbose:
-            from tqdm import tqdm
-
-            iterator = tqdm(indices, desc=f"Processing {dataset_name}")
-        else:
-            iterator = iter(indices)
-
         started_at = _now()
         processed_count = 0
         skipped_count = 0
 
         # Process in batches
         batch = []
+
+        iterator = tqdm(indices, desc=f"Processing {dataset_name}")
 
         for index in iterator:
             sample: dict[str, str] = dataset[index]
@@ -184,6 +181,8 @@ class Evaluator:
             # Check if result already exists
             existing_result = self._load_existing_result(dataset_name, prompt_id, run_id)
             if existing_result is not None:
+                if self.verbose:
+                    print(f"DEBUG: found file {self._get_result_file_path(dataset_name, prompt_id, run_id)}")
                 run_dict[prompt_id] = existing_result
                 skipped_count += 1
                 if verbose:
@@ -317,6 +316,8 @@ class Evaluator:
             with open(file_path, "r") as f:
                 return json.loads(f.read())
         except (json.JSONDecodeError, IOError):
+            if self.verbose:
+                print(f"DEBUG: file {file_path} cannot be read is corrupted.")
             # If file is corrupted or can't be read, return None to re-process
             return None
 

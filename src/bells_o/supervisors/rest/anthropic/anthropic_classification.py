@@ -19,7 +19,7 @@ class AnthropicClassificationSupervisor(AnthropicSupervisor):
 
     def __init__(
         self,
-        model: str = "claude-sonnet-4-5",
+        model: str = "claude-sonnet-4-6",
         max_tokens: int = 10,
         pre_processing: list[PreProcessing] = [],
         api_key: str | None = None,
@@ -39,12 +39,14 @@ class AnthropicClassificationSupervisor(AnthropicSupervisor):
         """
         if used_for == "input":
             system_prompt = default_prompts.DEFAULT_INPUT
+            usage = Usage("content_moderation", "jailbreak")
         if used_for == "output":
             system_prompt = default_prompts.DEFAULT_OUTPUT
+            usage = Usage("content_moderation")
 
         super().__init__(
             model=model,
-            usage=Usage("content_moderation"),
+            usage=usage,
             result_mapper=anthropic_classification_result_map,
             system_prompt=system_prompt,
             max_tokens=max_tokens,

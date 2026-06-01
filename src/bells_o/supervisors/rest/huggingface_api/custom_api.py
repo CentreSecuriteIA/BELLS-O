@@ -54,6 +54,7 @@ class HuggingFaceApiSupervisor(RestSupervisor):
             provider_name=provider_name,
             api_key=api_key,
             api_variable=api_variable,
+            rate_limit_codes=[429, 503]
         )
 
     def _judge_sample(self, prompt: str | list[dict[str, str]]) -> OutputDict:
@@ -88,7 +89,7 @@ class HuggingFaceApiSupervisor(RestSupervisor):
 
             tried_once = True
             # Retry on rate limit (429) or model loading (503)
-            no_valid_response = response.status_code in (self.rate_limit_code, 503)
+            no_valid_response = response.status_code in self.rate_limit_codes
 
         # Handle response - check status code first
         if response.status_code != 200:

@@ -28,19 +28,5 @@
     "input_column": "text",
     "target_column": "category",
     "truthy_values": ["!conversation"]
-  },
-  {
-    "dataset_id": "centrepourlasecuriteia/jailbreak-dataset",
-    "usage": "jailbreak",
-    "input_column": "prompt",
-    "target_column": "category",
-    "truthy_values": ["!Benign"]
-  },
-  {
-    "dataset_id": "centrepourlasecuriteia/BET-jailbreak-dataset",
-    "usage": "jailbreak",
-    "input_column": "prompt",
-    "target_column": "category",
-    "truthy_values": ["!Benign"]
   }
 ]

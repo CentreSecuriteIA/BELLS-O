@@ -37,12 +37,14 @@ class XAiClassificationSupervisor(XAiSupervisor):
         """
         if used_for == "input":
             system_prompt = default_prompts.DEFAULT_INPUT
+            usage = Usage("content_moderation", "jailbreak")
         if used_for == "output":
             system_prompt = default_prompts.DEFAULT_OUTPUT
+            usage = Usage("content_moderation")
 
         super().__init__(
             model=model,
-            usage=Usage("content_moderation"),
+            usage=usage,
             result_mapper=res_map,
             system_prompt=system_prompt,
             pre_processing=pre_processing,

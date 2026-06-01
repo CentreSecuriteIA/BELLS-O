@@ -1,0 +1,30 @@
+[
+  {
+    "dataset_id": "local_datasets/in-the-wild-jailbreak-prompts",
+    "usage": "jailbreak",
+    "input_column": "prompt",
+    "target_column": "jailbreak",
+    "truthy_values": ["true"]
+  },
+  {
+    "dataset_id": "local_datasets/wildjailbreak",
+    "usage": "jailbreak",
+    "input_column": "adversarial",
+    "target_column": "data_type",
+    "truthy_values": ["vanilla_harmful", "adversarial_harmful"]
+  },
+  {
+    "dataset_id": "local_datasets/prompt-injections",
+    "usage": "jailbreak",
+    "input_column": "text",
+    "target_column": "label",
+    "truthy_values": ["1"]
+  },
+  {
+    "dataset_id": "local_datasets/short_malignant",
+    "usage": "jailbreak",
+    "input_column": "text",
+    "target_column": "category",
+    "truthy_values": ["!conversation"]
+  }
+]
