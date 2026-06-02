@@ -230,25 +230,25 @@ factors and explore per-category accuracy and the Pareto frontier.
 > [live leaderboard](https://huggingface.co/spaces/centrepourlasecuriteia/bells-o-leaderboard) for
 > the full field, interactive weighting, and per-category breakdowns.
 
-### Content moderation — input prompts (top 15 of 29)
+### Content moderation — input prompts (top 15 of 30)
 
 | # | Model | Provider | Type | Overall Score | Detection % | FPR % | Latency (ms) | Total Cost (USD) |
 |---|-------|----------|------|:---:|:---:|:---:|:---:|:---:|
-| 1 | polyguard-qwen | RunPod | specialized | 6.25 | 93.5 | 0.0 | 167 | $0.156 |
-| 2 | gpt-oss-120b | Together AI | generalist | 8.25 | 93.2 | 0.0 | 724 | $0.032 |
-| 3 | lionguard-2 | RunPod | specialized | 9.25 | 88.5 | 1.0 | 10 | $0.009 |
-| 4 | virtueguard-text-lite | Together AI | specialized | 10.75 | 72.9 | 0.0 | 248 | $0.010 |
-| 5 | gpt-oss-safeguard-20b | OpenRouter | specialized | 11.25 | 88.8 | 0.0 | 508 | $0.110 |
-| 6 | polyguard-ministral | RunPod | specialized | 11.50 | 92.0 | 0.33 | 179 | $0.166 |
-| 7 | qwen3guard-gen-8b | RunPod | specialized | 11.50 | 94.5 | 0.67 | 190 | $0.177 |
-| 8 | ministral-3b-2512 | Mistral | generalist | 11.75 | 93.5 | 2.33 | 428 | $0.004 |
-| 9 | granite-guardian-3.3-8b | RunPod | specialized | 12.00 | 92.7 | 0.33 | 193 | $0.179 |
-| 10 | wildguard | RunPod | specialized | 12.25 | 92.1 | 1.0 | 168 | $0.156 |
-| 11 | grok-4-1-fast-non-reasoning | xAI | generalist | 13.00 | 82.6 | 0.0 | 923 | $0.065 |
-| 12 | lakera-guard_default | Lakera | specialized | 13.25 | 90.8 | 16.0 | 210 | $0.000 |
-| 13 | shieldgemma-27b | RunPod | specialized | 13.50 | 58.1 | 0.33 | 110 | $0.102 |
-| 14 | shieldgemma-2b | RunPod | specialized | 13.75 | 24.8 | 1.0 | 32 | $0.029 |
-| 15 | gpt-5-nano | OpenAI | generalist | 14.50 | 92.5 | 0.67 | 1560 | $0.049 |
+| 1 | polyguard-qwen | RunPod | specialized | 7.00 | 93.5 | 0.0 | 167 | $0.156 |
+| 2 | gpt-oss-120b | Together AI | generalist | 8.75 | 93.2 | 0.0 | 724 | $0.032 |
+| 3 | lionguard-2 | RunPod | specialized | 9.50 | 88.5 | 1.0 | 10 | $0.009 |
+| 4 | virtueguard-text-lite | Together AI | specialized | 11.25 | 72.9 | 0.0 | 248 | $0.010 |
+| 5 | opencc-cm-escalation | RunPod | specialized | 11.75 | 96.1 | 17.0 | 128 | $0.074 |
+| 6 | gpt-oss-safeguard-20b | OpenRouter | specialized | 12.00 | 88.8 | 0.0 | 508 | $0.110 |
+| 7 | polyguard-ministral | RunPod | specialized | 12.25 | 92.0 | 0.33 | 179 | $0.166 |
+| 8 | qwen3guard-gen-8b | RunPod | specialized | 12.25 | 94.5 | 0.67 | 190 | $0.177 |
+| 9 | ministral-3b-2512 | Mistral | generalist | 12.25 | 93.5 | 2.33 | 428 | $0.004 |
+| 10 | granite-guardian-3.3-8b | RunPod | specialized | 12.75 | 92.7 | 0.33 | 193 | $0.179 |
+| 11 | wildguard | RunPod | specialized | 13.00 | 92.1 | 1.0 | 168 | $0.156 |
+| 12 | grok-4-1-fast-non-reasoning | xAI | generalist | 13.50 | 82.6 | 0.0 | 923 | $0.065 |
+| 13 | lakera-guard_default | Lakera | specialized | 13.75 | 90.8 | 16.0 | 210 | $0.000 |
+| 14 | shieldgemma-27b | RunPod | specialized | 14.00 | 58.1 | 0.33 | 110 | $0.102 |
+| 15 | shieldgemma-2b | RunPod | specialized | 14.00 | 24.8 | 1.0 | 32 | $0.029 |
 
 ### Content moderation — output text (top 15 of 30)
 
