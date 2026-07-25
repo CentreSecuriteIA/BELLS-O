@@ -70,4 +70,11 @@ def mapper(
         if verbosity is not None:
             json_repr["verbosity"] = verbosity
 
+        # Pin sampling temperature (defaults to 0.0 on RestSupervisor) for reproducibility.
+        # Reasoning models (GPT-5, o-series) only accept the default temperature of 1 and
+        # reject any other value with HTTP 400, so they are deliberately skipped here.
+        temperature = getattr(supervisor, "temperature", None)
+        if temperature is not None and not ("gpt-5" in model_name or model_name.startswith("o")):
+            json_repr["temperature"] = temperature
+
     return json_repr

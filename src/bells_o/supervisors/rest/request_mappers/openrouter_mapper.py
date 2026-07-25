@@ -40,5 +40,10 @@ def mapper(
     if reasoning_enabled:
         json_repr["reasoning"] = {"enabled": True}
 
+    # Pin sampling temperature (defaults to 0.0 on RestSupervisor) for reproducibility
+    temperature = getattr(supervisor, "temperature", None)
+    if temperature is not None:
+        json_repr["temperature"] = temperature
+
     return json_repr
 

@@ -46,7 +46,14 @@ def mapper(
         body["safetySettings"] = safety_settings
 
     # You can also add generationConfig if needed (maxOutputTokens, etc.)
-    gen_config = kwargs.get("generation_config")
+    gen_config = dict(kwargs.get("generation_config") or {})
+
+    # Pin sampling temperature (defaults to 0.0 on RestSupervisor) for reproducibility.
+    # An explicit generation_config wins, so callers can still override it.
+    temperature = getattr(supervisor, "temperature", None)
+    if temperature is not None:
+        gen_config.setdefault("temperature", temperature)
+
     if gen_config:
         body["generationConfig"] = gen_config
 

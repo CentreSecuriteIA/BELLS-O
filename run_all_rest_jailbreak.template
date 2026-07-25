@@ -14,7 +14,7 @@ python run_eval.py --model-id="neuraltrust-trustgate" --type="rest" --supervisor
 python run_eval.py --model-id="azure-prompt-shield" --type="rest" --supervisor-kwarg endpoint=$AZURE_ENDPOINT --save_dir=$SAVE_DIR --lab="Azure" --model_name="PromptShield" --config=$CONFIG --batch_size=$BATCH_SIZE
 
 #generalist supervisors
-python run_eval.py --model-id="anthropic-classification" --type="rest" --supervisor-kwarg used_for="input" --save_dir=$SAVE_DIR --lab="anthropic" --model_name="claude-sonnet-4-5" --config=$CONFIG
+python run_eval.py --model-id="anthropic-classification" --type="rest" --supervisor-kwarg model=claude-sonnet-4-6 --supervisor-kwarg used_for="input" --save_dir=$SAVE_DIR --lab="anthropic" --model_name="claude-sonnet-4-6" --config=$CONFIG
 python run_eval.py --model-id="anthropic-classification" --type="rest" --supervisor-kwarg model=claude-haiku-4-5 --supervisor-kwarg used_for="input" --save_dir=$SAVE_DIR --lab="anthropic" --model_name="claude-haiku-4-5" --config=$CONFIG
 python run_eval.py --model-id="bedrock-guardrail" --type="rest" --supervisor-kwarg source="input" --supervisor-kwarg guardrail_identifier=$AWS_GUARDRAIL_ID --save_dir=$SAVE_DIR --lab="aws" --model_name="bedrock-guardrail" --config=$CONFIG
 python run_eval.py --model-id="google-classification" --type="rest" --supervisor-kwarg used_for="input" --save_dir=$SAVE_DIR --lab="google" --model_name="gemini-2.5-flash" --config=$CONFIG

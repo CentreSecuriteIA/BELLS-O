@@ -18,6 +18,37 @@ if TYPE_CHECKING:
 SUPPORTED_BACKENDS = ["transformers", "vllm"]
 
 
+def _apply_temperature(generation_kwargs: dict[str, Any], temperature: float | None, backend: str) -> dict[str, Any]:
+    """Translate a supervisor-level temperature into backend-specific generation kwargs.
+
+    Without this, generation falls back to the sampling defaults: `SamplingParams()` uses
+    temperature 1.0 under vLLM, and `model.generate()` uses whatever `generation_config.json`
+    ships with the checkpoint (often `do_sample: true`) under transformers.
+
+    A temperature or do_sample already present in `generation_kwargs` was set deliberately by
+    a concrete supervisor (e.g. XGuardSupervisor) and always wins.
+
+    Args:
+        generation_kwargs (dict[str, Any]): The generation kwargs to extend.
+        temperature (float | None): Sampling temperature, or None to leave generation untouched.
+        backend (str): The inference backend the kwargs will be passed to.
+
+    Returns:
+        dict[str, Any]: The generation kwargs with the temperature applied.
+
+    """
+    if temperature is None or "temperature" in generation_kwargs or "do_sample" in generation_kwargs:
+        return generation_kwargs
+
+    if backend == "vllm":
+        return generation_kwargs | {"temperature": temperature}
+
+    # transformers rejects temperature=0.0; greedy decoding is expressed as do_sample=False
+    if temperature == 0:
+        return generation_kwargs | {"do_sample": False}
+    return generation_kwargs | {"do_sample": True, "temperature": temperature}
+
+
 class HuggingFaceSupervisor(Supervisor):
     """A concrete class that enables loading any HuggingFace model as a supervisor."""
 
@@ -33,11 +64,17 @@ class HuggingFaceSupervisor(Supervisor):
         generation_kwargs: dict[str, Any] = {},
         provider_name: str | None = None,
         backend: Literal["transformers", "vllm"] = "transformers",
+        temperature: float | None = 0.0,
     ):
         super().__init__(name, usage, res_map_fn, pre_processing)
         self._model_kwargs = model_kwargs
         self._tokenizer_kwargs = tokenizer_kwargs
-        self.generation_kwargs = generation_kwargs
+
+        # Sampling temperature for generative supervisors. Defaults to 0.0 so that repeated
+        # runs are reproducible; classifier-style supervisors that override `judge` never read
+        # this. Set to None to fall back to the backend/checkpoint default.
+        self.temperature = temperature
+        self.generation_kwargs = _apply_temperature(generation_kwargs, temperature, backend)
         self._provider_name = provider_name
 
         if getattr(self, "_supported_backends", None) is None:

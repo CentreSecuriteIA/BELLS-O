@@ -46,4 +46,10 @@ def mapper(
             if key in supervisor.generation_kwargs:
                 json_repr[key] = supervisor.generation_kwargs[key]
 
+    # Pin sampling temperature (defaults to 0.0 on RestSupervisor) for reproducibility.
+    # An explicit generation_kwargs["temperature"] above wins.
+    temperature = getattr(supervisor, "temperature", None)
+    if temperature is not None and "temperature" not in json_repr:
+        json_repr["temperature"] = temperature
+
     return json_repr

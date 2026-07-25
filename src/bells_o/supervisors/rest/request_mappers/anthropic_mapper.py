@@ -35,5 +35,10 @@ def mapper(
     if getattr(supervisor, "system_prompt", ""):
         json_repr["system"] = supervisor.system_prompt
 
+    # Pin sampling temperature (defaults to 0.0 on RestSupervisor) for reproducibility
+    temperature = getattr(supervisor, "temperature", None)
+    if temperature is not None:
+        json_repr["temperature"] = temperature
+
     return json_repr
 

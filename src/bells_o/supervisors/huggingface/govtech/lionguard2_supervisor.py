@@ -66,6 +66,8 @@ class LionGuard2Supervisor(HuggingFaceSupervisor):
             generation_kwargs=generation_kwargs,
             provider_name="Govtech",
             backend=backend,
+            # Classifier: judging runs an embedder plus a prediction head, never generation.
+            temperature=None,
         )
 
     @property

@@ -50,6 +50,9 @@ class LLamaPromptGuardV2Supervisor(HuggingFaceSupervisor):
             generation_kwargs=generation_kwargs,
             provider_name="Meta",
             backend=backend,
+            # Classifier: judging is a forward pass, not generation, so generation_kwargs are
+            # passed straight to `model(...)`. Injecting a sampling kwarg here is a TypeError.
+            temperature=None,
         )
 
     def _load_model_tokenizer(self):

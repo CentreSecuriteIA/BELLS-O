@@ -36,6 +36,7 @@ class RestSupervisor(Supervisor):
         needs_api: bool = True,
         rate_limit_codes: list[int] = [429],
         custom_header: dict[str, str] = {},
+        temperature: float | None = 0.0,
     ):
         self._api_key = api_key
         self._api_variable = api_variable
@@ -54,6 +55,12 @@ class RestSupervisor(Supervisor):
         self._provider_name = provider_name  # private
         self.rate_limit_codes = rate_limit_codes
         self.custom_header = custom_header
+
+        # Sampling temperature for generative (chat-completion) supervisors. Defaults to 0.0
+        # so that repeated runs are reproducible. Request mappers for non-generative
+        # endpoints (Azure, Lakera, NeuralTrust, AWS, OpenCC, OpenAI moderation) ignore this,
+        # since those APIs reject unknown fields. Set to None to fall back to the provider default.
+        self.temperature = temperature
 
     @property
     def api_key(self) -> str:  # noqa: D102
@@ -83,6 +90,8 @@ class RestSupervisor(Supervisor):
         """
         metadata = super().metadata()
         metadata["url"] = self.base_url
+        if self.temperature is not None:
+            metadata["temperature"] = self.temperature
         return metadata
 
     @classmethod
